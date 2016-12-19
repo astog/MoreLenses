@@ -54,6 +54,7 @@ If you are using [Chao's QUI](https://github.com/chaorace/cqui) follow these ste
 3. Follow the steps mentioned below, and you should be able to use CQUI and More Lenses together
 
 Once you have the mod follow these steps:
+
 1. Extract the file to your Mods folder. For me this is in *Documents\My Games\Sid Meier's Civilization VI\Mods*
 2. Activate the Mod in *Additional Content* inside Civilization VI.
 
