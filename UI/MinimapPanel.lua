@@ -3,7 +3,7 @@
 -- ===========================================================================
 include( "InstanceManager" );
 include( "Civ6Common.lua" );    -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
-include( "TradeSupport" );
+include( "TradeSupport" );		-- dump
 include( "SupportFunctions" );
 
 -- ===========================================================================
@@ -34,6 +34,8 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
+
+local m_isModdedMouseFeatureEnabled = true;
 
 -- Modded in hotkeys
 -- local BUILDER_LENS_HOTKEY = Keys.VK_CONTROL;
@@ -627,7 +629,8 @@ function OnLensLayerOff( layerNum:number )
 		if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
 			UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
 		end
-	elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then 
+	elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then
+		Alt_ClearHighlightedPlots();
 		-- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
 		if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
 			UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
@@ -823,42 +826,42 @@ function SetBuilderLensHexes()
 
 		if pPlot:GetOwner() == Game.GetLocalPlayer() then
 			table.insert(localPlayerHexes, i);
-
-			if plotHasImprovement(pPlot) then
-				if pPlot:IsImprovementPillaged() then
-					table.insert(repairableHexes, i);
+			if plotCanHaveImprovement(localPlayer, i) then
+				if plotHasImprovement(pPlot) then
+					if pPlot:IsImprovementPillaged() then
+						table.insert(repairableHexes, i);
+					else
+						table.insert(unworkableHexes, i);   
+					end
+				elseif plotHasWonder(pPlot) then
+					-- Check for a UA similiar to china's
+					if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete()) 
+						and isAncientClassicalWonder(pPlot:GetWonderType()) then
+							table.insert(specialHexes, i);
+					else
+						table.insert(unworkableHexes, i);
+					end
+				elseif plotHasDistrict(pPlot) then
+					-- Check for a UA similiar to Aztec's
+					if playerHasBuilderDistrictModifier(localPlayer) and (not pPlot:IsCity())
+						and (not districtComplete(localPlayer, i)) then
+							table.insert(specialHexes, i);
+					else
+						table.insert(unworkableHexes, i);
+					end
+				-- Plot has resource, but no improvement? Antinquity sites are not included
+				elseif plotHasResource(pPlot) and playerHasDiscoveredResource(localPlayer, i)
+					and (not plotHasAnitquitySite(pPlot)) and (not plotHasShipwreck(pPlot)) then
+						table.insert(resourceHexes, i);
+				elseif plotHasHill(pPlot) then
+					table.insert(hillHexes, i);
+				elseif plotHasRemovableFeature(pPlot) then
+					table.insert(featureHexes, i);
 				else
-					table.insert(unworkableHexes, i);   
+					table.insert(genericHexes, i);
 				end
-			elseif plotHasWonder(pPlot) then
-				-- Check for a UA similiar to china's
-				if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete()) 
-					and isAncientClassicalWonder(pPlot:GetWonderType()) then
-						table.insert(specialHexes, i);
-				else
-					table.insert(unworkableHexes, i);
-				end
-			elseif plotHasDistrict(pPlot) then
-				-- Check for a UA similiar to Aztec's
-				if playerHasBuilderDistrictModifier(localPlayer) and (not pPlot:IsCity())
-					and (not districtComplete(localPlayer, i)) then
-						table.insert(specialHexes, i);
-				else
-					table.insert(unworkableHexes, i);
-				end
-			-- Plot has resource, but no improvement? Antinquity sites are not included
-			elseif plotHasResource(pPlot) and playerHasDiscoveredResource(localPlayer, i)
-				and (not plotHasAnitquitySite(pPlot)) and (not plotHasShipwreck(pPlot)) then
-					table.insert(resourceHexes, i);
-			elseif plotHasHill(pPlot) then
-				table.insert(hillHexes, i);
-			elseif plotHasRemovableFeature(pPlot) then
-				table.insert(featureHexes, i);
-			-- Check for unbuildable hexes like mountain, plain water. TODO - flat snow/tundra/desert/tundra? Unique Improv? 
-			elseif pPlot:IsMountain() or pPlot:IsWater() then
-				table.insert(unworkableHexes, i);
 			else
-				table.insert(genericHexes, i);
+				table.insert(unworkableHexes, i);
 			end
 		end
 	end
@@ -1294,6 +1297,18 @@ function SetActiveModdedLens(lensID)
 	-- PlayerConfigurations[Game.GetLocalPlayer()]:SetValue("ModdedLens_CurrentModdedLensOn", dataDump);
 end
 
+function Alt_HighlightPlots(plotIndices)
+	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, Game.GetLocalPlayer(), plotIndices );
+
+	-- UILens.ToggleLayerOn(LensLayers.HEX_COLORING_ATTACK);
+	-- UILens.SetLayerHexesArea(LensLayers.HEX_COLORING_ATTACK, Game.GetLocalPlayer(), plotIndices);
+end
+
+function Alt_ClearHighlightedPlots()
+	UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
+	-- UILens.ToggleLayerOff(LensLayers.HEX_COLORING_ATTACK);
+end
+
 function GetCurrentModdedLens()
 	-- local localPlayerID = Game.GetLocalPlayer();
 	-- if(PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn") ~= nil) then
@@ -1378,9 +1393,187 @@ function plotHasGoodyHut(plot)
 	return false;
 end	
 
--- Checks if the plot can have an improvement (like plain desert, tundra, snow, water)
-function plotCanHaveImprovement(plot)
-	-- TODO: Write this.
+-- Checks if the plot can have an possible player buildable improvement.
+-- Note this is specific to builder
+function plotCanHaveImprovement(playerID, plotIndex)
+	local pPlot = Map.GetPlotByIndex(plotIndex)
+	local pPlayer = Players[playerID]
+
+	for improvementInfo in GameInfo.Improvements() do
+		if improvementInfo ~= nil and improvementInfo.Buildable then
+			-- Does the player the prereq techs and civis
+			if playerCanHave(playerID, improvementInfo) then
+				local improvementValid:boolean = false;
+				
+				-- Check for valid feature
+				for validFeatureInfo in GameInfo.Improvement_ValidFeatures() do
+					if validFeatureInfo ~= nil and validFeatureInfo.ImprovementType == improvementInfo.ImprovementType then
+						-- Does this plot have this feature?
+						local featureInfo = GameInfo.Features[validFeatureInfo.FeatureType]
+						if featureInfo ~= nil and pPlot:GetFeatureType() == featureInfo.Index then
+							if playerCanHave(playerID, featureInfo) then
+								-- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
+								improvementValid = true;
+								break;
+							end
+						end
+					end
+				end
+
+				-- Check for valid terrain
+				if not improvementValid then
+					for validTerrainInfo in GameInfo.Improvement_ValidTerrains() do
+						if validTerrainInfo ~= nil and validTerrainInfo.ImprovementType == improvementInfo.ImprovementType then
+							-- Does this plot have this terrain?
+							local terrainInfo = GameInfo.Terrains[validTerrainInfo.TerrainType]
+							if terrainInfo ~= nil and pPlot:GetTerrainType() == terrainInfo.Index then
+								if playerCanHave(playerID, terrainInfo) then
+									-- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
+									improvementValid = true;
+									break;
+								end
+							end
+						end
+					end
+				end
+
+				-- Check for valid resource
+				if not improvementValid then
+					for validResourceInfo in GameInfo.Improvement_ValidResources() do
+						if validResourceInfo ~= nil and validResourceInfo.ImprovementType == improvementInfo.ImprovementType then
+							-- Does this plot have this terrain?
+							local resourceInfo = GameInfo.Resources[validResourceInfo.ResourceType]
+							if resourceInfo ~= nil and pPlot:GetResourceType() == resourceInfo.Index then
+								if playerCanHave(playerID, resourceInfo) then
+									-- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
+									improvementValid = true;
+									break;
+								end
+							end
+						end
+					end
+				end
+
+				-- Special check for coastal requirement
+				if improvementInfo.Coast and (not pPlot:IsCoastalLand()) then
+					-- print(plotIndex .. " plot is not coastal")
+					improvementValid = false;
+				end
+
+				-- Finally check if the builder can construct this improvement
+				if improvementValid then
+					for improvementBuildUnits in GameInfo.Improvement_ValidBuildUnits() do
+						if improvementBuildUnits ~= nil and improvementBuildUnits.ImprovementType == improvementInfo.ImprovementType then
+							if improvementBuildUnits.UnitType == "UNIT_BUILDER" then
+								return true;
+							else
+								-- print("Builder cannot build " .. improvementBuildUnits.ImprovementType)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return false;
+end
+
+-- General function to check if the player has xmlEntry.PrereqTech and xmlEntry.PrereqTech
+-- Also handles unique traits, and bonuses received from city states
+function playerCanHave(playerID, xmlEntry)
+
+	local pPlayer = Players[playerID]
+	if xmlEntry.PrereqTech ~= nil then
+		local playerTech:table = pPlayer:GetTechs();
+		local tech = GameInfo.Technologies[xmlEntry.PrereqTech]
+		if tech ~= nil and (not playerTech:HasTech(tech.Index)) then
+			-- print("Player does not have " .. tech.TechnologyType)
+			return false;
+		end
+	end
+
+	-- Does the player have the prereq civic if one exists
+	if xmlEntry.PrereqCivic ~= nil then
+		local playerCulture = pPlayer:GetCulture();
+		local civic = GameInfo.Civics[xmlEntry.PrereqCivic]
+		if civic ~= nil and (not playerCulture:HasCivic(civic.Index)) then
+			-- print("Player does not have " .. civic.CivicType)
+			return false;
+		end
+	end
+
+	-- Is it a Unique thing to a player
+	if xmlEntry.TraitType ~= nil then
+		-- print(xmlEntry.TraitType)
+		local civilizationType = PlayerConfigurations[playerID]:GetCivilizationTypeName()
+		local leaderType = PlayerConfigurations[playerID]:GetLeaderTypeName()
+		local isSuzerain:boolean = false;
+
+		-- Special handler for city state traits.
+		local spitResult = Split(xmlEntry.TraitType, "_");
+		if spitResult[1] == "MINOR" then
+			local traitLeaderType;
+			for traitInfo in GameInfo.LeaderTraits() do
+				if traitInfo.TraitType == xmlEntry.TraitType then
+					traitLeaderType = traitInfo.LeaderType
+					break
+				end
+			end
+
+			if traitLeaderType ~= nil then
+				-- print("traitLeaderType " .. traitLeaderType)
+				local traitLeaderID;
+				
+				-- See if this city state is present in the game
+				for minorID in ipairs(PlayerManager.GetAliveMinorIDs()) do
+					local minorLeaderType = PlayerConfigurations[minorID]:GetLeaderTypeName()
+					if minorLeaderType == traitLeaderType then
+						traitLeaderID = minorID;
+						break;
+					end
+				end
+
+				if traitLeaderID ~= nil then
+					-- Found the player in the game. Is the suzerain the player
+					if playerID ~= Players[traitLeaderID]:GetInfluence():GetSuzerain() then
+						-- print("Player is not the suzerain of " .. minorLeaderType)
+						return false
+					else
+						return true;
+					end
+				else
+					-- print(traitLeaderType .. " is not in this game")
+					return false;
+				end
+			end
+		end
+
+		for traitInfo in GameInfo.CivilizationTraits() do
+			if traitInfo.TraitType == xmlEntry.TraitType then
+				if traitInfo.CivilizationType ~= nil then
+					if civilizationType ~= traitInfo.CivilizationType then
+						-- print(civilizationType .. " ~= " .. traitInfo.CivilizationType)
+						return false
+					end
+				end
+			end
+		end
+
+		for traitInfo in GameInfo.LeaderTraits() do
+			if traitInfo.TraitType == xmlEntry.TraitType then
+				if traitInfo.LeaderType ~= nil then
+					if leaderType ~= traitInfo.LeaderType then
+						-- print(civilizationType .. " ~= " .. traitInfo.LeaderType)
+						return false
+					end
+				end
+			end
+		end
+
+	end
+
+	return true;
 end
 
 function playerHasBuilderWonderModifier(playerID)
@@ -1511,7 +1704,7 @@ function districtComplete(playerID, plotIndex)
 end
 
 function isAncientClassicalWonder(wonderTypeID)
-	print("Checking wonder " .. wonderTypeID .. " if ancient or classical")
+	-- print("Checking wonder " .. wonderTypeID .. " if ancient or classical")
 
 	for row in GameInfo.Buildings() do
 		if row.Index == wonderTypeID then
@@ -1527,7 +1720,7 @@ function isAncientClassicalWonder(wonderTypeID)
 				return true;
 			end
 
-			print("Era = " .. eraType);
+			-- print("Era = " .. eraType);
 
 			if eraType == nil then
 				print("Could not find era for wonder " .. wonderTypeID)
@@ -1852,6 +2045,41 @@ function OnUnitRemovedFromMap( playerID: number, unitID : number )
 	end
 end
 
+-- To update the scout lens, when a scout/ranger moves
+function OnUnitMoved( playerID:number, unitID:number )
+	if playerID == Game.GetLocalPlayer() then
+		local unitType = GetUnitType(playerID, unitID);
+		if (unitType == "UNIT_SCOUT" or unitType == "UNIT_RANGER") and AUTO_APPLY_SCOUT_LENS then
+			-- Refresh the scout lens
+			ClearScoutLens();
+			ShowScoutLens();
+		end
+	end
+end
+
+function HandleMouseForModdedLens( mousex:number, mousey:number )
+	-- Don't do anything if mouse is dragging
+	if not m_isMouseDragging then
+		local plotId = UI.GetCursorPlotID();
+		if (not Map.IsPlot(plotId)) then
+			return;
+		end
+
+		local pPlot = Map.GetPlotByIndex(plotId)
+
+		-- Handle for different lenses
+		if UILens.IsLayerOn(LensLayers.HEX_COLORING_WATER_AVAILABLITY) then
+			-- Alt_ClearHighlightedPlots();
+			-- local highlightPlot:table = {}
+			-- for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+			-- 	table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
+			-- end
+
+			-- Alt_HighlightPlots(highlightPlot);
+		end
+	end
+end
+
 function GetMinimapMouseCoords( mousex:number, mousey:number )
 	local topLeftX, topLeftY = Controls.MinimapImage:GetScreenOffset();
 	
@@ -1900,6 +2128,10 @@ function OnInputHandler( pInputStruct:table )
 	-- local uiMsg = pInputStruct:GetMessageType();
 	-- if uiMsg == KeyEvents.KeyDown then return KeyDownHandler( pInputStruct:GetKey() ); end
 	-- if uiMsg == KeyEvents.KeyUp then return KeyUpHandler( pInputStruct:GetKey() ); end   
+
+	if m_isModdedMouseFeatureEnabled then
+		HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
+	end
 
 	-- Skip all other handling when dragging is disabled or the minimap is collapsed
 	if m_isMouseDragEnabled and not m_isCollapsed then
@@ -1985,15 +2217,15 @@ function Initialize()
 	Controls.ToggleYieldsButton:SetCheck( UserConfiguration.ShowMapYield() );
 
 	-- Modded lens
-	Controls.ScoutLensButton:RegisterCallback 			( Mouse.eLClick, ToggleScoutLens );
-	Controls.AdjacencyYieldLensButton:RegisterCallback 	( Mouse.eLClick, ToggleAdjacencyYieldLens );
-	Controls.WonderLensButton:RegisterCallback 			( Mouse.eLClick, ToggleWonderLens );
-	Controls.ResourceLensButton:RegisterCallback 		( Mouse.eLClick, ToggleResourceLens );
-	Controls.BarbarianLensButton:RegisterCallback 		( Mouse.eLClick, ToggleBarbarianLens );
-	Controls.CityOverlap9LensButton:RegisterCallback 	( Mouse.eLClick, ToggleCityOverlap9Lens );
-	Controls.CityOverlap6LensButton:RegisterCallback 	( Mouse.eLClick, ToggleCityOverlap6Lens );
-	Controls.ArchaeologistLensButton:RegisterCallback 	( Mouse.eLClick, ToggleArchaeologistLens );
-	Controls.BuilderLensButton:RegisterCallback 		( Mouse.eLClick, ToggleBuilderLens );
+	Controls.ScoutLensButton:RegisterCallback( Mouse.eLClick, ToggleScoutLens );
+	Controls.AdjacencyYieldLensButton:RegisterCallback( Mouse.eLClick, ToggleAdjacencyYieldLens );
+	Controls.WonderLensButton:RegisterCallback( Mouse.eLClick, ToggleWonderLens );
+	Controls.ResourceLensButton:RegisterCallback( Mouse.eLClick, ToggleResourceLens );
+	Controls.BarbarianLensButton:RegisterCallback( Mouse.eLClick, ToggleBarbarianLens );
+	Controls.CityOverlap9LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap9Lens );
+	Controls.CityOverlap6LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap6Lens );
+	Controls.ArchaeologistLensButton:RegisterCallback( Mouse.eLClick, ToggleArchaeologistLens );
+	Controls.BuilderLensButton:RegisterCallback( Mouse.eLClick, ToggleBuilderLens );
 	
 	Controls.AppealLensButton:RegisterCallback( Mouse.eLClick, ToggleAppealLens );
 	Controls.ContinentLensButton:RegisterCallback( Mouse.eLClick, ToggleContinentLens );
@@ -2030,11 +2262,12 @@ function Initialize()
 	Events.LensLayerOff.Add( OnLensLayerOff );  
 	Events.LocalPlayerChanged.Add( OnLocalPlayerChanged );
 
-	-- For modded builder lens
+	-- For modded lenses
 	Events.UnitSelectionChanged.Add( OnUnitSelectionChanged );  
 	Events.UnitCaptured.Add( OnUnitCaptured );
 	Events.UnitChargesChanged.Add( OnUnitChargesChanged );
 	Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap );
+	Events.UnitMoved.Add( OnUnitMoved );
 
 	LuaEvents.NotificationPanel_ShowContinentLens.Add(OnToggleContinentLensExternal);
 	LuaEvents.Tutorial_DisableMapDrag.Add( OnTutorial_DisableMapDrag );
