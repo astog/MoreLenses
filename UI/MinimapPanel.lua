@@ -2,8 +2,8 @@
 --  MINIMAP PANEL
 -- ===========================================================================
 include( "InstanceManager" );
-include( "Civ6Common.lua" );    -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
-include( "TradeSupport" );		-- dump
+include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
+include( "TradeSupport" ); -- dump
 include( "SupportFunctions" );
 
 -- ===========================================================================
@@ -13,17 +13,17 @@ local MINIMAP_COLLAPSED_OFFSETY :number = -180;
 
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
-	NONE 			= 0;
-	APPEAL 			= 1;
-	BUILDER 		= 2;
-	ARCHAEOLOGIST 	= 3;
-	BARBARIAN 		= 4;
-	CITY_OVERLAP6 	= 5;
-	CITY_OVERLAP9 	= 6;
-	RESOURCE 		= 7;
-	WONDER 			= 8;
+	NONE = 0;
+	APPEAL = 1;
+	BUILDER = 2;
+	ARCHAEOLOGIST = 3;
+	BARBARIAN = 4;
+	CITY_OVERLAP6 = 5;
+	CITY_OVERLAP9 = 6;
+	RESOURCE = 7;
+	WONDER = 8;
 	ADJACENCY_YIELD = 9;
-	SCOUT 			= 10;
+	SCOUT = 10;
 };
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -55,12 +55,14 @@ local m_kFlyoutControlIds       :table = { "MapOptions", "Lens", "MapPinList"}; 
 
 local m_shouldCloseLensMenu           :boolean = true;    -- Controls when the Lens menu should be closed.
 
-local m_LensLayers              :table = {  LensLayers.HEX_COLORING_RELIGION,
-											LensLayers.HEX_COLORING_CONTINENT,
-											LensLayers.HEX_COLORING_APPEAL_LEVEL,
-											LensLayers.HEX_COLORING_GOVERNMENT,
-											LensLayers.HEX_COLORING_OWING_CIV,
-											LensLayers.HEX_COLORING_WATER_AVAILABLITY   };
+local m_LensLayers:table = {  
+	LensLayers.HEX_COLORING_RELIGION,
+	LensLayers.HEX_COLORING_CONTINENT,
+	LensLayers.HEX_COLORING_APPEAL_LEVEL,
+	LensLayers.HEX_COLORING_GOVERNMENT,
+	LensLayers.HEX_COLORING_OWING_CIV,
+	LensLayers.HEX_COLORING_WATER_AVAILABLITY
+};
 
 local m_ToggleReligionLensId    = Input.GetActionId("LensReligion");
 local m_ToggleContinentLensId   = Input.GetActionId("LensContinent");
@@ -112,9 +114,7 @@ function CloseAllFlyouts()
 			Controls[buttonId]:SetSelected( false );    
 		else
 			UI.DataError("Minimap's CloseAllFlyouts() attempted to unselect'"..buttonId.."' but the control doesn't exist in the XML.");
-		end     
-
-
+		end
 	end
 end
 
@@ -148,7 +148,16 @@ function RealizeFlyouts( pControl:table )
 end
 
 -- ===========================================================================
-function ToggleMapOptionsList() 
+function RefreshMinimapOptions()
+    Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
+    Controls.ToggleGridButton:SetCheck(bGridOn);
+end
+
+-- ===========================================================================
+function ToggleMapOptionsList()	
+    if Controls.MapOptionsPanel:IsHidden() then
+        RefreshMinimapOptions();
+    end
 	Controls.MapOptionsPanel:SetHide( not Controls.MapOptionsPanel:IsHidden() );
 	RealizeFlyouts(Controls.MapOptionsPanel);
 	Controls.MapOptionsButton:SetSelected( not Controls.MapOptionsPanel:IsHidden() );
@@ -806,7 +815,7 @@ function SetBuilderLensHexes()
 	local mapWidth, mapHeight = Map.GetGridSize();
 
 	local ResourceColor :number = UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS");
-	local HillColor 	:number = UI.GetColorValue("COLOR_HILL_BUILDER_LENS");
+	local HillColor   	:number = UI.GetColorValue("COLOR_HILL_BUILDER_LENS");
 	local FeatureColor  :number = UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS");
 	local GenericColor  :number = UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS");
 	local NothingColor  :number = UI.GetColorValue("COLOR_NOTHING_BUILDER_LENS");
@@ -816,7 +825,7 @@ function SetBuilderLensHexes()
 	local repairableHexes   :table = {};
 	local resourceHexes     :table = {};
 	local featureHexes      :table = {};
-	local hillHexes 		:table = {};
+	local hillHexes     :table = {};
 	local genericHexes      :table = {};
 	local specialHexes      :table = {};
 	local localPlayerHexes  :table = {};
@@ -868,7 +877,7 @@ function SetBuilderLensHexes()
 
 	-- Dim other hexes
 	-- if table.count(localPlayerHexes) > 0 then
-	-- 	UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, localPlayerHexes );
+	--  UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, localPlayerHexes );
 	-- end
 
 	if table.count(repairableHexes) > 0 then
@@ -921,9 +930,9 @@ function SetArchaeologistLens()
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local artifactPlots:table = {};
-	local antiquityPlots:table = {};
-	local shipwreckPlots:table = {};
+	local artifactPlots 	:table = {};
+	local antiquityPlots 	:table = {};
+	local shipwreckPlots 	:table = {};
 
 	local AntiquityColor = UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS");
 	local ShipwreckColor = UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS");
@@ -944,7 +953,7 @@ function SetArchaeologistLens()
 
 	-- Dim hexes that are not artifacts or shipwrecks
 	-- if table.count(antiquityPlots) > 0 then
-	-- 	UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, antiquityPlots );
+	--  UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, antiquityPlots );
 	-- end
 
 	if table.count(artifactPlots) > 0 then
@@ -973,8 +982,8 @@ function SetCityOverlapLens(range)
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local plotEntries = {};
-	local numCityEntries = {};
+	local plotEntries  	 	:table = {};
+	local numCityEntries 	:table = {};
 
 	for i = 0, (mapWidth * mapHeight) - 1, 1 do
 		local pPlot:table = Map.GetPlotByIndex(i);
@@ -1005,7 +1014,7 @@ function SetCityOverlapLens(range)
 
 	-- Dim hexes that are not encapments.
 	-- if table.count(plotEntries) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, plotEntries );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, plotEntries );
 	-- end
 
 	for i = 1, #plotEntries, 1 do
@@ -1034,14 +1043,14 @@ function SetBarbarianLens()
 			table.insert(barbAdjacent, i);
 
 			-- for pAdjacencyPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
-			-- 	table.insert(barbAdjacent, pAdjacencyPlot:GetIndex());
+			--  table.insert(barbAdjacent, pAdjacencyPlot:GetIndex());
 			-- end
 		end 
 	end
 
 	-- Dim hexes that are not encapments
 	-- if table.count(barbAdjacent) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
 	-- end
 
 	if table.count(barbPlots) > 0 then
@@ -1056,12 +1065,12 @@ function SetResourceLens()
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local LuxConnectedColor		:number = UI.GetColorValue("COLOR_LUXCONNECTED_RES_LENS");
-	local StratConnectedColor	:number = UI.GetColorValue("COLOR_STRATCONNECTED_RES_LENS");
-	local BonusConnectedColor	:number = UI.GetColorValue("COLOR_BONUSCONNECTED_RES_LENS");
-	local LuxNConnectedColor	:number = UI.GetColorValue("COLOR_LUXNCONNECTED_RES_LENS");
-	local StratNConnectedColor	:number = UI.GetColorValue("COLOR_STRATNCONNECTED_RES_LENS");
-	local BonusNConnectedColor	:number = UI.GetColorValue("COLOR_BONUSNCONNECTED_RES_LENS");
+	local LuxConnectedColor   :number = UI.GetColorValue("COLOR_LUXCONNECTED_RES_LENS");
+	local StratConnectedColor :number = UI.GetColorValue("COLOR_STRATCONNECTED_RES_LENS");
+	local BonusConnectedColor :number = UI.GetColorValue("COLOR_BONUSCONNECTED_RES_LENS");
+	local LuxNConnectedColor  :number = UI.GetColorValue("COLOR_LUXNCONNECTED_RES_LENS");
+	local StratNConnectedColor  :number = UI.GetColorValue("COLOR_STRATNCONNECTED_RES_LENS");
+	local BonusNConnectedColor  :number = UI.GetColorValue("COLOR_BONUSNCONNECTED_RES_LENS");
 	
 	-- Resources to exclude in the "Resource Lens"
 	local ResourceExclusionList:table = {
@@ -1072,12 +1081,10 @@ function SetResourceLens()
 	local ConnectedLuxury 		= {};
 	local ConnectedStrategic 	= {};
 	local ConnectedBonus 		= {};
-
 	local NotConnectedLuxury 	= {};
 	local NotConnectedStrategic = {};
-	local NotConnectedBonus		= {};
-
-	local ResourcePlots 		= {};
+	local NotConnectedBonus 	= {};
+	local ResourcePlots     	= {};
 
 	for i = 0, (mapWidth * mapHeight) - 1, 1 do
 		local pPlot:table = Map.GetPlotByIndex(i);
@@ -1126,7 +1133,7 @@ function SetResourceLens()
 
 	-- Dim other hexes
 	-- if table.count(ResourcePlots) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, ResourcePlots );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, ResourcePlots );
 	-- end
 
 	if table.count(ConnectedLuxury) > 0 then
@@ -1156,11 +1163,11 @@ function SetWonderLens()
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local NaturalWonderColor 	:number = UI.GetColorValue("COLOR_NATURAL_WONDER_LENS");
-	local PlayerWonderColor 	:number = UI.GetColorValue("COLOR_PLAYER_WONDER_LENS");
+	local NaturalWonderColor  :number = UI.GetColorValue("COLOR_NATURAL_WONDER_LENS");
+	local PlayerWonderColor   :number = UI.GetColorValue("COLOR_PLAYER_WONDER_LENS");
 
-	local naturalWonderPlots 	:table = {};
-	local playerWonderPlots 	:table = {};
+	local naturalWonderPlots  :table = {};
+	local playerWonderPlots   :table = {};
 
 	for i = 0, (mapWidth * mapHeight) - 1, 1 do
 		local pPlot:table = Map.GetPlotByIndex(i);
@@ -1181,7 +1188,7 @@ function SetWonderLens()
 
 	-- Dim hexes that are not encapments
 	-- if table.count(barbAdjacent) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
 	-- end
 
 	if table.count(naturalWonderPlots) > 0 then
@@ -1199,8 +1206,8 @@ function SetAdjacencyYieldLens()
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local districtPlots 	:table = {};
-	local districtAdjYield 	:table = {};
+	local districtPlots   :table = {};
+	local districtAdjYield  :table = {};
 
 	for i = 0, (mapWidth * mapHeight) - 1, 1 do
 		local pPlot:table = Map.GetPlotByIndex(i);
@@ -1234,7 +1241,7 @@ function SetAdjacencyYieldLens()
 
 	-- Dim hexes that are not encapments
 	-- if table.count(barbAdjacent) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
 	-- end
 
 	for i = 1, #districtPlots, 1 do
@@ -1251,9 +1258,9 @@ function SetScoutLens()
 	local localPlayer   :number = Game.GetLocalPlayer();
 	local localPlayerVis:table = PlayersVisibility[localPlayer];
 
-	local GoodyHutColor 	:number = UI.GetColorValue("COLOR_GHUT_SCOUT_LENS");
+	local GoodyHutColor   :number = UI.GetColorValue("COLOR_GHUT_SCOUT_LENS");
 
-	local goodyHutPlots 	:table = {};
+	local goodyHutPlots   :table = {};
 
 	for i = 0, (mapWidth * mapHeight) - 1, 1 do
 		local pPlot:table = Map.GetPlotByIndex(i);
@@ -1268,7 +1275,7 @@ function SetScoutLens()
 
 	-- Dim hexes that are not encapments
 	-- if table.count(barbAdjacent) > 0 then
-	-- 	UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
+	--  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
 	-- end
 
 	if table.count(goodyHutPlots) > 0 then
@@ -1391,7 +1398,7 @@ function plotHasGoodyHut(plot)
 	end
 
 	return false;
-end	
+end 
 
 -- Checks if the plot can have an possible player buildable improvement.
 -- Note this is specific to builder
@@ -1782,108 +1789,108 @@ end
 	CENTRE_EXCLUDE = false
 
 	function PlotRingIterator(pPlot, r, sector, anticlock)
-	  --print(string.format("PlotRingIterator((%i, %i), r=%i, s=%i, d=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd")))
-	  -- The important thing to remember with hex-coordinates is that x+y+z = 0
-	  -- so we never actually need to store z as we can always calculate it as -(x+y)
-	  -- See http://keekerdc.com/2011/03/hexagon-grids-coordinate-systems-and-distance-calculations/
+		--print(string.format("PlotRingIterator((%i, %i), r=%i, s=%i, d=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd")))
+		-- The important thing to remember with hex-coordinates is that x+y+z = 0
+		-- so we never actually need to store z as we can always calculate it as -(x+y)
+		-- See http://keekerdc.com/2011/03/hexagon-grids-coordinate-systems-and-distance-calculations/
 
-	  if (pPlot ~= nil and r > 0) then
-	    local hex = ToHexFromGrid({x=pPlot:GetX(), y=pPlot:GetY()})
-	    local x, y = hex.x, hex.y
+		if (pPlot ~= nil and r > 0) then
+			local hex = ToHexFromGrid({x=pPlot:GetX(), y=pPlot:GetY()})
+			local x, y = hex.x, hex.y
 
-	    -- Along the North edge of the hex (x-r, y+r, z) to (x, y+r, z-r)
-	    local function north(x, y, r, i) return {x=x-r+i, y=y+r} end
-	    -- Along the North-East edge (x, y+r, z-r) to (x+r, y, z-r)
-	    local function northeast(x, y, r, i) return {x=x+i, y=y+r-i} end
-	    -- Along the South-East edge (x+r, y, z-r) to (x+r, y-r, z)
-	    local function southeast(x, y, r, i) return {x=x+r, y=y-i} end
-	    -- Along the South edge (x+r, y-r, z) to (x, y-r, z+r)
-	    local function south(x, y, r, i) return {x=x+r-i, y=y-r} end
-	    -- Along the South-West edge (x, y-r, z+r) to (x-r, y, z+r)
-	    local function southwest(x, y, r, i) return {x=x-i, y=y-r+i} end
-	    -- Along the North-West edge (x-r, y, z+r) to (x-r, y+r, z)
-	    local function northwest(x, y, r, i) return {x=x-r, y=y+i} end
+			-- Along the North edge of the hex (x-r, y+r, z) to (x, y+r, z-r)
+			local function north(x, y, r, i) return {x=x-r+i, y=y+r} end
+			-- Along the North-East edge (x, y+r, z-r) to (x+r, y, z-r)
+			local function northeast(x, y, r, i) return {x=x+i, y=y+r-i} end
+			-- Along the South-East edge (x+r, y, z-r) to (x+r, y-r, z)
+			local function southeast(x, y, r, i) return {x=x+r, y=y-i} end
+			-- Along the South edge (x+r, y-r, z) to (x, y-r, z+r)
+			local function south(x, y, r, i) return {x=x+r-i, y=y-r} end
+			-- Along the South-West edge (x, y-r, z+r) to (x-r, y, z+r)
+			local function southwest(x, y, r, i) return {x=x-i, y=y-r+i} end
+			-- Along the North-West edge (x-r, y, z+r) to (x-r, y+r, z)
+			local function northwest(x, y, r, i) return {x=x-r, y=y+i} end
 
-	    local side = {north, northeast, southeast, south, southwest, northwest}
-	    if (sector) then
-	      for i=(anticlock and 1 or 2), sector, 1 do
-	        table.insert(side, table.remove(side, 1))
-	      end
-	    end
+			local side = {north, northeast, southeast, south, southwest, northwest}
+			if (sector) then
+				for i=(anticlock and 1 or 2), sector, 1 do
+					table.insert(side, table.remove(side, 1))
+				end
+			end
 
-	    -- This coroutine walks the edges of the hex centered on pPlot at radius r
-	    local next = coroutine.create(function ()
-	      if (anticlock) then
-	        for s=6, 1, -1 do
-	          for i=r, 1, -1 do
-	            coroutine.yield(side[s](x, y, r, i))
-	          end
-	        end
-	      else
-	        for s=1, 6, 1 do
-	          for i=0, r-1, 1 do
-	            coroutine.yield(side[s](x, y, r, i))
-	          end
-	        end
-	      end
+			-- This coroutine walks the edges of the hex centered on pPlot at radius r
+			local next = coroutine.create(function ()
+				if (anticlock) then
+					for s=6, 1, -1 do
+						for i=r, 1, -1 do
+							coroutine.yield(side[s](x, y, r, i))
+						end
+					end
+				else
+					for s=1, 6, 1 do
+						for i=0, r-1, 1 do
+							coroutine.yield(side[s](x, y, r, i))
+						end
+					end
+				end
 
-	      return nil
-	    end)
+				return nil
+			end)
 
-	    -- This function returns the next edge plot in the sequence, ignoring those that fall off the edges of the map
-	    return function ()
-	      local pEdgePlot = nil
-	      local success, hex = coroutine.resume(next)
-	      --if (hex ~= nil) then print(string.format("hex(%i, %i, %i)", hex.x, hex.y, -1 * (hex.x+hex.y))) else print("hex(nil)") end
+			-- This function returns the next edge plot in the sequence, ignoring those that fall off the edges of the map
+			return function ()
+				local pEdgePlot = nil
+				local success, hex = coroutine.resume(next)
+				--if (hex ~= nil) then print(string.format("hex(%i, %i, %i)", hex.x, hex.y, -1 * (hex.x+hex.y))) else print("hex(nil)") end
 
-	      while (success and hex ~= nil and pEdgePlot == nil) do
-	        pEdgePlot = Map.GetPlot(ToGridFromHex(hex.x, hex.y))
-	        if (pEdgePlot == nil) then success, hex = coroutine.resume(next) end
-	      end
+				while (success and hex ~= nil and pEdgePlot == nil) do
+					pEdgePlot = Map.GetPlot(ToGridFromHex(hex.x, hex.y))
+					if (pEdgePlot == nil) then success, hex = coroutine.resume(next) end
+				end
 
-	      return success and pEdgePlot or nil
-	    end
-	  else
-	    -- Iterators have to return a function, so return a function that returns nil
-	    return function () return nil end
-	  end
+				return success and pEdgePlot or nil
+			end
+		else
+			-- Iterators have to return a function, so return a function that returns nil
+			return function () return nil end
+		end
 	end
 
 
 	function PlotAreaSpiralIterator(pPlot, r, sector, anticlock, inwards, centre)
-	  --print(string.format("PlotAreaSpiralIterator((%i, %i), r=%i, s=%i, d=%s, w=%s, c=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd"), (inwards and "in" or "out"), (centre and "yes" or "no")))
-	  -- This coroutine walks each ring in sequence
-	  local next = coroutine.create(function ()
-	    if (centre and not inwards) then
-	      coroutine.yield(pPlot)
-	    end
+		--print(string.format("PlotAreaSpiralIterator((%i, %i), r=%i, s=%i, d=%s, w=%s, c=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd"), (inwards and "in" or "out"), (centre and "yes" or "no")))
+		-- This coroutine walks each ring in sequence
+		local next = coroutine.create(function ()
+			if (centre and not inwards) then
+				coroutine.yield(pPlot)
+			end
 
-	    if (inwards) then
-	      for i=r, 1, -1 do
-	        for pEdgePlot in PlotRingIterator(pPlot, i, sector, anticlock) do
-	          coroutine.yield(pEdgePlot)
-	        end
-	      end
-	    else
-	      for i=1, r, 1 do
-	        for pEdgePlot in PlotRingIterator(pPlot, i, sector, anticlock) do
-	          coroutine.yield(pEdgePlot)
-	        end
-	      end
-	    end
+			if (inwards) then
+				for i=r, 1, -1 do
+					for pEdgePlot in PlotRingIterator(pPlot, i, sector, anticlock) do
+						coroutine.yield(pEdgePlot)
+					end
+				end
+			else
+				for i=1, r, 1 do
+					for pEdgePlot in PlotRingIterator(pPlot, i, sector, anticlock) do
+						coroutine.yield(pEdgePlot)
+					end
+				end
+			end
 
-	    if (centre and inwards) then
-	      coroutine.yield(pPlot)
-	    end
+			if (centre and inwards) then
+				coroutine.yield(pPlot)
+			end
 
-	    return nil
-	  end)
+			return nil
+		end)
 
-	  -- This function returns the next plot in the sequence
-	  return function ()
-	    local success, pAreaPlot = coroutine.resume(next)
-	    return success and pAreaPlot or nil
-	  end
+		-- This function returns the next plot in the sequence
+		return function ()
+			local success, pAreaPlot = coroutine.resume(next)
+			return success and pAreaPlot or nil
+		end
 	end
 -- End of iterator code --------------------
 
@@ -1906,6 +1913,11 @@ end
 --  Input Hotkey Event
 -- ===========================================================================
 function OnInputActionTriggered( actionId )
+	-- dont show panel if there is no local player
+	if (Game.GetLocalPlayer() == -1) then
+		return;
+	end
+
 	if m_ToggleReligionLensId ~= nil and (actionId == m_ToggleReligionLensId) then
 		LensPanelHotkeyControl( Controls.ReligionLensButton );
 		ToggleReligionLens();
@@ -2072,7 +2084,7 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
 			-- Alt_ClearHighlightedPlots();
 			-- local highlightPlot:table = {}
 			-- for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-			-- 	table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
+			--  table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
 			-- end
 
 			-- Alt_HighlightPlots(highlightPlot);
@@ -2272,5 +2284,7 @@ function Initialize()
 	LuaEvents.NotificationPanel_ShowContinentLens.Add(OnToggleContinentLensExternal);
 	LuaEvents.Tutorial_DisableMapDrag.Add( OnTutorial_DisableMapDrag );
 	LuaEvents.Tutorial_SwitchToWorldView.Add( OnTutorial_SwitchToWorldView );
+	LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
+    LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
 end
 Initialize();
