@@ -57,6 +57,8 @@ function ShowBuilderLensKey()
 
     AddKeyEntry("LOC_TOOLTIP_BUILDER_LENS_IMP", UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS"));
 
+    AddKeyEntry("LOC_TOOLTIP_RECOMFEATURE_LENS_HILL", UI.GetColorValue("COLOR_RECOMFEATURE_BUILDER_LENS"));
+
     AddKeyEntry("LOC_TOOLTIP_BUILDER_LENS_HILL", UI.GetColorValue("COLOR_HILL_BUILDER_LENS"));
 
     AddKeyEntry("LOC_TOOLTIP_BUILDER_LENS_FEATURE", UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS"));
@@ -197,7 +199,7 @@ function ShowCityOverlap6LensKey()
         end
 
         local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(i);
-        print(colorLookup);
+        -- print(colorLookup);
         local color:number = UI.GetColorValue(colorLookup);
         AddKeyEntryAlt(s, color);
     end
@@ -271,7 +273,7 @@ function ShowAdjacencyYieldLensKey()
         end
 
         local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(i);
-        print(colorLookup);
+        -- print(colorLookup);
         local color:number = UI.GetColorValue(colorLookup);
         AddKeyEntryAlt(s, color);
     end

@@ -11,6 +11,9 @@
   	<Row Tag="LOC_TOOLTIP_BUILDER_LENS_IMP">
   		<Text>Resource/Pillaged/Unique Ability</Text>
   	</Row>
+    <Row Tag="LOC_TOOLTIP_RECOMFEATURE_LENS_HILL">
+      <Text>Recommended Feature</Text>
+    </Row>
     <Row Tag="LOC_TOOLTIP_BUILDER_LENS_HILL">
       <Text>Hill</Text>
     </Row>

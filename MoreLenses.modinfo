@@ -7,7 +7,7 @@
 		<Description>LOC_MORELENSES_DESCRIPTION</Description>
 		<Authors>LOC_MORELENSES_AUTHORS</Authors>
 	</Properties>
-	
+
 	<Components>
 		<ImportFiles id="MORELENSES_IMPORT_FILES">
 			<Items>
@@ -30,17 +30,7 @@
 			</Items>
 		</LocalizedText>
 	</Components>
-	
-	<Settings>
-		<Custom id="MORELENSES_SETTINGS">
-			<Items>
-				<Component>MORELENSES_IMPORT_FILES</Component>
-				<Component>MORELENSES_TEXT</Component>
-				<Component>MORELENSES_DATABASE</Component>
-			</Items>
-		</Custom>
-	</Settings>
-	 
+
 	<LocalizedText>
 		<Text id="LOC_MORELENSES_NAME">
 			<en_US>More Lenses</en_US>

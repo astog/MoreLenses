@@ -3,7 +3,7 @@
 -- ===========================================================================
 include( "InstanceManager" );
 include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
-include( "TradeSupport" ); -- dump
+-- include( "TradeSupport" ); -- dump
 include( "SupportFunctions" );
 
 -- ===========================================================================
@@ -628,10 +628,11 @@ end
 
 -- ===========================================================================
 function OnLensLayerOff( layerNum:number )
-    if (layerNum == LensLayers.HEX_COLORING_RELIGION        or
-            layerNum == LensLayers.HEX_COLORING_CONTINENT       or
-            layerNum == LensLayers.HEX_COLORING_GOVERNMENT      or
-            layerNum == LensLayers.HEX_COLORING_OWING_CIV)      then
+    if (layerNum == LensLayers.HEX_COLORING_RELIGION or
+            layerNum == LensLayers.HEX_COLORING_CONTINENT or
+            layerNum == LensLayers.HEX_COLORING_GOVERNMENT or
+            layerNum == LensLayers.HEX_COLORING_OWING_CIV) then
+        UI.PlaySound("UI_Lens_Overlay_Off");
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
         -- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
         -- For the modded lens
@@ -639,14 +640,14 @@ function OnLensLayerOff( layerNum:number )
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
             UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
         end
+        UI.PlaySound("UI_Lens_Overlay_Off");
     elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then
-        Alt_ClearHighlightedPlots();
         -- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
             UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
         end
+        UI.PlaySound("UI_Lens_Overlay_Off");
     end
-    UI.PlaySound("UI_Lens_Overlay_Off");
 end
 
 -- ===========================================================================
@@ -727,30 +728,35 @@ end
 
 -- ===========================================================================
 function SetGovernmentHexes()
+    -- print("Setting government lens")
     local localPlayer : number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
-        for i, player in ipairs(players) do
+        for i in pairs(players) do
             local cities = players[i]:GetCities();
-            local culture = player:GetCulture();
+            local culture = players[i]:GetCulture();
             local governmentId :number = culture:GetCurrentGovernment();
             local GovernmentColor;
-            if(governmentId < 0) then
+            if(governmentId < 0) or GameInfo.Governments[governmentId] == nil then
                 GovernmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
+                -- print("COLOR_GOVERNMENT_CITYSTATE")
             else
                 GovernmentColor = UI.GetColorValue("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType);
+                -- print("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType)
             end
 
-            GovernmentColor = DarkenLightenColor(GovernmentColor, 0, 255);
+            -- print(GovernmentColor)
 
-            for _, pCity in cities:Members() do
+            for i, pCity in cities:Members() do
                 local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
 
-                if(table.count(visibleCityPlots) > 0) then
+                if table.count(visibleCityPlots) > 0 then
                     UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, GovernmentColor );
                 end
             end
+
+            -- return
         end
     end
 end
@@ -812,11 +818,12 @@ end
 -- ===========================================================================
 function SetBuilderLensHexes()
     -- Check required to work properly with hotkey.
-    print("Highlight Builder Lens Hexes");
+    -- print("Highlight Builder Lens Hexes");
     local mapWidth, mapHeight = Map.GetGridSize();
 
     local ResourceColor:number = UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS");
     local HillColor:number = UI.GetColorValue("COLOR_HILL_BUILDER_LENS");
+    local RecomFeatureColor:number = UI.GetColorValue("COLOR_RECOMFEATURE_BUILDER_LENS")
     local FeatureColor:number = UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS");
     local GenericColor:number = UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS");
     local NothingColor:number = UI.GetColorValue("COLOR_NOTHING_BUILDER_LENS");
@@ -826,6 +833,7 @@ function SetBuilderLensHexes()
     local repairableHexes:table = {};
     local resourceHexes:table = {};
     local featureHexes:table = {};
+    local recomFeatureHexes:table = {}
     local hillHexes:table = {};
     local genericHexes:table = {};
     local specialHexes:table = {};
@@ -836,46 +844,97 @@ function SetBuilderLensHexes()
 
         if pPlot:GetOwner() == Game.GetLocalPlayer() then
             table.insert(localPlayerHexes, i);
-            if plotCanHaveImprovement(localPlayer, i) then
-                if plotHasImprovement(pPlot) then
-                    if pPlot:IsImprovementPillaged() then
-                        table.insert(repairableHexes, i);
-                    else
-                        table.insert(unworkableHexes, i);
-                    end
-                elseif plotHasWonder(pPlot) then
-                    -- Check for a UA similiar to china's
-                    if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete())
-                        and isAncientClassicalWonder(pPlot:GetWonderType()) then
-                            table.insert(specialHexes, i);
-                    else
-                        table.insert(unworkableHexes, i);
-                    end
-                elseif plotHasDistrict(pPlot) then
-                    -- Check for a UA similiar to Aztec's
-                    if playerHasBuilderDistrictModifier(localPlayer) and (not pPlot:IsCity())
-                        and (not districtComplete(localPlayer, i)) then
-                            table.insert(specialHexes, i);
-                    else
-                        table.insert(unworkableHexes, i);
-                    end
-                -- Plot has resource, but no improvement? Antinquity sites are not included
-                elseif plotHasResource(pPlot) and playerHasDiscoveredResource(localPlayer, i)
-                    and (not plotHasAnitquitySite(pPlot)) and (not plotHasShipwreck(pPlot)) then
-                        table.insert(resourceHexes, i);
-                elseif plotHasHill(pPlot) then
-                    table.insert(hillHexes, i);
-                elseif plotHasRemovableFeature(pPlot) then
-                    if playerCanRemoveFeature(localPlayer, i) then
-                        table.insert(featureHexes, i);
-                    else
-                        table.insert(unworkableHexes, i);
-                    end
+
+            -- IMPASSABLE
+            --------------------------------------
+            if pPlot:IsImpassable() then
+                table.insert(unworkableHexes, i)
+
+            -- IMPROVEMENTS
+            --------------------------------------
+            elseif plotHasImprovement(pPlot) then
+                if pPlot:IsImprovementPillaged() then
+                    table.insert(repairableHexes, i);
                 else
-                    table.insert(genericHexes, i);
+                    table.insert(unworkableHexes, i);
                 end
+
+            -- NATURAL WONDER
+            --------------------------------------
+            elseif plotHasNaturalWonder(pPlot) then
+                if plotHasImprovableWonder(pPlot) then
+                    table.insert(recomFeatureHexes, i)
+                else
+                    table.insert(unworkableHexes, i)
+                end
+
+            -- PLAYER WONDER - CHINESE UA
+            --------------------------------------
+            elseif plotHasWonder(pPlot) then
+                -- Check for a UA similiar to china's
+                if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete())
+                    and isAncientClassicalWonder(pPlot:GetWonderType()) then
+                        table.insert(specialHexes, i);
+                else
+                    table.insert(unworkableHexes, i);
+                end
+
+            -- DISTRICT - AZTEC UA
+            --------------------------------------
+            elseif plotHasDistrict(pPlot) then
+                -- Check for a UA similiar to Aztec's
+                if (not pPlot:IsCity()) and (not districtComplete(localPlayer, i)) and
+                    playerHasBuilderDistrictModifier(localPlayer) then
+                        table.insert(specialHexes, i);
+                else
+                    table.insert(unworkableHexes, i);
+                end
+
+            -- VISIBLE RESOURCE
+            --------------------------------------
+            elseif plotHasResource(pPlot) and playerHasDiscoveredResource(localPlayer, i) then
+                -- Is the resource improvable?
+                if plotResourceImprovable(pPlot) then
+                    table.insert(resourceHexes, i);
+                else
+                    table.insert(unworkableHexes, i);
+                end
+
+            -- HILL
+            --------------------------------------
+            elseif plotHasHill(pPlot) then
+                if plotNextToBuffingWonder(pPlot) then
+                    table.insert(recomFeatureHexes, i)
+                else
+                    table.insert(hillHexes, i);
+                end
+
+            -- FEATURE - Note: This includes natural wonders, since wonder is also a "feature". Check Features.xml
+            --------------------------------------
+            elseif plotHasFeature(pPlot) then
+                -- Recommended Feature
+                if plotHasRecomFeature(pPlot) then
+                    table.insert(recomFeatureHexes, i)
+                -- Harvestable feature
+                elseif playerCanRemoveFeature(localPlayer, i) then
+                    table.insert(featureHexes, i);
+                else
+                    table.insert(unworkableHexes, i)
+                end
+
+            -- GENERIC TILE
+            --------------------------------------
+            elseif plotCanHaveImprovement(localPlayer, i) then
+                if plotNextToBuffingWonder(pPlot) then
+                    table.insert(recomFeatureHexes, i)
+                else
+                    table.insert(genericHexes, i)
+                end
+
+            -- NOTHING TO DO
+            --------------------------------------
             else
-                table.insert(unworkableHexes, i);
+               table.insert(unworkableHexes, i)
             end
         end
     end
@@ -897,6 +956,9 @@ function SetBuilderLensHexes()
     if table.count(hillHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, hillHexes, HillColor );
     end
+    if table.count(recomFeatureHexes) > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, recomFeatureHexes, RecomFeatureColor );
+    end
     if table.count(featureHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, featureHexes, FeatureColor );
     end
@@ -917,7 +979,7 @@ function ClearModdedLens()
 end
 
 function ClearBuilderLensHexes()
-    print("Clear Builder Lens Hexes");
+    -- print("Clear Builder Lens Hexes");
     ClearModdedLens();
 end
 
@@ -930,7 +992,7 @@ end
 
 -- ===========================================================================
 function SetArchaeologistLens()
-    print("Show archeologist lens")
+    -- print("Show archeologist lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -970,7 +1032,7 @@ function SetArchaeologistLens()
 end
 
 function ClearArchaeologistLens()
-    print("Clear Archaeologist Lens Hexes");
+    -- print("Clear Archaeologist Lens Hexes");
     ClearModdedLens();
 end
 
@@ -982,7 +1044,7 @@ end
 
 -- ===========================================================================
 function SetCityOverlapLens(range)
-    print("Show City Overlap 6 lens")
+    -- print("Show City Overlap 6 lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1031,7 +1093,7 @@ end
 
 -- ===========================================================================
 function SetBarbarianLens()
-    print("Show archeologist lens")
+    -- print("Show archeologist lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1065,7 +1127,7 @@ end
 
 -- ===========================================================================
 function SetResourceLens()
-    print("Show Resource lens")
+    -- print("Show Resource lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1163,7 +1225,7 @@ end
 
 -- ===========================================================================
 function SetWonderLens()
-    print("Show wonder lens")
+    -- print("Show wonder lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1206,7 +1268,7 @@ end
 
 -- ===========================================================================
 function SetAdjacencyYieldLens()
-    print("Show adjacency yield lens")
+    -- print("Show adjacency yield lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1231,7 +1293,7 @@ function SetAdjacencyYieldLens()
                         table.insert(districtPlots, i)
                         table.insert(districtAdjYield, iBonus)
                         hadAdjacency = true
-                        print("Yield " .. yieldInfo.YieldType .. " bonus " .. iBonus);
+                        -- print("Yield " .. yieldInfo.YieldType .. " bonus " .. iBonus);
                         break;
                     end
                 end
@@ -1258,7 +1320,7 @@ end
 
 -- ===========================================================================
 function SetScoutLens()
-    print("Show wonder lens")
+    -- print("Show scout lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -1289,7 +1351,7 @@ function SetScoutLens()
 end
 
 function ClearScoutLens()
-    print("Clear Scout Lens Hexes");
+    -- print("Clear Scout Lens Hexes");
     ClearModdedLens();
 end
 
@@ -1324,11 +1386,11 @@ function GetCurrentModdedLens()
     -- local localPlayerID = Game.GetLocalPlayer();
     -- if(PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn") ~= nil) then
     --  local dataDump = PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn");
-    --  print("Get: " .. dataDump);
+     -- print("Get: " .. dataDump);
     --  loadstring(dataDump)();
     --  m_CurrentModdedLensOn = currentModdedLensOn;
     -- else
-    --  print("No modded lens data was found.")
+     -- print("No modded lens data was found.")
     -- end
     return m_CurrentModdedLensOn;
 end
@@ -1341,13 +1403,15 @@ function plotHasResource(plot)
     return plot:GetResourceType() ~= -1;
 end
 
+function plotHasFeature(plot)
+    return plot:GetFeatureType() ~= -1;
+end
+
 function plotHasRemovableFeature(plot)
     local featureInfo = GameInfo.Features[plot:GetFeatureType()];
-
     if featureInfo ~= nil and featureInfo.Removable then
         return true;
     end
-
     return false;
 end
 
@@ -1356,7 +1420,6 @@ function plotHasHill(plot)
     if terrainInfo ~= nil and terrainInfo.Hills then
         return true
     end
-
     return false;
 end
 
@@ -1366,6 +1429,94 @@ end
 
 function plotHasDistrict(plot)
     return plot:GetDistrictType() ~= -1;
+end
+
+function plotHasNaturalWonder(plot)
+    local featureInfo = GameInfo.Features[plot:GetFeatureType()];
+    if featureInfo ~= nil and featureInfo.NaturalWonder then
+        return true
+    end
+    return false
+end
+
+function plotHasImprovableWonder(plot)
+    -- List of wonders that can have an improvement on them.
+    local permitWonderList = {
+        "FEATURE_CLIFFS_DOVER"
+    }
+
+    local featureInfo = GameInfo.Features[plot:GetFeatureType()];
+    if featureInfo ~= nil then
+        for i, wonderType in ipairs(permitWonderList) do
+            if featureInfo.FeatureType == wonderType then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function IsAdjYieldWonder(featureInfo)
+    -- List any wonders here that provide yield bonuses, but not mentioned in Features.xml
+    local specialWonderList = {
+        "FEATURE_TORRES_DEL_PAINE"
+    }
+
+    if featureInfo ~= nil and featureInfo.NaturalWonder then
+        for adjYieldInfo in GameInfo.Feature_AdjacentYields() do
+            if adjYieldInfo ~= nil and adjYieldInfo.FeatureType == featureInfo.FeatureType then
+                return true
+            end
+        end
+
+        for i, featureType in ipairs(specialWonderList) do
+            if featureType == featureInfo.FeatureType then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+function plotNextToBuffingWonder(plot)
+    for pPlot in PlotRingIterator(plot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+        local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
+        if IsAdjYieldWonder(featureInfo) then
+            return true
+        end
+    end
+
+    return false
+end
+
+function plotHasRecomFeature(plot)
+    local featureInfo = GameInfo.Features[plot:GetFeatureType()]
+    if featureInfo ~= nil then
+
+        -- 1. Is it a floodplain?
+        if featureInfo.FeatureType == "FEATURE_FLOODPLAINS" then
+            return true
+        end
+
+        -- 2. Is it a forest next to a river?
+        if featureInfo.FeatureType == "FEATURE_FOREST" and plot:IsRiver() then
+            return true
+        end
+
+        -- 3. Is it a tile next to buffing wonder?
+        if plotNextToBuffingWonder(plot) then
+            return true
+        end
+
+        -- 4. Is it wonder, that can have an improvement?
+        if plotHasImprovableWonder(plot) then
+            return true
+        end
+
+    end
+
+    return false
 end
 
 function plotHasAnitquitySite(plot)
@@ -1382,7 +1533,6 @@ function plotHasShipwreck(plot)
     if resourceInfo ~= nil and resourceInfo.ResourceType == "RESOURCE_SHIPWRECK" then
         return true;
     end
-
     return false
 end
 
@@ -1391,7 +1541,6 @@ function plotHasBarbCamp(plot)
     if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
         return true;
     end
-
     return false;
 end
 
@@ -1400,113 +1549,34 @@ function plotHasGoodyHut(plot)
     if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_GOODY_HUT" then
         return true;
     end
-
     return false;
 end
 
--- Checks if the plot can have an possible player buildable improvement.
--- Note this is specific to builder
-function plotCanHaveImprovement(playerID, plotIndex)
-    local pPlot = Map.GetPlotByIndex(plotIndex)
-    local pPlayer = Players[playerID]
+function plotResourceImprovable(plot)
+    local plotIndex = plot:GetIndex()
+    local playerID = Game.GetLocalPlayer()
 
     -- If the plot has a resource, and the player has discovered it, get the improvement specific to that
     if playerHasDiscoveredResource(playerID, plotIndex) then
-        local resourceInfo = GameInfo.Resources[pPlot:GetResourceType()]
-        local improvementType;
-
-        for validResourceInfo in GameInfo.Improvement_ValidResources() do
-            if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
-                improvementType = validResourceInfo.ImprovementType;
+        local resourceInfo = GameInfo.Resources[plot:GetResourceType()]
+        if resourceInfo ~= nil then
+            local improvementType;
+            for validResourceInfo in GameInfo.Improvement_ValidResources() do
+                if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
+                    improvementType = validResourceInfo.ImprovementType;
+                    break
+                end
             end
-        end
 
-        if improvementType ~= nil then
-            local improvementInfo = GameInfo.Improvements[improvementType];
-            print("Plot " .. plotIndex .. " possibly can have " .. improvementType)
-            return playerCanHave(playerID, improvementInfo);
-        end
-    end
-
-    -- Handler for a generic tile
-    for improvementInfo in GameInfo.Improvements() do
-        if improvementInfo ~= nil and improvementInfo.Buildable then
-            -- Does the player the prereq techs and civis
-            if playerCanHave(playerID, improvementInfo) then
-                local improvementValid:boolean = false;
-
-                -- Check for valid feature
-                for validFeatureInfo in GameInfo.Improvement_ValidFeatures() do
-                    if validFeatureInfo ~= nil and validFeatureInfo.ImprovementType == improvementInfo.ImprovementType then
-                        -- Does this plot have this feature?
-                        local featureInfo = GameInfo.Features[validFeatureInfo.FeatureType]
-                        if featureInfo ~= nil and pPlot:GetFeatureType() == featureInfo.Index then
-                            if playerCanHave(playerID, featureInfo) then
-                                -- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                improvementValid = true;
-                                break;
-                            end
-                        end
-                    end
-                end
-
-                -- Check for valid terrain
-                if not improvementValid then
-                    for validTerrainInfo in GameInfo.Improvement_ValidTerrains() do
-                        if validTerrainInfo ~= nil and validTerrainInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local terrainInfo = GameInfo.Terrains[validTerrainInfo.TerrainType]
-                            if terrainInfo ~= nil and pPlot:GetTerrainType() == terrainInfo.Index then
-                                if playerCanHave(playerID, terrainInfo) then
-                                    -- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true;
-                                    break;
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Check for valid resource
-                if not improvementValid then
-                    for validResourceInfo in GameInfo.Improvement_ValidResources() do
-                        if validResourceInfo ~= nil and validResourceInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local resourceInfo = GameInfo.Resources[validResourceInfo.ResourceType]
-                            if resourceInfo ~= nil and pPlot:GetResourceType() == resourceInfo.Index then
-                                if playerCanHave(playerID, resourceInfo) then
-                                    -- print("Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true;
-                                    break;
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Special check for coastal requirement
-                if improvementInfo.Coast and (not pPlot:IsCoastalLand()) then
-                    -- print(plotIndex .. " plot is not coastal")
-                    improvementValid = false;
-                end
-
-                -- Finally check if the builder can construct this improvement
-                if improvementValid then
-                    for improvementBuildUnits in GameInfo.Improvement_ValidBuildUnits() do
-                        if improvementBuildUnits ~= nil and improvementBuildUnits.ImprovementType == improvementInfo.ImprovementType then
-                            if improvementBuildUnits.UnitType == "UNIT_BUILDER" then
-                                return true;
-                            else
-                                -- print("Builder cannot build " .. improvementBuildUnits.ImprovementType)
-                            end
-                        end
-                    end
-                end
+            if improvementType ~= nil then
+                local improvementInfo = GameInfo.Improvements[improvementType];
+                -- print("Plot " .. plotIndex .. " possibly can have " .. improvementType)
+                return playerCanHave(playerID, improvementInfo);
             end
         end
     end
 
-    return false;
+    return false
 end
 
 function playerCanRemoveFeature(playerID, plotIndex)
@@ -1534,35 +1604,27 @@ function playerCanRemoveFeature(playerID, plotIndex)
     return false;
 end
 
--- General function to check if the player has xmlEntry.PrereqTech and xmlEntry.PrereqTech
--- Also handles unique traits, and bonuses received from city states
+function BuilderCanConstruct(improvementInfo)
+    for improvementBuildUnits in GameInfo.Improvement_ValidBuildUnits() do
+        if improvementBuildUnits ~= nil and improvementBuildUnits.ImprovementType == improvementInfo.ImprovementType and
+            improvementBuildUnits.UnitType == "UNIT_BUILDER" then
+                return true
+        end
+    end
+
+    return false
+end
+
 function plotCanHaveImprovement(playerID, plotIndex)
     local pPlot = Map.GetPlotByIndex(plotIndex)
     local pPlayer = Players[playerID]
 
-    -- If the plot has a resource, and the player has discovered it, get the improvement specific to that
-    if playerHasDiscoveredResource(playerID, plotIndex) then
-        local resourceInfo = GameInfo.Resources[pPlot:GetResourceType()]
-        local improvementType;
-
-        for validResourceInfo in GameInfo.Improvement_ValidResources() do
-            if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
-                improvementType = validResourceInfo.ImprovementType;
-            end
-        end
-
-        if improvementType ~= nil then
-            local improvementInfo = GameInfo.Improvements[improvementType];
-            print("Plot " .. plotIndex .. " possibly can have " .. improvementType)
-            return playerCanHave(playerID, improvementInfo);
-        end
-    end
-
     -- Handler for a generic tile
     for improvementInfo in GameInfo.Improvements() do
         if improvementInfo ~= nil and improvementInfo.Buildable then
+
             -- Does the player the prereq techs and civis
-            if playerCanHave(playerID, improvementInfo) then
+            if BuilderCanConstruct(improvementInfo) and playerCanHave(playerID, improvementInfo) then
                 local improvementValid:boolean = false;
 
                 -- Check for valid feature
@@ -1620,44 +1682,10 @@ function plotCanHaveImprovement(playerID, plotIndex)
                     improvementValid = false;
                 end
 
-                -- Finally check if the builder can construct this improvement
                 if improvementValid then
-                    for improvementBuildUnits in GameInfo.Improvement_ValidBuildUnits() do
-                        if improvementBuildUnits ~= nil and improvementBuildUnits.ImprovementType == improvementInfo.ImprovementType then
-                            if improvementBuildUnits.UnitType == "UNIT_BUILDER" then
-                                return true;
-                            else
-                                print("Builder cannot build " .. improvementBuildUnits.ImprovementType)
-                            end
-                        end
-                    end
+                    return true
                 end
             end
-        end
-    end
-
-    return false;
-end
-
-function playerCanRemoveFeature(playerID, plotIndex)
-    local pPlot = Map.GetPlotByIndex(plotIndex)
-    local pPlayer = Players[playerID];
-    local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
-
-    if featureInfo ~= nil then
-        if not featureInfo.Removable then return false; end
-
-        -- Check for remove tech
-        if featureInfo.RemoveTech ~= nil then
-            local tech = GameInfo.Technologies[featureInfo.RemoveTech]
-            local playerTech:table = pPlayer:GetTechs();
-            if tech ~= nil  then
-                return playerTech:HasTech(tech.Index);
-            else
-                return false;
-            end
-        else
-            return true;
         end
     end
 
@@ -1689,7 +1717,7 @@ function playerCanHave(playerID, xmlEntry)
         end
     end
 
-    -- Is it a Unique thing to a player
+    -- Is it a Unique thing to a player/civ
     if xmlEntry.TraitType ~= nil then
         -- print(xmlEntry.TraitType)
         local civilizationType = PlayerConfigurations[playerID]:GetCivilizationTypeName()
@@ -1873,16 +1901,7 @@ function districtComplete(playerID, plotIndex)
     if districtID ~= nil and districtID >= 0 then
         local pDistrict = pPlayer:GetDistricts():FindID(districtID);
         if pDistrict ~= nil then
-            local pCity = pDistrict:GetCity();
-            if pCity ~= nil then
-                local pCityDistricts = pCity:GetDistricts();
-                local districtInfo = GameInfo.Districts[pDistrict:GetType()];
-                if pCityDistricts ~= nil and districtInfo ~= nil then
-                    if pCityDistricts:HasDistrict(districtInfo.Index, true) then
-                        return true;
-                    end
-                end
-            end
+            return pDistrict:IsComplete()
         end
     end
 
@@ -1909,7 +1928,7 @@ function isAncientClassicalWonder(wonderTypeID)
             -- print("Era = " .. eraType);
 
             if eraType == nil then
-                print("Could not find era for wonder " .. wonderTypeID)
+                -- print("Could not find era for wonder " .. wonderTypeID)
                 return true
             elseif eraType == "ERA_ANCIENT" or eraType == "ERA_CLASSICAL" then
                 return true;
@@ -1968,7 +1987,7 @@ end
     CENTRE_EXCLUDE = false
 
     function PlotRingIterator(pPlot, r, sector, anticlock)
-        --print(string.format("PlotRingIterator((%i, %i), r=%i, s=%i, d=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd")))
+        -- print(string.format("PlotRingIterator((%i, %i), r=%i, s=%i, d=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd")))
         -- The important thing to remember with hex-coordinates is that x+y+z = 0
         -- so we never actually need to store z as we can always calculate it as -(x+y)
         -- See http://keekerdc.com/2011/03/hexagon-grids-coordinate-systems-and-distance-calculations/
@@ -2020,7 +2039,7 @@ end
             return function ()
                 local pEdgePlot = nil
                 local success, hex = coroutine.resume(next)
-                --if (hex ~= nil) then print(string.format("hex(%i, %i, %i)", hex.x, hex.y, -1 * (hex.x+hex.y))) else print("hex(nil)") end
+                -- if (hex ~= nil) then print(string.format("hex(%i, %i, %i)", hex.x, hex.y, -1 * (hex.x+hex.y))) else print("hex(nil)") end
 
                 while (success and hex ~= nil and pEdgePlot == nil) do
                     pEdgePlot = Map.GetPlot(ToGridFromHex(hex.x, hex.y))
@@ -2037,7 +2056,7 @@ end
 
 
     function PlotAreaSpiralIterator(pPlot, r, sector, anticlock, inwards, centre)
-        --print(string.format("PlotAreaSpiralIterator((%i, %i), r=%i, s=%i, d=%s, w=%s, c=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd"), (inwards and "in" or "out"), (centre and "yes" or "no")))
+        -- print(string.format("PlotAreaSpiralIterator((%i, %i), r=%i, s=%i, d=%s, w=%s, c=%s)", pPlot:GetX(), pPlot:GetY(), r, (sector or SECTOR_NORTH), (anticlock and "rev" or "fwd"), (inwards and "in" or "out"), (centre and "yes" or "no")))
         -- This coroutine walks each ring in sequence
         local next = coroutine.create(function ()
             if (centre and not inwards) then
