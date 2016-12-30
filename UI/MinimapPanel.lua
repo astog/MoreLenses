@@ -2168,12 +2168,17 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             Controls.WaterLensButton:SetCheck(false);
             Controls.OwnerLensButton:SetCheck(false);
             Controls.TourismLensButton:SetCheck(false);
-            Controls.CityOverlap6LensButton:SetCheck(false);
-            Controls.CityOverlap9LensButton:SetCheck(false);
-            Controls.ResourceLensButton:SetCheck(false);
-            Controls.WonderLensButton:SetCheck(false);
-            Controls.AdjacencyYieldLensButton:SetCheck(false);
+
+            -- Modded lens
             Controls.ScoutLensButton:SetCheck(false);
+            Controls.AdjacencyYieldLensButton:SetCheck(false);
+            Controls.WonderLensButton:SetCheck(false);
+            Controls.ResourceLensButton:SetCheck(false);
+            Controls.BarbarianLensButton:SetCheck(false);
+            Controls.CityOverlap9LensButton:SetCheck(false);
+            Controls.CityOverlap6LensButton:SetCheck(false);
+            Controls.ArchaeologistLensButton:SetCheck(false);
+            Controls.BuilderLensButton:SetCheck(false);
 
             if GetCurrentModdedLens() ~= MODDED_LENS_ID.NONE then
                 ClearModdedLens()
