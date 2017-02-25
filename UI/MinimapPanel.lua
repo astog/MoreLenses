@@ -24,6 +24,7 @@ local MODDED_LENS_ID:table = {
     WONDER = 8;
     ADJACENCY_YIELD = 9;
     SCOUT = 10;
+    NATURALIST = 11;
 };
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -193,6 +194,7 @@ function OnToggleLensList()
         Controls.CityOverlap6LensButton:SetCheck(false);
         Controls.ArchaeologistLensButton:SetCheck(false);
         Controls.BuilderLensButton:SetCheck(false);
+        Controls.NaturalistLensButton:SetCheck(false);
 
         -- Side Menus
         Controls.ResourceLensOptionsPanel:SetHide(true);
@@ -537,6 +539,29 @@ function ToggleScoutLens()
 end
 
 -- ===========================================================================
+function ToggleNaturalistLens()
+    if Controls.NaturalistLensButton:IsChecked() then
+        SetActiveModdedLens(MODDED_LENS_ID.NATURALIST);
+
+        -- Check if the appeal lens is already active
+        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
+            -- Unapply the appeal lens, so it can be cleared from the screen
+            UILens.SetActive("Default");
+        end
+
+        UILens.SetActive("Appeal");
+
+        RefreshInterfaceMode();
+    else
+        m_shouldCloseLensMenu = false;
+        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
+        end
+        SetActiveModdedLens(MODDED_LENS_ID.NONE);
+    end
+end
+
+-- ===========================================================================
 function ToggleGrid()
     bGridOn = not bGridOn;
     UI.ToggleGrid( bGridOn );
@@ -617,6 +642,8 @@ function OnLensLayerOn( layerNum:number )
             SetAdjacencyYieldLens();
         elseif currentModdedLens == MODDED_LENS_ID.SCOUT then
             SetScoutLens();
+        elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
+            SetNaturalistLens();
         end
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
@@ -1578,6 +1605,24 @@ function ShowScoutLens()
     UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
 end
 
+-- ===========================================================================
+function SetNaturalistLens()
+    print("Show Naturalist lens")
+
+    local localPlayer:number = Game.GetLocalPlayer();
+    local parkPlotColor:number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
+    local rawParkPlots:table = Game.GetNationalParks():GetPossibleParkTiles(localPlayer);
+
+    -- Dim hexes that are not encapments
+    -- if table.count(barbAdjacent) > 0 then
+    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
+    -- end
+
+    if table.count(rawParkPlots) > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, rawParkPlots, parkPlotColor );
+    end
+end
+
 -- Helper functions ===========================================================
 function SetActiveModdedLens(lensID)
     m_CurrentModdedLensOn = lensID;
@@ -2396,6 +2441,7 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             Controls.CityOverlap6LensButton:SetCheck(false);
             Controls.ArchaeologistLensButton:SetCheck(false);
             Controls.BuilderLensButton:SetCheck(false);
+            Controls.NaturalistLensButton:SetCheck(false);
 
             -- Side Menus
             Controls.ResourceLensOptionsPanel:SetHide(true);
@@ -2641,6 +2687,7 @@ end
 -- ===========================================================================
 -- INITIALIZATION
 -- ===========================================================================
+
 function Initialize()
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     m_ContinentsCache = Map.GetContinentsInUse();
@@ -2656,15 +2703,16 @@ function Initialize()
     Controls.ToggleYieldsButton:SetCheck( UserConfiguration.ShowMapYield() );
 
     -- Modded lens
-    Controls.ScoutLensButton:RegisterCallback( Mouse.eLClick, ToggleScoutLens );
-    Controls.AdjacencyYieldLensButton:RegisterCallback( Mouse.eLClick, ToggleAdjacencyYieldLens );
-    Controls.WonderLensButton:RegisterCallback( Mouse.eLClick, ToggleWonderLens );
-    Controls.ResourceLensButton:RegisterCallback( Mouse.eLClick, ToggleResourceLens );
-    Controls.BarbarianLensButton:RegisterCallback( Mouse.eLClick, ToggleBarbarianLens );
-    Controls.CityOverlap9LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap9Lens );
-    Controls.CityOverlap6LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap6Lens );
-    Controls.ArchaeologistLensButton:RegisterCallback( Mouse.eLClick, ToggleArchaeologistLens );
     Controls.BuilderLensButton:RegisterCallback( Mouse.eLClick, ToggleBuilderLens );
+    Controls.ArchaeologistLensButton:RegisterCallback( Mouse.eLClick, ToggleArchaeologistLens );
+    Controls.CityOverlap6LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap6Lens );
+    Controls.CityOverlap9LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap9Lens );
+    Controls.BarbarianLensButton:RegisterCallback( Mouse.eLClick, ToggleBarbarianLens );
+    Controls.ResourceLensButton:RegisterCallback( Mouse.eLClick, ToggleResourceLens );
+    Controls.WonderLensButton:RegisterCallback( Mouse.eLClick, ToggleWonderLens );
+    Controls.AdjacencyYieldLensButton:RegisterCallback( Mouse.eLClick, ToggleAdjacencyYieldLens );
+    Controls.ScoutLensButton:RegisterCallback( Mouse.eLClick, ToggleScoutLens );
+    Controls.NaturalistLensButton:RegisterCallback( Mouse.eLClick, ToggleNaturalistLens );
 
     -- Resource Lens Picker
     Controls.ShowBonusResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Bonus );

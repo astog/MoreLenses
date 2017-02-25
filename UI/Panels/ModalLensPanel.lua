@@ -20,6 +20,7 @@ local MODDED_LENS_ID:table = {
     WONDER          = 8;
     ADJACENCY_YIELD = 9;
     SCOUT           = 10;
+    NATURALIST      = 11;
 };
 
 --============================================================================
@@ -294,6 +295,17 @@ function ShowScoutLensKey()
 end
 
 --============================================================================
+function ShowNaturalistLensKey()
+    m_KeyStackIM: ResetInstances();
+
+    local parkNaturalistLens     :number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
+    AddKeyEntry("LOC_TOOLTIP_NATURALIST_LENS_NPARK", parkNaturalistLens);
+
+    Controls.KeyPanel:SetHide(false);
+    Controls.KeyScrollPanel:CalculateSize();
+end
+
+--============================================================================
 function OnAddContinentColorPair( pContinentColors:table )
     m_ContinentColorList = pContinentColors;
 end
@@ -417,36 +429,40 @@ function OnLensLayerOn( layerNum:number )
         Controls.KeyPanel:SetHide(true);
         ShowContinentLensKey();
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
-        if GetCurrentModdedLens() == MODDED_LENS_ID.APPEAL then
+        local currentModdedLens = GetCurrentModdedLens()
+        if currentModdedLens == MODDED_LENS_ID.APPEAL then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_APPEAL_LENS")));
             ShowAppealLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.BUILDER then
+        elseif currentModdedLens == MODDED_LENS_ID.BUILDER then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_BUILDER_LENS")));
             ShowBuilderLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.ARCHAEOLOGIST then
+        elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_ARCHAEOLOGIST_LENS")));
             ShowArchaeologistLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.CITY_OVERLAP6 then
+        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP6 then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP6_LENS")));
             ShowCityOverlap6LensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.CITY_OVERLAP9 then
+        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP9 then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP9_LENS")));
             ShowCityOverlap6LensKey(); -- TODO Create a custom key
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.BARBARIAN then
+        elseif currentModdedLens == MODDED_LENS_ID.BARBARIAN then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_BARBARIAN_LENS")));
             ShowBarbarianLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.RESOURCE then
+        elseif currentModdedLens == MODDED_LENS_ID.RESOURCE then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_RESOURCE_LENS")));
             ShowResourceLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.WONDER then
+        elseif currentModdedLens == MODDED_LENS_ID.WONDER then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_WONDER_LENS")));
             ShowWonderLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.ADJACENCY_YIELD then
+        elseif currentModdedLens == MODDED_LENS_ID.ADJACENCY_YIELD then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_ADJYIELD_LENS")));
             ShowAdjacencyYieldLensKey();
-        elseif GetCurrentModdedLens() == MODDED_LENS_ID.SCOUT then
+        elseif currentModdedLens == MODDED_LENS_ID.SCOUT then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_SCOUT_LENS")));
             ShowScoutLensKey();
+        elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
+            Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_NATURALIST_LENS")));
+            ShowNaturalistLensKey();
         end
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));

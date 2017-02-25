@@ -66,3 +66,7 @@ VALUES                  (   'COLOR_PLAYER_WONDER_LENS',         '0.98',     '0.0
 
 INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
 VALUES                  (   'COLOR_GHUT_SCOUT_LENS',            '0.56',     '0.0',      '0.98',     '0.5');
+
+-- Naturalist Lens
+INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
+VALUES                  (   'COLOR_PARK_NATURALIST_LENS',       '0',        '1',        '0',        '0.5');
