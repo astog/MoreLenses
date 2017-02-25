@@ -860,6 +860,11 @@ function SetBuilderLensHexes()
             if pPlot:IsImpassable() then
                 table.insert(unworkableHexes, i)
 
+            -- NATIONAL PARK
+            --------------------------------------
+            elseif pPlot:IsNationalPark() then
+                table.insert(unworkableHexes, i)
+
             -- IMPROVEMENTS
             --------------------------------------
             elseif plotHasImprovement(pPlot) then
