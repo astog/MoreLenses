@@ -82,3 +82,13 @@ If you encounter issues with getting the mod working try the following steps:
 > ```
 >
 >Change the respective variable to **false**.
+
+## Credits
+
+* @ZhouYzzz for providing the Chinese localization in #161-CQUI
+* @deggesim (Simone1974 on Civfanatics) for providing the Italian localization in #250-CQUI
+* @e1ectron for providing the Russian localization in #251-CQUI
+* @sejbr for providing the Polish localization in #253-CQUI
+* @frytom for providing the German localization in #283-CQUI
+* @lctrs for providing a partial French localization in #273-CQUI
+* @wbqd for providing a Korean translation in #309-CQUI

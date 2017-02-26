@@ -25,6 +25,7 @@ local MODDED_LENS_ID:table = {
     ADJACENCY_YIELD = 9;
     SCOUT = 10;
     NATURALIST = 11;
+    CUSTOM = 12;
 };
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -2355,6 +2356,39 @@ end
 -- End of iterator code --------------------
 
 -- ===========================================================================
+function ApplyCustomLens(plot_color_table)
+    SetActiveModdedLens(MODDED_LENS_ID.CUSTOM);
+
+    -- Check if the appeal lens is already active
+    if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
+        -- Unapply the appeal lens, so it can be cleared from the screen
+        UILens.SetActive("Default");
+    end
+
+    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
+
+    local localPlayer = Game.GetLocalPlayer()
+    for _, plot_color in ipairs(plot_color_table) do
+        local color:number = plot_color.Color;
+        local plots:table = plot_color.Plots;
+
+        if table.count(plots) > 0 then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color );
+        end
+    end
+end
+
+-- ===========================================================================
+function ClearCustomLens()
+    ClearModdedLens();
+
+    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
+    end
+end
+
+
+-- ===========================================================================
 --  Support function for Hotkey Event
 -- ===========================================================================
 function LensPanelHotkeyControl( pControl:table )
@@ -2766,5 +2800,10 @@ function Initialize()
     LuaEvents.Tutorial_SwitchToWorldView.Add( OnTutorial_SwitchToWorldView );
     LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
+
+    -- External Lens Controls
+    LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
+    LuaEvents.Lens_ClearCustomLens.Add( ClearCustomLens );
+
 end
 Initialize();

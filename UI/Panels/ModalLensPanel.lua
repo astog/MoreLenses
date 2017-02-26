@@ -21,6 +21,7 @@ local MODDED_LENS_ID:table = {
     ADJACENCY_YIELD = 9;
     SCOUT           = 10;
     NATURALIST      = 11;
+    CUSTOM          = 12;
 };
 
 --============================================================================
@@ -420,7 +421,6 @@ end
 
 -- ===========================================================================
 function OnLensLayerOn( layerNum:number )
-    -- print("Lens layer on " .. layerNum);
     if layerNum == LensLayers.HEX_COLORING_RELIGION then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_RELIGION_LENS")));
         Controls.KeyPanel:SetHide(true);
@@ -430,6 +430,7 @@ function OnLensLayerOn( layerNum:number )
         ShowContinentLensKey();
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
         local currentModdedLens = GetCurrentModdedLens()
+        print("Modded Lens on " .. currentModdedLens);
         if currentModdedLens == MODDED_LENS_ID.APPEAL then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_APPEAL_LENS")));
             ShowAppealLensKey();
@@ -463,6 +464,9 @@ function OnLensLayerOn( layerNum:number )
         elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_NATURALIST_LENS")));
             ShowNaturalistLensKey();
+        -- elseif currentModdedLens == MODDED_LENS_ID.CUSTOM then
+        --     print("Hiding")
+        --     ContextPtr:SetHide(true);   -- Hide the Modal Panel if custom
         end
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));
