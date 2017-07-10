@@ -106,10 +106,10 @@
   </Container>
 
   <Instance Name="ResourcePickEntry">
-    <Grid Size="parent,20">
+    <Container Size="130,20">
       <CheckBox ID="ResourceCheckbox" IsChecked="1" Anchor="L,C" ButtonTexture="Controls_Checkbox.dds" ButtonSize="17,17" CheckTexture="Controls_Checkbox.dds" CheckSize="17,17" CheckTextureOffset="0,17" Anchor="L,T"/>
       <Label ID="ResourceLabel" String="$Resource$" Anchor="L,C" Offset="17,1" Style="WhiteSemiBold14"/>
-    </Grid>
+    </Container>
   </Instance>
 
 </Context>

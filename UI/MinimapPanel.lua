@@ -13,19 +13,19 @@ local MINIMAP_COLLAPSED_OFFSETY :number = -180;
 
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
-    NONE = 0;
-    APPEAL = 1;
-    BUILDER = 2;
-    ARCHAEOLOGIST = 3;
-    BARBARIAN = 4;
-    CITY_OVERLAP6 = 5;
-    CITY_OVERLAP9 = 6;
-    RESOURCE = 7;
-    WONDER = 8;
-    ADJACENCY_YIELD = 9;
-    SCOUT = 10;
-    NATURALIST = 11;
-    CUSTOM = 12;
+    NONE = 0,
+    APPEAL = 1,
+    BUILDER = 2,
+    ARCHAEOLOGIST = 3,
+    BARBARIAN = 4,
+    CITY_OVERLAP6 = 5,
+    CITY_OVERLAP9 = 6,
+    RESOURCE = 7,
+    WONDER = 8,
+    ADJACENCY_YIELD = 9,
+    SCOUT = 10,
+    NATURALIST = 11,
+    CUSTOM = 12
 };
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -37,10 +37,7 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
-local m_isModdedMouseFeatureEnabled = true;
-
--- Modded in hotkeys
--- local BUILDER_LENS_HOTKEY = Keys.VK_CONTROL;
+-- local m_isModdedMouseFeatureEnabled = true;
 
 -- ===========================================================================
 --  MEMBERS
@@ -80,6 +77,8 @@ local m_hasMouseDragged         :boolean = false; -- Has there been any movement
 local m_wasMouseInMinimap       :boolean = false; -- Was the mouse over the minimap the last time we checked?
 
 local m_CurrentModdedLensOn     :number  = MODDED_LENS_ID.NONE;
+
+local m_CustomLens_PlotsAndColors:table = {}
 
 -- Resource Lens Specific Vars
 local ResourcesToHide:table = {};
@@ -645,6 +644,8 @@ function OnLensLayerOn( layerNum:number )
             SetScoutLens();
         elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
             SetNaturalistLens();
+        elseif currentModdedLens == MODDED_LENS_ID.CUSTOM then
+            SetCustomLens();
         end
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
@@ -1433,41 +1434,6 @@ function HandleResourceCheckbox(pControl, resourceType)
     SetResourceLens();
 end
 
-function has_value (tab, val)
-    for index, value in ipairs (tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-end
-
-function has_rInfo (tab, val)
-    for index, value in ipairs (tab) do
-        if value.ResourceType == val then
-            return true
-        end
-    end
-
-    return false
-end
-
-function find_and_remove(tab, val)
-    for i, item in ipairs(tab) do
-        if item == val then
-            table.remove(tab, i);
-            return
-        end
-    end
-end
-
-function ndup_insert(tab, val)
-    if not has_value(tab, val) then
-        table.insert(tab, val);
-    end
-end
-
 -- ===========================================================================
 function SetWonderLens()
     -- print("Show wonder lens")
@@ -1624,7 +1590,73 @@ function SetNaturalistLens()
     end
 end
 
--- Helper functions ===========================================================
+-- ===========================================================================
+function SetCustomLens()
+    local localPlayer = Game.GetLocalPlayer()
+    for i, plot_color in ipairs(m_CustomLens_PlotsAndColors) do
+        -- print(i .. " layer")
+        local color:number = plot_color.Color;
+        local plots:table = plot_color.Plots;
+
+        if table.count(plots) > 0 then
+            -- print("Apply Lens")
+            -- dump(plots)
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color );
+        end
+    end
+end
+
+function ApplyCustomLens(plot_color_table)
+    SetActiveModdedLens(MODDED_LENS_ID.CUSTOM);
+
+    -- Check if the appeal lens is already active
+    if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
+        -- Unapply the appeal lens, so it can be cleared from the screen
+        UILens.ToggleLayerOff(LensLayers.HEX_COLORING_APPEAL_LEVEL);
+    end
+
+    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
+
+    m_CustomLens_PlotsAndColors = plot_color_table
+end
+
+function ClearCustomLens()
+    ClearModdedLens();
+
+    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
+    end
+end
+
+-- ===========================================================================
+function OnApplyModdedLens(moddedLensID, showModalPanel:boolean)
+    if showModalPanel then
+        SetActiveModdedLens(moddedLensID);
+
+        -- Check if the appeal lens is already active
+        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
+            -- Unapply the appeal lens, so it can be cleared from the screen
+            UILens.SetActive("Default");
+        end
+
+        UILens.SetActive("Appeal");
+
+        RefreshInterfaceMode();
+    else
+        SetActiveModdedLens(moddedLensID);
+        UI.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL)
+    end
+end
+
+function OnClearModdedLens(showedModalPanel:boolean)
+    ClearModdedLens()
+
+    if showedModalPanel and UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
+    end
+end
+
+-- Modded lens helper functions ===========================================================
 function SetActiveModdedLens(lensID)
     m_CurrentModdedLensOn = lensID;
     LuaEvents.MinimapPanel_ModdedLensOn(lensID);
@@ -1657,6 +1689,10 @@ function GetCurrentModdedLens()
     -- end
     return m_CurrentModdedLensOn;
 end
+
+-- ===========================================================================
+--  Utility/Helper Functions
+-- ===========================================================================
 
 function plotHasImprovement(plot)
     return plot:GetImprovementType() ~= -1;
@@ -2213,6 +2249,41 @@ function GetUnitType( playerID: number, unitID : number )
     return nil;
 end
 
+function has_value (tab, val)
+    for index, value in ipairs (tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+function has_rInfo (tab, val)
+    for index, value in ipairs (tab) do
+        if value.ResourceType == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+function find_and_remove(tab, val)
+    for i, item in ipairs(tab) do
+        if item == val then
+            table.remove(tab, i);
+            return
+        end
+    end
+end
+
+function ndup_insert(tab, val)
+    if not has_value(tab, val) then
+        table.insert(tab, val);
+    end
+end
+
 --------------------------------------------
 -- Plot Iterator, Author: whoward69; URL: https://forums.civfanatics.com/threads/border-and-area-plot-iterators.474634/
     -- convert funcs odd-r offset to axial. URL: http://www.redblobgames.com/grids/hexagons/
@@ -2354,39 +2425,6 @@ end
         end
     end
 -- End of iterator code --------------------
-
--- ===========================================================================
-function ApplyCustomLens(plot_color_table)
-    SetActiveModdedLens(MODDED_LENS_ID.CUSTOM);
-
-    -- Check if the appeal lens is already active
-    if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-        -- Unapply the appeal lens, so it can be cleared from the screen
-        UILens.SetActive("Default");
-    end
-
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-
-    local localPlayer = Game.GetLocalPlayer()
-    for _, plot_color in ipairs(plot_color_table) do
-        local color:number = plot_color.Color;
-        local plots:table = plot_color.Plots;
-
-        if table.count(plots) > 0 then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color );
-        end
-    end
-end
-
--- ===========================================================================
-function ClearCustomLens()
-    ClearModdedLens();
-
-    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-    end
-end
-
 
 -- ===========================================================================
 --  Support function for Hotkey Event
@@ -2576,6 +2614,7 @@ function OnUnitMoved( playerID:number, unitID:number )
     end
 end
 
+--[[
 function HandleMouseForModdedLens( mousex:number, mousey:number )
     -- Don't do anything if mouse is dragging
     if not m_isMouseDragging then
@@ -2588,16 +2627,17 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
 
         -- Handle for different lenses
         if UILens.IsLayerOn(LensLayers.HEX_COLORING_WATER_AVAILABLITY) then
-            -- Alt_ClearHighlightedPlots();
-            -- local highlightPlot:table = {}
-            -- for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-            --  table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
-            -- end
+            Alt_ClearHighlightedPlots();
+            local highlightPlot:table = {}
+            for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+             table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
+            end
 
-            -- Alt_HighlightPlots(highlightPlot);
+            Alt_HighlightPlots(highlightPlot);
         end
     end
 end
+]]
 
 function GetMinimapMouseCoords( mousex:number, mousey:number )
     local topLeftX, topLeftY = Controls.MinimapImage:GetScreenOffset();
@@ -2629,28 +2669,12 @@ function TranslateMinimapToWorld( minix:number, miniy:number )
     return wx, wy;
 end
 
--- function KeyDownHandler( key:number )
---  if key == BUILDER_LENS_HOTKEY then
---      SetBuilderLensHexes();
---  end
---  return false;
--- end
-
--- function KeyUpHandler( key:number )
---  if key == BUILDER_LENS_HOTKEY then
---      ClearBuilderLensHexes();
---  end
---     return false;
--- end
-
 function OnInputHandler( pInputStruct:table )
-    -- local uiMsg = pInputStruct:GetMessageType();
-    -- if uiMsg == KeyEvents.KeyDown then return KeyDownHandler( pInputStruct:GetKey() ); end
-    -- if uiMsg == KeyEvents.KeyUp then return KeyUpHandler( pInputStruct:GetKey() ); end
-
+    --[[
     if m_isModdedMouseFeatureEnabled then
         HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
     end
+    ]]
 
     -- Skip all other handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
@@ -2804,6 +2828,7 @@ function Initialize()
     -- External Lens Controls
     LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
     LuaEvents.Lens_ClearCustomLens.Add( ClearCustomLens );
-
+    LuaEvents.Lens_ApplyModdedLens.Add( OnApplyModdedLens );
+    LuaEvents.Lens_ClearModdedLens.Add( OnClearModdedLens );
 end
 Initialize();

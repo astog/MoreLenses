@@ -430,7 +430,7 @@ function OnLensLayerOn( layerNum:number )
         ShowContinentLensKey();
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
         local currentModdedLens = GetCurrentModdedLens()
-        print("Modded Lens on " .. currentModdedLens);
+        -- print("Modded Lens on " .. currentModdedLens);
         if currentModdedLens == MODDED_LENS_ID.APPEAL then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_APPEAL_LENS")));
             ShowAppealLensKey();
@@ -484,7 +484,7 @@ function OnLensLayerOn( layerNum:number )
 end
 
 -- ===========================================================================
--- Called from
+-- Called from MinimapPanel.lua
 function OnModdedLensOn(modID)
     print("Current modded lens on " .. modID);
     m_CurrentModdedLensOn = modID;
