@@ -458,9 +458,10 @@ function ToggleResourceLens()
 
         UILens.SetActive("Appeal");
 
-        Controls.ResourceLensOptionsPanel:SetHide(false);
         RefreshResourcePicker();
         RefreshInterfaceMode();
+
+        Controls.ResourceLensOptionsPanel:SetHide(false);
     else
         m_shouldCloseLensMenu = false;
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
@@ -616,6 +617,8 @@ function RefreshInterfaceMode()
     if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
         UI.SetInterfaceMode(InterfaceModeTypes.VIEW_MODAL_LENS);
     end
+
+    Controls.ResourceLensOptionsPanel:SetHide(true);
 end
 
 -- ===========================================================================
