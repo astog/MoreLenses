@@ -18,14 +18,13 @@ local MODDED_LENS_ID:table = {
     BUILDER = 2,
     ARCHAEOLOGIST = 3,
     BARBARIAN = 4,
-    CITY_OVERLAP6 = 5,
-    CITY_OVERLAP9 = 6,
-    RESOURCE = 7,
-    WONDER = 8,
-    ADJACENCY_YIELD = 9,
-    SCOUT = 10,
-    NATURALIST = 11,
-    CUSTOM = 12
+    CITY_OVERLAP = 5,
+    RESOURCE = 6,
+    WONDER = 7,
+    ADJACENCY_YIELD = 8,
+    SCOUT = 9,
+    NATURALIST = 10,
+    CUSTOM = 11
 };
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -36,6 +35,8 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
+
+local m_CityOverlapRange:number = 6;
 
 -- local m_isModdedMouseFeatureEnabled = true;
 
@@ -84,6 +85,8 @@ local m_CustomLens_PlotsAndColors:table = {}
 -- Resource Lens Specific Vars
 local ResourcesToHide:table = {};
 local ResourceCategoryToHide:table = {};
+
+local m_OverlapLensMouseRadius:number = 9;
 
 -- ===========================================================================
 --  FUNCTIONS
@@ -192,8 +195,7 @@ function OnToggleLensList()
         Controls.WonderLensButton:SetCheck(false);
         Controls.ResourceLensButton:SetCheck(false);
         Controls.BarbarianLensButton:SetCheck(false);
-        Controls.CityOverlap9LensButton:SetCheck(false);
-        Controls.CityOverlap6LensButton:SetCheck(false);
+        Controls.CityOverlapLensButton:SetCheck(false);
         Controls.ArchaeologistLensButton:SetCheck(false);
         Controls.BuilderLensButton:SetCheck(false);
         Controls.NaturalistLensButton:SetCheck(false);
@@ -377,9 +379,9 @@ function ToggleArchaeologistLens()
 end
 
 -- ===========================================================================
-function ToggleCityOverlap6Lens()
-    if Controls.CityOverlap6LensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.CITY_OVERLAP6);
+function ToggleCityOverlapLens()
+    if Controls.CityOverlapLensButton:IsChecked() then
+        SetActiveModdedLens(MODDED_LENS_ID.CITY_OVERLAP);
 
         -- Check if the appeal lens is already active
         if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
@@ -388,36 +390,14 @@ function ToggleCityOverlap6Lens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
+        Controls.OverlapLensOptionsPanel:SetHide(false);
     else
         m_shouldCloseLensMenu = false;
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleCityOverlap9Lens()
-    if Controls.CityOverlap9LensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.CITY_OVERLAP9);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
+        Controls.OverlapLensOptionsPanel:SetHide(true);
         SetActiveModdedLens(MODDED_LENS_ID.NONE);
     end
 end
@@ -619,6 +599,7 @@ function RefreshInterfaceMode()
     end
 
     Controls.ResourceLensOptionsPanel:SetHide(true);
+    Controls.OverlapLensOptionsPanel:SetHide(true);
 end
 
 -- ===========================================================================
@@ -633,10 +614,8 @@ function OnLensLayerOn( layerNum:number )
             SetBuilderLensHexes();
         elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
             SetArchaeologistLens();
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP6 then
-            SetCityOverlapLens(6);
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP9 then
-            SetCityOverlapLens(9);
+        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP then
+            SetCityOverlapLens();
         elseif currentModdedLens == MODDED_LENS_ID.BARBARIAN then
             SetBarbarianLens();
         elseif currentModdedLens == MODDED_LENS_ID.RESOURCE then
@@ -1092,7 +1071,7 @@ function ShowArchaeologistLens()
 end
 
 -- ===========================================================================
-function SetCityOverlapLens(range)
+function SetCityOverlapLens()
     -- print("Show City Overlap 6 lens")
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
@@ -1100,19 +1079,17 @@ function SetCityOverlapLens(range)
 
     local plotEntries       :table = {};
     local numCityEntries    :table = {};
+    local  localPlayerCities = Players[localPlayer]:GetCities()
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
         local pPlot:table = Map.GetPlotByIndex(i);
 
         if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            -- if pPlot:GetOwner() == localPlayer then
+            if pPlot:GetOwner() == localPlayer or Controls.ShowLensOutsideBorder:IsChecked() then
                 local numCities = 0;
-                -- get cities that in range of this hex.
-                local localPlayerCities = Players[localPlayer]:GetCities()
-                for i, pCity in localPlayerCities:Members() do
+                for _, pCity in localPlayerCities:Members() do
                     if pCity ~= nil and pCity:GetOwner() == localPlayer then
-                        local pCityPlot = Map.GetPlot(pCity:GetX(), pCity:GetY())
-                        if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCityPlot:GetX(), pCityPlot:GetY()) <= range then
+                        if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCity:GetX(), pCity:GetY()) <= m_CityOverlapRange then
                             numCities = numCities + 1;
                         end
                     end
@@ -1124,7 +1101,7 @@ function SetCityOverlapLens(range)
                     table.insert(plotEntries, i);
                     table.insert(numCityEntries, numCities);
                 end
-            -- end
+            end
         end
     end
 
@@ -1138,6 +1115,61 @@ function SetCityOverlapLens(range)
         local color:number = UI.GetColorValue(colorLookup);
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, {plotEntries[i]}, color );
     end
+end
+
+function Alt_SetCityOverlapLens()
+    local plotId = UI.GetCursorPlotID();
+    if (not Map.IsPlot(plotId)) then
+        return;
+    end
+
+    local pPlot = Map.GetPlotByIndex(plotId)
+    local localPlayer = Game.GetLocalPlayer()
+    local cityPlots:table = {}
+    local normalPlot:table = {}
+
+    for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, m_CityOverlapRange, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+        if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
+            table.insert(cityPlots, pAdjacencyPlot:GetIndex());
+        else
+            table.insert(normalPlot, pAdjacencyPlot:GetIndex());
+        end
+    end
+
+    if (table.count(cityPlots) > 0) then
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1");
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, cityPlots, plotColor );
+    end
+
+    if (table.count(normalPlot) > 0) then
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3");
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, normalPlot, plotColor );
+    end
+end
+
+function RefreshCityOverlapLens()
+    -- Assuming City Overlap lens is already applied
+    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
+    SetCityOverlapLens();
+end
+
+function Refresh_AltCityOverlapLens()
+    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
+    Alt_SetCityOverlapLens();
+end
+
+function IncreseOverlapRange()
+    m_CityOverlapRange = m_CityOverlapRange + 1;
+    Controls.OverlapRangeLabel:SetText(m_CityOverlapRange);
+    RefreshCityOverlapLens();
+end
+
+function DecreaseOverlapRange()
+    if (m_CityOverlapRange > 0) then
+        m_CityOverlapRange = m_CityOverlapRange - 1;
+    end
+    Controls.OverlapRangeLabel:SetText(m_CityOverlapRange);
+    RefreshCityOverlapLens();
 end
 
 -- ===========================================================================
@@ -1571,7 +1603,7 @@ function ClearScoutLens()
     ClearModdedLens();
 end
 
--- Called when a archeologist is selected
+-- Called when a scout is selected
 function ShowScoutLens()
     SetActiveModdedLens(MODDED_LENS_ID.SCOUT);
     UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
@@ -2531,8 +2563,7 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             Controls.WonderLensButton:SetCheck(false);
             Controls.ResourceLensButton:SetCheck(false);
             Controls.BarbarianLensButton:SetCheck(false);
-            Controls.CityOverlap9LensButton:SetCheck(false);
-            Controls.CityOverlap6LensButton:SetCheck(false);
+            Controls.CityOverlapLensButton:SetCheck(false);
             Controls.ArchaeologistLensButton:SetCheck(false);
             Controls.BuilderLensButton:SetCheck(false);
             Controls.NaturalistLensButton:SetCheck(false);
@@ -2636,7 +2667,6 @@ function OnUnitMoved( playerID:number, unitID:number )
     end
 end
 
---[[
 function HandleMouseForModdedLens( mousex:number, mousey:number )
     -- Don't do anything if mouse is dragging
     if not m_isMouseDragging then
@@ -2648,6 +2678,7 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
         local pPlot = Map.GetPlotByIndex(plotId)
 
         -- Handle for different lenses
+        --[[
         if UILens.IsLayerOn(LensLayers.HEX_COLORING_WATER_AVAILABLITY) then
             Alt_ClearHighlightedPlots();
             local highlightPlot:table = {}
@@ -2657,9 +2688,16 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
 
             Alt_HighlightPlots(highlightPlot);
         end
+        ]]
+
+        -- Handler for City Overlap lens
+        if (GetCurrentModdedLens() == MODDED_LENS_ID.CITY_OVERLAP) then
+            if (Controls.OverlapLensMouseRange:IsChecked()) then
+                Refresh_AltCityOverlapLens();
+            end
+        end
     end
 end
-]]
 
 function GetMinimapMouseCoords( mousex:number, mousey:number )
     local topLeftX, topLeftY = Controls.MinimapImage:GetScreenOffset();
@@ -2692,11 +2730,7 @@ function TranslateMinimapToWorld( minix:number, miniy:number )
 end
 
 function OnInputHandler( pInputStruct:table )
-    --[[
-    if m_isModdedMouseFeatureEnabled then
-        HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
-    end
-    ]]
+    HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
 
     -- Skip all other handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
@@ -2791,8 +2825,7 @@ function Initialize()
     -- Modded lens
     Controls.BuilderLensButton:RegisterCallback( Mouse.eLClick, ToggleBuilderLens );
     Controls.ArchaeologistLensButton:RegisterCallback( Mouse.eLClick, ToggleArchaeologistLens );
-    Controls.CityOverlap6LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap6Lens );
-    Controls.CityOverlap9LensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlap9Lens );
+    Controls.CityOverlapLensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlapLens );
     Controls.BarbarianLensButton:RegisterCallback( Mouse.eLClick, ToggleBarbarianLens );
     Controls.ResourceLensButton:RegisterCallback( Mouse.eLClick, ToggleResourceLens );
     Controls.WonderLensButton:RegisterCallback( Mouse.eLClick, ToggleWonderLens );
@@ -2804,6 +2837,12 @@ function Initialize()
     Controls.ShowBonusResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Bonus );
     Controls.ShowLuxuryResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Luxury );
     Controls.ShowStrategicResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Strategic );
+
+    -- City Overlap Lens Setting
+    Controls.ShowLensOutsideBorder:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
+    Controls.OverlapRangeUp:RegisterCallback( Mouse.eLClick, IncreseOverlapRange );
+    Controls.OverlapRangeDown:RegisterCallback( Mouse.eLClick, DecreaseOverlapRange );
+    Controls.OverlapLensMouseNone:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
 
     Controls.AppealLensButton:RegisterCallback( Mouse.eLClick, ToggleAppealLens );
     Controls.ContinentLensButton:RegisterCallback( Mouse.eLClick, ToggleContinentLens );

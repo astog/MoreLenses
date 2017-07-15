@@ -9,19 +9,18 @@ local m_CurrentModdedLensOn;
 -- Similiar to MinimapPanel.lua to control modded lenses
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
-    NONE            = 0;
-    APPEAL          = 1;
-    BUILDER         = 2;
-    ARCHAEOLOGIST   = 3;
-    BARBARIAN       = 4;
-    CITY_OVERLAP6   = 5;
-    CITY_OVERLAP9   = 6;
-    RESOURCE        = 7;
-    WONDER          = 8;
-    ADJACENCY_YIELD = 9;
-    SCOUT           = 10;
-    NATURALIST      = 11;
-    CUSTOM          = 12;
+    NONE = 0,
+    APPEAL = 1,
+    BUILDER = 2,
+    ARCHAEOLOGIST = 3,
+    BARBARIAN = 4,
+    CITY_OVERLAP = 5,
+    RESOURCE = 6,
+    WONDER = 7,
+    ADJACENCY_YIELD = 8,
+    SCOUT = 9,
+    NATURALIST = 10,
+    CUSTOM = 11
 };
 
 --============================================================================
@@ -184,7 +183,7 @@ function ShowPoliticalLensKey()
 end
 
 --============================================================================
-function ShowCityOverlap6LensKey()
+function ShowCityOverlapLensKey()
     m_KeyStackIM: ResetInstances();
 
     for i = 1, 8 do
@@ -442,12 +441,9 @@ function OnLensLayerOn( layerNum:number )
         elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_ARCHAEOLOGIST_LENS")));
             ShowArchaeologistLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP6 then
-            Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP6_LENS")));
-            ShowCityOverlap6LensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP9 then
-            Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP9_LENS")));
-            ShowCityOverlap6LensKey(); -- TODO Create a custom key
+        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP then
+            Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP_LENS")));
+            ShowCityOverlapLensKey();
         elseif currentModdedLens == MODDED_LENS_ID.BARBARIAN then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_BARBARIAN_LENS")));
             ShowBarbarianLensKey();
