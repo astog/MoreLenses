@@ -928,9 +928,9 @@ function SetBuilderLensHexes()
                     table.insert(unworkableHexes, i);
                 end
 
-            -- HILL
+            -- HILL - MINE
             --------------------------------------
-            elseif plotHasHill(pPlot) then
+            elseif plotHasImprovableHill(pPlot) then
                 if plotNextToBuffingWonder(pPlot) then
                     table.insert(recomFeatureHexes, i)
                 else
@@ -955,7 +955,7 @@ function SetBuilderLensHexes()
             elseif plotCanHaveImprovement(localPlayer, i) then
                 if plotNextToBuffingWonder(pPlot) then
                     table.insert(recomFeatureHexes, i)
-                else
+                elseif plotCanHaveFarm(plot) then
                     table.insert(genericHexes, i)
                 end
 
@@ -1768,9 +1768,13 @@ function plotHasRemovableFeature(plot)
     return false;
 end
 
-function plotHasHill(plot)
+function plotHasImprovableHill(plot)
     local terrainInfo = GameInfo.Terrains[plot:GetTerrainType()];
-    if terrainInfo ~= nil and terrainInfo.Hills then
+    local improvInfo = GameInfo.Improvements["IMPROVEMENT_MINE"];
+    local playerID = Game.GetLocalPlayer()
+
+    if (terrainInfo ~= nil and terrainInfo.Hills
+            and playerCanHave(playerID, improvInfo)) then
         return true
     end
     return false;
@@ -1844,16 +1848,22 @@ function plotNextToBuffingWonder(plot)
 end
 
 function plotHasRecomFeature(plot)
+    local playerID = Game.GetLocalPlayer()
     local featureInfo = GameInfo.Features[plot:GetFeatureType()]
+    local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
+    local lumberImprovInfo = GameInfo.Improvements["IMPROVEMENT_LUMBER_MILL"]
+
     if featureInfo ~= nil then
 
         -- 1. Is it a floodplain?
-        if featureInfo.FeatureType == "FEATURE_FLOODPLAINS" then
+        if featureInfo.FeatureType == "FEATURE_FLOODPLAINS" and
+                playerCanHave(playerID, farmImprovInfo) then
             return true
         end
 
         -- 2. Is it a forest next to a river?
-        if featureInfo.FeatureType == "FEATURE_FOREST" and plot:IsRiver() then
+        if featureInfo.FeatureType == "FEATURE_FOREST" and plot:IsRiver() and
+                playerCanHave(playerID, lumberImprovInfo) then
             return true
         end
 
@@ -1864,7 +1874,14 @@ function plotHasRecomFeature(plot)
 
         -- 4. Is it wonder, that can have an improvement?
         if plotHasImprovableWonder(plot) then
-            return true
+            if featureInfo.FeatureType == "FEATURE_FOREST" and
+                    playerCanHave(playerID, lumberImprovInfo) then
+                return true
+            end
+
+            if plotCanHaveFarm(plot) then
+                return true
+            end
         end
 
     end
@@ -1895,6 +1912,24 @@ function plotHasBarbCamp(plot)
         return true;
     end
     return false;
+end
+
+-- TODO: Check for valid feature
+function plotCanHaveFarm(plot)
+    local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
+    if not playerCanHave(playerID, farmImprovInfo) then
+        return false;
+    end
+
+    local validTerrain:boolean = false;
+    local playerID = Game.GetLocalPlayer()
+
+    for improvTerrainInfo in GameInfo.Improvement_ValidTerrains() do
+        if (improvTerrainInfo.ImprovementType == "IMPROVEMENT_FARM"
+                and playerCanHave(playerID, improvTerrainInfo)) then
+            return true;
+        end
+    end
 end
 
 function plotHasGoodyHut(plot)
