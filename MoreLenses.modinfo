@@ -27,6 +27,14 @@
 		<LocalizedText id="MORELENSES_TEXT">
 			<Items>
 				<File>Text/MoreLenses_Text.xml</File>
+			  <File>Text/MoreLenses_Text_de.xml</File>
+			  <File>Text/MoreLenses_Text_fr.xml</File>
+			  <File>Text/MoreLenses_Text_it.xml</File>
+			  <File>Text/MoreLenses_Text_ko.xml</File>
+			  <File>Text/MoreLenses_Text_pl.xml</File>
+			  <File>Text/MoreLenses_Text_ru.xml</File>
+			  <File>Text/MoreLenses_Text_zh.xml</File>
+			  <File>Text/MoreLenses_Text_es.xml</File>
 			</Items>
 		</LocalizedText>
 	</Components>
@@ -50,6 +58,15 @@
 	</LocalizedText>
 
 	<Files>
+    <File>Text/MoreLenses_Text.xml</File>
+    <File>Text/MoreLenses_Text_de.xml</File>
+    <File>Text/MoreLenses_Text_fr.xml</File>
+    <File>Text/MoreLenses_Text_it.xml</File>
+    <File>Text/MoreLenses_Text_ko.xml</File>
+    <File>Text/MoreLenses_Text_pl.xml</File>
+    <File>Text/MoreLenses_Text_ru.xml</File>
+    <File>Text/MoreLenses_Text_zh.xml</File>
+    <File>Text/MoreLenses_Text_es.xml</File>
 		<File>UI/MinimapPanel.lua</File>
 		<File>UI/MinimapPanel.xml</File>
 		<File>UI/Panels/ModalLensPanel.lua</File>
