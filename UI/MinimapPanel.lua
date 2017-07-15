@@ -69,6 +69,7 @@ local m_ToggleAppealLensId      = Input.GetActionId("LensAppeal");
 local m_ToggleSettlerLensId     = Input.GetActionId("LensSettler");
 local m_ToggleGovernmentLensId  = Input.GetActionId("LensGovernment");
 local m_TogglePoliticalLensId   = Input.GetActionId("LensPolitical");
+local m_ToggleTourismLensId     = Input.GetActionId("LensTourism");
 
 
 local m_isMouseDragEnabled      :boolean = true; -- Can the camera be moved by dragging on the minimap?
@@ -156,6 +157,7 @@ end
 function RefreshMinimapOptions()
     Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
     Controls.ToggleGridButton:SetCheck(bGridOn);
+    Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
 end
 
 -- ===========================================================================
@@ -721,7 +723,7 @@ function SetOwingCivHexes()
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
         for i, player in ipairs(players) do
-            local cities = players[i]:GetCities();
+            local cities = player:GetCities();
             local primaryColor, secondaryColor = UI.GetPlayerColors( player:GetID() );
 
             for _, pCity in cities:Members() do
@@ -772,9 +774,9 @@ function SetGovernmentHexes()
     local localPlayerVis:table = PlayersVisibility[localPlayer];
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
-        for i in pairs(players) do
-            local cities = players[i]:GetCities();
-            local culture = players[i]:GetCulture();
+        for i, player in ipairs(players) do
+            local cities = player:GetCities();
+            local culture = player:GetCulture();
             local governmentId :number = culture:GetCurrentGovernment();
             local GovernmentColor;
             if(governmentId < 0) or GameInfo.Governments[governmentId] == nil then
@@ -2718,6 +2720,12 @@ function OnInputHandler( pInputStruct:table )
             m_wasMouseInMinimap = isMouseInMinimap
             return isMouseInMinimap; -- Only consume event if it's inside the minimap.
 
+        -- Consume mouse right click if mouse is on minimap.
+        elseif msg == MouseEvents.RButtonDown or msg == MouseEvents.RButtonUp then
+            local minix, miniy = GetMinimapMouseCoords( pInputStruct:GetX(), pInputStruct:GetY() );
+            if IsMouseInMinimap( minix, miniy ) then
+                return true
+            end
         end
     end
     return false;
@@ -2800,6 +2808,14 @@ function Initialize()
     Controls.ToggleResourcesButton:RegisterCallback( Mouse.eLClick, ToggleResourceIcons );
     Controls.ToggleYieldsButton:RegisterCallback( Mouse.eLClick, ToggleYieldIcons );
     Controls.WaterLensButton:RegisterCallback( Mouse.eLClick, ToggleWaterLens );
+
+    -- Hide buttons not needed for the world builder
+    if GameConfiguration.IsWorldBuilderEditor() then
+        Controls.LensButton:SetHide(true);
+        Controls.MapPinListButton:SetHide(true);
+        Controls.StrategicSwitcherButton:SetHide(true);
+        Controls.OptionsStack:ReprocessAnchoring();
+    end
 
     -- Make sure the StrategicSwitcherButton has the correct image when the game starts in StrategicView
     if UI.GetWorldRenderView() == WorldRenderView.VIEW_2D then
