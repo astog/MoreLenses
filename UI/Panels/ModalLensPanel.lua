@@ -300,7 +300,9 @@ function ShowNaturalistLensKey()
     m_KeyStackIM: ResetInstances();
 
     local parkNaturalistLens     :number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
+    local impNaturalistLens      :number = UI.GetColorValue("COLOR_IMPASSABLE_NATURALIST_LENS");
     AddKeyEntry("LOC_TOOLTIP_NATURALIST_LENS_NPARK", parkNaturalistLens);
+    AddKeyEntry("LOC_TOOLTIP_NATURALIST_LENS_INPARK", impNaturalistLens);
 
     Controls.KeyPanel:SetHide(false);
     Controls.KeyScrollPanel:CalculateSize();

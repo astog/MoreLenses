@@ -1580,7 +1580,20 @@ function SetNaturalistLens()
 
     local localPlayer:number = Game.GetLocalPlayer();
     local parkPlotColor:number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
+    local impasPlotColor:number = UI.GetColorValue("COLOR_IMPASSABLE_NATURALIST_LENS");
+
     local rawParkPlots:table = Game.GetNationalParks():GetPossibleParkTiles(localPlayer);
+    local validPlots:table = {}
+    local impasPlots:table = {}
+
+    for _, plotID in ipairs(rawParkPlots) do
+        local pPlot:table = Map.GetPlotByIndex(plotID);
+        if (pPlot:IsImpassable()) then
+            table.insert(impasPlots, plotID);
+        else
+            table.insert(validPlots, plotID);
+        end
+    end
 
     -- Dim hexes that are not encapments
     -- if table.count(barbAdjacent) > 0 then
@@ -1588,7 +1601,11 @@ function SetNaturalistLens()
     -- end
 
     if table.count(rawParkPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, rawParkPlots, parkPlotColor );
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, validPlots, parkPlotColor );
+    end
+
+    if table.count(impasPlots) > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, impasPlots, impasPlotColor );
     end
 end
 
