@@ -1,46 +1,46 @@
-#More Lenses
+# More Lenses
 
-##Introduction
+## Introduction
 The goal of this mod is to add more lenses to the game, that help with empire management and in general quality of life improvements. Currently there are 9 new lenses, but you are welcome to suggest new ones and I can add them.
 
-##New Lenses
+## New Lenses
 
-####Builder Lens
+#### Builder Lens
 This lens highlights unimproved resources, hills and removable features. This lens auto applies when a builder is selected (can be disabled in the file. See FAQ).
 
 ![Imgur](http://i.imgur.com/6ayAc9V.jpg)
 ___
-####Archaeologist Lens:
+#### Archaeologist Lens:
 Highlights artifacts and shipwrecks. No longer do you need to hunt around the map for antiquity sites. Automatically applies when a archaeologist is selected (can be disabled in the file. See FAQ).
 
 ![Imgur](http://i.imgur.com/Fe0UYRF.jpg)
 ___
-####City Overlap 6 or 9:
+#### City Overlap 6 or 9:
 Shows how many cities a particular hex overlaps with. Range 6 or 9. This lens will help you find that sweet spot where the maximum amount of cities overlap so you can build that district / wonder.
 
 ![Imgur](http://i.imgur.com/TnLHfG3.jpg)
 ___
-####Barbarian Lens:
+#### Barbarian Lens:
 Highlights barbarian encampments on the map
 
 ![Imgur](http://i.imgur.com/V0GXjP2.jpg)
 ___
-####Resource Lens:
+#### Resource Lens:
 Highlights resources on the map based on their category (Bonus vs Strategic vs Luxury) and if they are connected or not.
 
 ![Imgur](http://i.imgur.com/VO36PR1.jpg)
 ___
-####Wonder Lens:
+#### Wonder Lens:
 Highlights natural and player made wonders.
 
 ![Imgur](http://i.imgur.com/FvMyNAH.jpg)
 ___
-####Adjacency Yield Lens:
+#### Adjacency Yield Lens:
 One of the best parts about Civ 6 is the city / district placement. This lens shows the various adjacency bonuses in a gradient, allowing you to relish in your pristine city planning skills.
 
 ![Imgur](http://i.imgur.com/myYKklk.jpg)
 ___
-####Scout Lens:
+#### Scout Lens:
 Highlights goody huts on the map. Automatically applies when a scout / ranger is selected (can be disabled in the file. See FAQ)
 
 ![Imgur](http://i.imgur.com/TnnErfb.jpg)
@@ -67,13 +67,13 @@ If you encounter issues with getting the mod working try the following steps:
 4. If none of the above work, let me know in this repository or [here](https://forums.civfanatics.com/threads/more-lenses.606150/)
 
 ## FAQ
-#####How did you add lenses?
+##### How did you add lenses?
 > There isn't a built-in functionality to add lenses. I went around that by making the game think it is displaying Appeal Lens, but change the hexes being highlighted.
 
-#####Can I change what color is being used?
+##### Can I change what color is being used?
 >You can find the colors in **MoreLenses_Colors.sql**. I used the following websites to find the values: website1, website2. Fair warning, colors on the map will look different from these websites mainly because on a civ 6 map the background to a lens'ed hex is usually a green plot or a blue sea. That mean blue starts to look like purple and all other issues. This was the main reason why I could only get the gradient to 8 distinguishable colors.
 
-#####Can I disable a lens being auto-applied, like the builder lens, archaeologist lens, scout lens?
+##### Can I disable a lens being auto-applied, like the builder lens, archaeologist lens, scout lens?
 >On top of MinimapPanel.lua you should find the following lines of code:
 > ```lua
 > local AUTO_APPLY_BUILDER_LENS:boolean = true
