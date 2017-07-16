@@ -72,3 +72,13 @@ INSERT INTO Colors      (   Type,                               Red,        Gree
 VALUES                  (   'COLOR_PARK_NATURALIST_LENS',       '0',        '0',        '1',        '0.5');
 INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
 VALUES                  (   'COLOR_IMPASSABLE_NATURALIST_LENS', '1',        '0',        '0',        '0.5');
+
+
+-- City Manager Colors
+INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
+VALUES                  (   'COLOR_CITY_PLOT_WORKING',          '1',        '1',        '0',        '0.5');
+INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
+VALUES                  (   'COLOR_CITY_PLOT_LOCKED',           '0',        '1',        '0',        '0.5');
+INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
+VALUES                  (   'COLOR_AREA_LENS_NEUTRAL',          '0',        '0',        '0',        '0.0');
+

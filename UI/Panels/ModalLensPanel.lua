@@ -2,10 +2,6 @@
 
 include( "InstanceManager" );
 
-local m_KeyStackIM:table = InstanceManager:new( "KeyEntry", "KeyColorImage", Controls.KeyStack );
-local m_ContinentColorList:table = {};
-local m_CurrentModdedLensOn;
-
 -- Similiar to MinimapPanel.lua to control modded lenses
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
@@ -22,6 +18,18 @@ local MODDED_LENS_ID:table = {
     NATURALIST = 10,
     CUSTOM = 11
 };
+
+-- Different from above, since it uses a government lens, instead of appeal
+local AREA_LENS_ID:table = {
+    NONE = 0,
+    GOVERNMENT = 1,
+    CITIZEN_MANAGEMENT = 2,
+}
+
+local m_KeyStackIM:table = InstanceManager:new( "KeyEntry", "KeyColorImage", Controls.KeyStack );
+local m_ContinentColorList:table = {};
+local m_CurrentModdedLensOn = MODDED_LENS_ID.NONE;
+local m_CurrentAreaLensOn = AREA_LENS_ID.NONE;
 
 --============================================================================
 function Close()
@@ -407,20 +415,6 @@ function AddKeyEntryAlt(textString:string, colorValue:number, bonusIcon:string, 
 end
 
 -- ===========================================================================
-function GetCurrentModdedLens()
-    -- local localPlayerID = Game.GetLocalPlayer();
-    -- if(PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn") ~= nil) then
-    --  local dataDump = PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn");
-    --  print("Get: " .. dataDump);
-    --  loadstring(dataDump)();
-    --  m_CurrentModdedLensOn = currentModdedLensOn;
-    -- else
-    --  print("No modded lens data was found.")
-    -- end
-    return m_CurrentModdedLensOn;
-end
-
--- ===========================================================================
 function OnLensLayerOn( layerNum:number )
     if layerNum == LensLayers.HEX_COLORING_RELIGION then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_RELIGION_LENS")));
@@ -430,45 +424,47 @@ function OnLensLayerOn( layerNum:number )
         Controls.KeyPanel:SetHide(true);
         ShowContinentLensKey();
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
-        local currentModdedLens = GetCurrentModdedLens()
-        -- print("Modded Lens on " .. currentModdedLens);
-        if currentModdedLens == MODDED_LENS_ID.APPEAL then
+        -- print("Modded Lens on " .. m_CurrentModdedLensOn);
+        if m_CurrentModdedLensOn == MODDED_LENS_ID.APPEAL then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_APPEAL_LENS")));
             ShowAppealLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.BUILDER then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BUILDER then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_BUILDER_LENS")));
             ShowBuilderLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ARCHAEOLOGIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_ARCHAEOLOGIST_LENS")));
             ShowArchaeologistLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CITY_OVERLAP then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CITYOVERLAP_LENS")));
             ShowCityOverlapLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.BARBARIAN then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BARBARIAN then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_BARBARIAN_LENS")));
             ShowBarbarianLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.RESOURCE then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.RESOURCE then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_RESOURCE_LENS")));
             ShowResourceLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.WONDER then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.WONDER then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_WONDER_LENS")));
             ShowWonderLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.ADJACENCY_YIELD then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ADJACENCY_YIELD then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_ADJYIELD_LENS")));
             ShowAdjacencyYieldLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.SCOUT then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_SCOUT_LENS")));
             ShowScoutLensKey();
-        elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.NATURALIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_NATURALIST_LENS")));
             ShowNaturalistLensKey();
-        -- elseif currentModdedLens == MODDED_LENS_ID.CUSTOM then
+        -- elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CUSTOM then
         --     print("Hiding")
         --     ContextPtr:SetHide(true);   -- Hide the Modal Panel if custom
         end
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
-        Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));
-        ShowGovernmentLensKey();
+        if m_CurrentAreaLensOn == AREA_LENS_ID.GOVERNMENT then
+            Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));
+            ShowGovernmentLensKey();
+        -- else -- Add extra area lenses here
+        end
     elseif layerNum == LensLayers.HEX_COLORING_OWING_CIV then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_OWNER_LENS")));
         ShowPoliticalLensKey();
@@ -483,9 +479,14 @@ end
 
 -- ===========================================================================
 -- Called from MinimapPanel.lua
-function OnModdedLensOn(modID)
-    print("Current modded lens on " .. modID);
-    m_CurrentModdedLensOn = modID;
+function OnModdedLensOn(lensID)
+    print("Current modded lens on " .. lensID);
+    m_CurrentModdedLensOn = lensID;
+end
+
+function OnAreaLensOn(lensID)
+    print("Current area lens on " .. lensID);
+    m_CurrentAreaLensOn = lensID;
 end
 
 -- ===========================================================================
@@ -516,5 +517,6 @@ function InitializeModalLensPanel()
 
     LuaEvents.MinimapPanel_AddContinentColorPair.Add(OnAddContinentColorPair);
     LuaEvents.MinimapPanel_ModdedLensOn.Add(OnModdedLensOn);
+    LuaEvents.MinimapPanel_AreaLensOn.Add(OnAreaLensOn);
 end
 InitializeModalLensPanel();

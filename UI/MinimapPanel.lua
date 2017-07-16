@@ -26,6 +26,13 @@ local MODDED_LENS_ID:table = {
     CUSTOM = 11
 };
 
+-- Different from above, since it uses a government lens, instead of appeal
+local AREA_LENS_ID:table = {
+    NONE = 0,
+    GOVERNMENT = 1,
+    CITIZEN_MANAGEMENT = 2,
+}
+
 -- Should the builder lens auto apply, when a builder is selected.
 local AUTO_APPLY_BUILDER_LENS:boolean = true;
 
@@ -35,9 +42,7 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
-local m_CityOverlapRange:number = 6;
-
--- local m_isModdedMouseFeatureEnabled = true;
+local SHOW_CITIZEN_MANAGEMENT_AREA:boolean = true;
 
 -- ===========================================================================
 --  MEMBERS
@@ -78,6 +83,7 @@ local m_hasMouseDragged         :boolean = false; -- Has there been any movement
 local m_wasMouseInMinimap       :boolean = false; -- Was the mouse over the minimap the last time we checked?
 
 local m_CurrentModdedLensOn     :number  = MODDED_LENS_ID.NONE;
+local m_CurrentAreaLensOn       :number  = AREA_LENS_ID.NONE;
 
 local m_CustomLens_PlotsAndColors:table = {}
 
@@ -85,7 +91,14 @@ local m_CustomLens_PlotsAndColors:table = {}
 local ResourcesToHide:table = {};
 local ResourceCategoryToHide:table = {};
 
-local m_OverlapLensMouseRadius:number = 9;
+local m_CityOverlapRange:number = 6;
+
+local m_CurrentCursorPlotID:number = -1;
+
+-- Citizen management lens variables
+local m_CitizenManagementOn:boolean = false;
+local m_FullClearAreaLens:boolean = false;
+local m_tAreaPlotsColored:table = {}
 
 -- ===========================================================================
 --  FUNCTIONS
@@ -297,6 +310,14 @@ end
 -- ===========================================================================
 function ToggleGovernmentLens()
     if Controls.GovernmentLensButton:IsChecked() then
+        SetActiveAreaLens(AREA_LENS_ID.GOVERNMENT);
+
+        -- Check if the gov lens is already active. Needed to clear any gov lens
+        if UILens.IsLayerOn(LensLayers.HEX_COLORING_GOVERNMENT) then
+            -- Unapply the appeal lens, so it can be cleared from the screen
+            UILens.SetActive("Default");
+        end
+
         UILens.SetActive("Government");
         RefreshInterfaceMode();
     else
@@ -304,6 +325,7 @@ function ToggleGovernmentLens()
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
+        SetActiveAreaLens(AREA_LENS_ID.NONE);
     end
 end
 
@@ -612,34 +634,36 @@ function OnLensLayerOn( layerNum:number )
     if layerNum == LensLayers.HEX_COLORING_RELIGION then
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
-        local currentModdedLens = GetCurrentModdedLens();
-        if currentModdedLens == MODDED_LENS_ID.APPEAL then
+        if m_CurrentModdedLensOn == MODDED_LENS_ID.APPEAL then
             SetAppealHexes();
-        elseif currentModdedLens == MODDED_LENS_ID.BUILDER then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BUILDER then
             SetBuilderLensHexes();
-        elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ARCHAEOLOGIST then
             SetArchaeologistLens();
-        elseif currentModdedLens == MODDED_LENS_ID.CITY_OVERLAP then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CITY_OVERLAP then
             SetCityOverlapLens();
-        elseif currentModdedLens == MODDED_LENS_ID.BARBARIAN then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BARBARIAN then
             SetBarbarianLens();
-        elseif currentModdedLens == MODDED_LENS_ID.RESOURCE then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.RESOURCE then
             SetResourceLens();
-        elseif currentModdedLens == MODDED_LENS_ID.WONDER then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.WONDER then
             SetWonderLens();
-        elseif currentModdedLens == MODDED_LENS_ID.ADJACENCY_YIELD then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ADJACENCY_YIELD then
             SetAdjacencyYieldLens();
-        elseif currentModdedLens == MODDED_LENS_ID.SCOUT then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
             SetScoutLens();
-        elseif currentModdedLens == MODDED_LENS_ID.NATURALIST then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.NATURALIST then
             SetNaturalistLens();
-        elseif currentModdedLens == MODDED_LENS_ID.CUSTOM then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CUSTOM then
             SetCustomLens();
         end
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
-        SetGovernmentHexes();
-        UI.PlaySound("UI_Lens_Overlay_On");
+        if m_CurrentAreaLensOn == AREA_LENS_ID.GOVERNMENT then
+            SetGovernmentHexes();
+            UI.PlaySound("UI_Lens_Overlay_On");
+        -- else Extra Area Lenses go here
+        end
     elseif layerNum == LensLayers.HEX_COLORING_OWING_CIV then
         SetOwingCivHexes();
         UI.PlaySound("UI_Lens_Overlay_On");
@@ -658,17 +682,25 @@ end
 function OnLensLayerOff( layerNum:number )
     if (layerNum == LensLayers.HEX_COLORING_RELIGION or
             layerNum == LensLayers.HEX_COLORING_CONTINENT or
-            layerNum == LensLayers.HEX_COLORING_GOVERNMENT or
             layerNum == LensLayers.HEX_COLORING_OWING_CIV) then
         UI.PlaySound("UI_Lens_Overlay_Off");
+
+    -- Clear Modded Lens (Appeal lens included)
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
-        -- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
-        -- For the modded lens
         UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
             UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
         end
         UI.PlaySound("UI_Lens_Overlay_Off");
+
+    -- Clear Area Lens (Government lens included)
+    elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
+        UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
+        if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
+            UILens.ClearLayerHexes(LensLayers.HEX_COLORING_GOVERNMENT);
+        end
+        UI.PlaySound("UI_Lens_Overlay_Off");
+
     elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then
         -- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
@@ -756,7 +788,6 @@ end
 
 -- ===========================================================================
 function SetGovernmentHexes()
-    -- print("Setting government lens")
     local localPlayer : number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
     if (localPlayerVis ~= nil) then
@@ -768,13 +799,9 @@ function SetGovernmentHexes()
             local GovernmentColor;
             if(governmentId < 0) or GameInfo.Governments[governmentId] == nil then
                 GovernmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
-                -- print("COLOR_GOVERNMENT_CITYSTATE")
             else
                 GovernmentColor = UI.GetColorValue("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType);
-                -- print("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType)
             end
-
-            -- print(GovernmentColor)
 
             for _, pCity in cities:Members() do
                 local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
@@ -783,10 +810,10 @@ function SetGovernmentHexes()
                     UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, GovernmentColor );
                 end
             end
-
-            -- return
         end
     end
+
+    m_FullClearAreaLens = true;
 end
 
 -- ===========================================================================
@@ -1001,14 +1028,6 @@ function SetBuilderLensHexes()
     if table.count(unworkableHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, unworkableHexes, NothingColor );
     end
-end
-
-function ClearModdedLens()
-    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
-    if UILens.IsLayerOn( LensLayers.HEX_COLORING_APPEAL_LEVEL ) then
-        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_APPEAL_LEVEL );
-    end
-    SetActiveModdedLens(MODDED_LENS_ID.NONE);
 end
 
 function ClearBuilderLensHexes()
@@ -1651,6 +1670,69 @@ function SetNaturalistLens()
 end
 
 -- ===========================================================================
+function ShowCitizenManagementArea()
+    SetActiveAreaLens(AREA_LENS_ID.CITIZEN_MANAGEMENT)
+    UILens.SetActive("Government");
+
+    local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
+    if pPlot:IsCity() then
+        local pCity = Cities.GetCityInPlot(pPlot:GetX(), pPlot:GetY());
+        if pCity ~= nil then
+            print("Show citizens for " .. Locale.Lookup(pCity:GetName()))
+            m_tAreaPlotsColored = {}
+            local localPlayer = Game.GetLocalPlayer()
+            local tParameters:table = {};
+            tParameters[CityCommandTypes.PARAM_MANAGE_CITIZEN] = UI.GetInterfaceModeParameter(CityCommandTypes.PARAM_MANAGE_CITIZEN);
+
+            local tWorkingPlots:table = {}  -- Plots worked by unlocked citizens
+            local tLockedPlots:table = {}   -- Plots worked by locked citizes
+
+            -- Get city plot and citizens info
+            local tResults:table = CityManager.GetCommandTargets(pCity, CityCommandTypes.MANAGE, tParameters);
+            if tResults == nil then
+                print("Could not find plots")
+                return
+            end
+
+            local tPlots:table = tResults[CityCommandResults.PLOTS];
+            local tUnits:table = tResults[CityCommandResults.CITIZENS];
+            local tMaxUnits:table = tResults[CityCommandResults.MAX_CITIZENS];
+            local tLockedUnits:table = tResults[CityCommandResults.LOCKED_CITIZENS];
+
+            if tPlots ~= nil and (table.count(tPlots) > 0) then
+                for i, plotId in ipairs(tPlots) do
+                    if (tLockedUnits[i] > 0 or m_CurrentCursorPlotID == plotId) then
+                        table.insert(m_tAreaPlotsColored, plotId);
+                        table.insert(tLockedPlots, plotId);
+                    elseif (tUnits[i] > 0) then
+                        table.insert(m_tAreaPlotsColored, plotId);
+                        table.insert(tWorkingPlots, plotId);
+                    end
+                end
+            end
+
+            local workingColor:number = UI.GetColorValue("COLOR_CITY_PLOT_WORKING");
+            local lockedColor:number = UI.GetColorValue("COLOR_CITY_PLOT_LOCKED");
+
+            if (table.count(tWorkingPlots) > 0) then
+                UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tWorkingPlots, workingColor );
+            end
+
+            if (table.count(tLockedPlots) > 0) then
+                UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tLockedPlots, lockedColor );
+            end
+
+            m_CitizenManagementOn = true;
+        end
+    end
+end
+
+function RefreshCitizenManagementArea()
+    -- ClearAreaLens(); -- expecting ClearAreaLens called when cursor plot changes
+    ShowCitizenManagementArea();
+end
+
+-- ===========================================================================
 function SetCustomLens()
     local localPlayer = Game.GetLocalPlayer()
     for i, plot_color in ipairs(m_CustomLens_PlotsAndColors) do
@@ -1717,12 +1799,55 @@ function OnClearModdedLens(showedModalPanel:boolean)
 end
 
 -- Modded lens helper functions ===========================================================
+function ClearModdedLens()
+    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
+    if UILens.IsLayerOn( LensLayers.HEX_COLORING_APPEAL_LEVEL ) then
+        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_APPEAL_LEVEL );
+    end
+    SetActiveModdedLens(MODDED_LENS_ID.NONE);
+end
+
+function ClearAreaLens()
+    print("Clearing area lens")
+
+    -- Because of engine limitations, clear previous color of tiles
+    local neutralColor:number = UI.GetColorValue("COLOR_AREA_LENS_NEUTRAL");
+    local localPlayer:number = Game.GetLocalPlayer();
+
+    if m_FullClearAreaLens then
+        local players = Game.GetPlayers();
+        for _, player in ipairs(players) do
+            local cities = player:GetCities();
+            for _, pCity in cities:Members() do
+                local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
+                if #visibleCityPlots > 0 then
+                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, neutralColor );
+                end
+            end
+        end
+    elseif (table.count(m_tAreaPlotsColored) > 0) then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, m_tAreaPlotsColored, neutralColor );
+        m_tAreaPlotsColored = {}
+    end
+
+    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
+    if UILens.IsLayerOn( LensLayers.HEX_COLORING_GOVERNMENT ) then
+        UILens.ClearLayerHexes( LensLayers.HEX_COLORING_GOVERNMENT );
+    end
+
+    SetActiveAreaLens(MODDED_LENS_ID.NONE);
+
+    m_FullClearAreaLens = false;
+end
+
 function SetActiveModdedLens(lensID)
     m_CurrentModdedLensOn = lensID;
     LuaEvents.MinimapPanel_ModdedLensOn(lensID);
-    -- local dataDump = DataDumper(m_CurrentModdedLensOn, "currentModdedLensOn", true);
-    -- print("Set: " .. dataDump);
-    -- PlayerConfigurations[Game.GetLocalPlayer()]:SetValue("ModdedLens_CurrentModdedLensOn", dataDump);
+end
+
+function SetActiveAreaLens(lensID)
+    m_CurrentAreaLensOn = lensID;
+    LuaEvents.MinimapPanel_AreaLensOn(lensID);
 end
 
 function Alt_HighlightPlots(plotIndices)
@@ -1737,17 +1862,56 @@ function Alt_ClearHighlightedPlots()
     -- UILens.ToggleLayerOff(LensLayers.HEX_COLORING_ATTACK);
 end
 
-function GetCurrentModdedLens()
-    -- local localPlayerID = Game.GetLocalPlayer();
-    -- if(PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn") ~= nil) then
-    --  local dataDump = PlayerConfigurations[localPlayerID]:GetValue("ModdedLens_CurrentModdedLensOn");
-     -- print("Get: " .. dataDump);
-    --  loadstring(dataDump)();
-    --  m_CurrentModdedLensOn = currentModdedLensOn;
-    -- else
-     -- print("No modded lens data was found.")
-    -- end
-    return m_CurrentModdedLensOn;
+function HandleMouseForModdedLens( mousex:number, mousey:number )
+    -- Don't do anything if mouse is dragging
+    if not m_isMouseDragging then
+        -- Get plot under cursor
+        local plotId = UI.GetCursorPlotID();
+        if (not Map.IsPlot(plotId)) then
+            return;
+        end
+
+        -- If the cursor plot has not changed don't refresh
+        if (m_CurrentCursorPlotID == plotId) then
+            return
+        end
+
+        m_CurrentCursorPlotID = plotId
+
+        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
+
+        --[[
+        if UILens.IsLayerOn(LensLayers.HEX_COLORING_WATER_AVAILABLITY) then
+            Alt_ClearHighlightedPlots();
+            local highlightPlot:table = {}
+            for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+             table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
+            end
+
+            Alt_HighlightPlots(highlightPlot);
+        end
+        ]]
+
+        -- Handler for City Overlap lens
+        if (m_CurrentModdedLensOn == MODDED_LENS_ID.CITY_OVERLAP) then
+            if (Controls.OverlapLensMouseRange:IsChecked()) then
+                Refresh_AltCityOverlapLens();
+            end
+        end
+
+        if SHOW_CITIZEN_MANAGEMENT_AREA then
+
+            -- Cancel if unit, district or city is selected
+            if not (UI.IsCitySelected() or UI.IsDistrictSelected() or UI.IsUnitSelected()) then
+                if pPlot:IsCity() then
+                    RefreshCitizenManagementArea();
+                elseif m_CitizenManagementOn then
+                    ClearAreaLens()
+                    m_CitizenManagementOn = false
+                end
+            end
+        end
+    end
 end
 
 -- ===========================================================================
@@ -2617,8 +2781,12 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             Controls.ResourceLensOptionsPanel:SetHide(true);
             Controls.OverlapLensOptionsPanel:SetHide(true);
 
-            if GetCurrentModdedLens() ~= MODDED_LENS_ID.NONE then
+            if m_CurrentModdedLensOn ~= MODDED_LENS_ID.NONE then
                 ClearModdedLens()
+            end
+
+            if m_CurrentAreaLensOn ~= AREA_LENS_ID.NONE then
+                ClearAreaLens()
             end
         end
     end
@@ -2686,12 +2854,11 @@ function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local localPlayer = Game.GetLocalPlayer()
 
     if playerID == localPlayer then
-        local currentModdedLens = GetCurrentModdedLens();
-        if currentModdedLens == MODDED_LENS_ID.BUILDER then
+        if m_CurrentModdedLensOn == MODDED_LENS_ID.BUILDER then
             ClearBuilderLensHexes();
-        elseif currentModdedLens == MODDED_LENS_ID.ARCHAEOLOGIST then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ARCHAEOLOGIST then
             ClearArchaeologistLens();
-        elseif currentModdedLens == MODDED_LENS_ID.SCOUT then
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
             ClearScoutLens();
         end
     end
@@ -2701,45 +2868,12 @@ end
 function OnUnitMoved( playerID:number, unitID:number )
     if playerID == Game.GetLocalPlayer() then
         local unitType = GetUnitType(playerID, unitID);
-        local currentModdedLens = GetCurrentModdedLens();
         if (unitType == "UNIT_SCOUT" or unitType == "UNIT_RANGER") and AUTO_APPLY_SCOUT_LENS then
             -- Refresh the scout lens, if already applied. Need this check so scout lens
             -- does not apply when a scout is currently under a operation
-            if currentModdedLens == MODDED_LENS_ID.SCOUT then
+            if m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
                 ClearScoutLens();
                 ShowScoutLens();
-            end
-        end
-    end
-end
-
-function HandleMouseForModdedLens( mousex:number, mousey:number )
-    -- Don't do anything if mouse is dragging
-    if not m_isMouseDragging then
-        local plotId = UI.GetCursorPlotID();
-        if (not Map.IsPlot(plotId)) then
-            return;
-        end
-
-        local pPlot = Map.GetPlotByIndex(plotId)
-
-        -- Handle for different lenses
-        --[[
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_WATER_AVAILABLITY) then
-            Alt_ClearHighlightedPlots();
-            local highlightPlot:table = {}
-            for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, 3, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-             table.insert(highlightPlot, pAdjacencyPlot:GetIndex())
-            end
-
-            Alt_HighlightPlots(highlightPlot);
-        end
-        ]]
-
-        -- Handler for City Overlap lens
-        if (GetCurrentModdedLens() == MODDED_LENS_ID.CITY_OVERLAP) then
-            if (Controls.OverlapLensMouseRange:IsChecked()) then
-                Refresh_AltCityOverlapLens();
             end
         end
     end
