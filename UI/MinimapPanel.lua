@@ -3,7 +3,6 @@
 -- ===========================================================================
 include( "InstanceManager" );
 include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
--- include( "TradeSupport" ); -- dump
 include( "SupportFunctions" );
 
 -- ===========================================================================
@@ -159,8 +158,8 @@ end
 -- ===========================================================================
 function RefreshMinimapOptions()
     Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
-    Controls.ToggleGridButton:SetCheck(bGridOn);
     Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
+    Controls.ToggleGridButton:SetCheck(bGridOn);
 end
 
 -- ===========================================================================
@@ -202,6 +201,8 @@ function OnToggleLensList()
 
         -- Side Menus
         Controls.ResourceLensOptionsPanel:SetHide(true);
+        Controls.OverlapLensOptionsPanel:SetHide(true);
+
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
@@ -333,6 +334,9 @@ function ToggleTourismLens()
 end
 
 -- ===========================================================================
+-- Modded lenses
+-- ===========================================================================
+-- ===========================================================================
 function ToggleBuilderLens()
     if Controls.BuilderLensButton:IsChecked() then
         SetActiveModdedLens(MODDED_LENS_ID.BUILDER);
@@ -390,6 +394,7 @@ function ToggleCityOverlapLens()
         end
 
         UILens.SetActive("Appeal");
+
         RefreshInterfaceMode();
         Controls.OverlapLensOptionsPanel:SetHide(false);
     else
@@ -771,7 +776,7 @@ function SetGovernmentHexes()
 
             -- print(GovernmentColor)
 
-            for i, pCity in cities:Members() do
+            for _, pCity in cities:Members() do
                 local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
 
                 if table.count(visibleCityPlots) > 0 then
@@ -928,15 +933,6 @@ function SetBuilderLensHexes()
                     table.insert(unworkableHexes, i);
                 end
 
-            -- HILL - MINE
-            --------------------------------------
-            elseif plotHasImprovableHill(pPlot) then
-                if plotNextToBuffingWonder(pPlot) then
-                    table.insert(recomFeatureHexes, i)
-                else
-                    table.insert(hillHexes, i);
-                end
-
             -- FEATURE - Note: This includes natural wonders, since wonder is also a "feature". Check Features.xml
             --------------------------------------
             elseif plotHasFeature(pPlot) then
@@ -948,6 +944,15 @@ function SetBuilderLensHexes()
                     table.insert(featureHexes, i);
                 else
                     table.insert(unworkableHexes, i)
+                end
+
+            -- HILL - MINE
+            --------------------------------------
+            elseif plotHasImprovableHill(pPlot) then
+                if plotNextToBuffingWonder(pPlot) then
+                    table.insert(recomFeatureHexes, i)
+                else
+                    table.insert(hillHexes, i);
                 end
 
             -- GENERIC TILE
@@ -962,7 +967,7 @@ function SetBuilderLensHexes()
             -- NOTHING TO DO
             --------------------------------------
             else
-               table.insert(unworkableHexes, i)
+                 table.insert(unworkableHexes, i)
             end
         end
     end
@@ -1242,6 +1247,7 @@ function SetResourceLens()
             if resourceType ~= nil and resourceType >= 0 then
                 local resourceInfo = GameInfo.Resources[resourceType];
                 if resourceInfo ~= nil then
+
                     -- Check if resource is not in exclusion list
                     if not has_value(ResourceExclusionList, resourceInfo.ResourceType) and (not has_value(ResourcesToHide, resourceInfo.ResourceType)) then
                         table.insert(ResourcePlots, i);
@@ -2538,7 +2544,6 @@ function OnInputActionTriggered( actionId )
     if (Game.GetLocalPlayer() == -1) then
         return;
     end
-
     if m_ToggleReligionLensId ~= nil and (actionId == m_ToggleReligionLensId) then
         LensPanelHotkeyControl( Controls.ReligionLensButton );
         ToggleReligionLens();
@@ -2568,6 +2573,11 @@ function OnInputActionTriggered( actionId )
         LensPanelHotkeyControl( Controls.OwnerLensButton );
         ToggleOwnerLens();
         UI.PlaySound("Play_UI_Click");
+    end
+    if m_ToggleTourismLensId ~= nil and (actionId == m_ToggleTourismLensId) then
+                LensPanelHotkeyControl( Controls.TourismLensButton );
+                ToggleTourismLens();
+                UI.PlaySound("Play_UI_Click");
     end
 end
 
@@ -2605,6 +2615,7 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
 
             -- Side Menus
             Controls.ResourceLensOptionsPanel:SetHide(true);
+            Controls.OverlapLensOptionsPanel:SetHide(true);
 
             if GetCurrentModdedLens() ~= MODDED_LENS_ID.NONE then
                 ClearModdedLens()
@@ -2922,18 +2933,18 @@ function Initialize()
     Events.LensLayerOff.Add( OnLensLayerOff );
     Events.LocalPlayerChanged.Add( OnLocalPlayerChanged );
 
+    LuaEvents.NotificationPanel_ShowContinentLens.Add(OnToggleContinentLensExternal);
+    LuaEvents.Tutorial_DisableMapDrag.Add( OnTutorial_DisableMapDrag );
+    LuaEvents.Tutorial_SwitchToWorldView.Add( OnTutorial_SwitchToWorldView );
+    LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
+    LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
+
     -- For modded lenses
     Events.UnitSelectionChanged.Add( OnUnitSelectionChanged );
     Events.UnitCaptured.Add( OnUnitCaptured );
     Events.UnitChargesChanged.Add( OnUnitChargesChanged );
     Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap );
     Events.UnitMoved.Add( OnUnitMoved );
-
-    LuaEvents.NotificationPanel_ShowContinentLens.Add(OnToggleContinentLensExternal);
-    LuaEvents.Tutorial_DisableMapDrag.Add( OnTutorial_DisableMapDrag );
-    LuaEvents.Tutorial_SwitchToWorldView.Add( OnTutorial_SwitchToWorldView );
-    LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
-    LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
 
     -- External Lens Controls
     LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
