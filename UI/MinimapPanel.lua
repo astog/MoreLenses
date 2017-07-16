@@ -96,8 +96,9 @@ local m_CityOverlapRange:number = 6;
 local m_CurrentCursorPlotID:number = -1;
 
 -- Citizen management lens variables
+local m_EnableCitizenManagementArea:boolean = true;
 local m_CitizenManagementOn:boolean = false;
-local m_FullClearAreaLens:boolean = false;
+local m_FullClearAreaLens:boolean = true;
 local m_tAreaPlotsColored:table = {}
 
 -- ===========================================================================
@@ -675,6 +676,15 @@ function OnLensLayerOn( layerNum:number )
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.TOURIST_TOKENS then
         UI.PlaySound("UI_Lens_Overlay_On");
+
+    -- Citizen Management Area.
+    elseif layerNum == LensLayers.CITIZEN_MANAGEMENT then
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        local selectedCity = UI.GetHeadSelectedCity();
+        if (selectedCity ~= nil) then
+            ShowCitizenManagementArea(selectedCity:GetID())
+            m_EnableCitizenManagementArea = false;
+        end
     end
 end
 
@@ -1670,66 +1680,71 @@ function SetNaturalistLens()
 end
 
 -- ===========================================================================
-function ShowCitizenManagementArea()
+function ShowCitizenManagementArea(cityID)
     SetActiveAreaLens(AREA_LENS_ID.CITIZEN_MANAGEMENT)
-    UILens.SetActive("Government");
+    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_GOVERNMENT)
 
-    local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-    if pPlot:IsCity() then
-        local pCity = Cities.GetCityInPlot(pPlot:GetX(), pPlot:GetY());
-        if pCity ~= nil then
-            print("Show citizens for " .. Locale.Lookup(pCity:GetName()))
-            m_tAreaPlotsColored = {}
-            local localPlayer = Game.GetLocalPlayer()
-            local tParameters:table = {};
-            tParameters[CityCommandTypes.PARAM_MANAGE_CITIZEN] = UI.GetInterfaceModeParameter(CityCommandTypes.PARAM_MANAGE_CITIZEN);
+    local pCity:table;
+    local localPlayer = Game.GetLocalPlayer()
 
-            local tWorkingPlots:table = {}  -- Plots worked by unlocked citizens
-            local tLockedPlots:table = {}   -- Plots worked by locked citizes
+    if (cityID ~= nil) then
+        pCity = Players[localPlayer]:GetCities():FindID(cityID);
+    else
+        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
+        pCity = CityManager.GetCityAt(pPlot:GetX(), pPlot:GetY());
+    end
 
-            -- Get city plot and citizens info
-            local tResults:table = CityManager.GetCommandTargets(pCity, CityCommandTypes.MANAGE, tParameters);
-            if tResults == nil then
-                print("Could not find plots")
-                return
-            end
+    if pCity ~= nil then
+        print("Show citizens for " .. Locale.Lookup(pCity:GetName()))
+        m_tAreaPlotsColored = {}
 
-            local tPlots:table = tResults[CityCommandResults.PLOTS];
-            local tUnits:table = tResults[CityCommandResults.CITIZENS];
-            local tMaxUnits:table = tResults[CityCommandResults.MAX_CITIZENS];
-            local tLockedUnits:table = tResults[CityCommandResults.LOCKED_CITIZENS];
+        local tParameters:table = {};
+        local cityPlotID = Map.GetPlot(pCity:GetX(), pCity:GetY()):GetIndex()
+        tParameters[CityCommandTypes.PARAM_MANAGE_CITIZEN] = UI.GetInterfaceModeParameter(CityCommandTypes.PARAM_MANAGE_CITIZEN);
 
-            if tPlots ~= nil and (table.count(tPlots) > 0) then
-                for i, plotId in ipairs(tPlots) do
-                    if (tLockedUnits[i] > 0 or m_CurrentCursorPlotID == plotId) then
-                        table.insert(m_tAreaPlotsColored, plotId);
-                        table.insert(tLockedPlots, plotId);
-                    elseif (tUnits[i] > 0) then
-                        table.insert(m_tAreaPlotsColored, plotId);
-                        table.insert(tWorkingPlots, plotId);
-                    end
+        local tWorkingPlots:table = {}  -- Plots worked by unlocked citizens
+        local tLockedPlots:table = {}   -- Plots worked by locked citizes
+
+        -- Get city plot and citizens info
+        local tResults:table = CityManager.GetCommandTargets(pCity, CityCommandTypes.MANAGE, tParameters);
+        if tResults == nil then
+            print("Could not find plots")
+            return
+        end
+
+        local tPlots:table = tResults[CityCommandResults.PLOTS];
+        local tUnits:table = tResults[CityCommandResults.CITIZENS];
+        local tLockedUnits:table = tResults[CityCommandResults.LOCKED_CITIZENS];
+
+        if tPlots ~= nil then
+            for i, plotID in ipairs(tPlots) do
+                table.insert(m_tAreaPlotsColored, plotID);
+                if (tLockedUnits[i] > 0 or cityPlotID == plotID) then
+                    table.insert(tLockedPlots, plotID);
+                elseif (tUnits[i] > 0) then
+                    table.insert(tWorkingPlots, plotID);
                 end
             end
-
-            local workingColor:number = UI.GetColorValue("COLOR_CITY_PLOT_WORKING");
-            local lockedColor:number = UI.GetColorValue("COLOR_CITY_PLOT_LOCKED");
-
-            if (table.count(tWorkingPlots) > 0) then
-                UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tWorkingPlots, workingColor );
-            end
-
-            if (table.count(tLockedPlots) > 0) then
-                UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tLockedPlots, lockedColor );
-            end
-
-            m_CitizenManagementOn = true;
         end
+
+        local workingColor:number = UI.GetColorValue("COLOR_CITY_PLOT_WORKING");
+        local lockedColor:number = UI.GetColorValue("COLOR_CITY_PLOT_LOCKED");
+
+        if #tWorkingPlots > 0 then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tWorkingPlots, workingColor );
+        end
+
+        if #tLockedPlots > 0 then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tLockedPlots, lockedColor );
+        end
+
+        m_CitizenManagementOn = true;
     end
 end
 
-function RefreshCitizenManagementArea()
-    -- ClearAreaLens(); -- expecting ClearAreaLens called when cursor plot changes
-    ShowCitizenManagementArea();
+function RefreshCitizenManagementArea(cityID)
+    ClearAreaLens();
+    ShowCitizenManagementArea(cityID);
 end
 
 -- ===========================================================================
@@ -1830,9 +1845,9 @@ function ClearAreaLens()
         m_tAreaPlotsColored = {}
     end
 
-    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
+    -- UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
     if UILens.IsLayerOn( LensLayers.HEX_COLORING_GOVERNMENT ) then
-        UILens.ClearLayerHexes( LensLayers.HEX_COLORING_GOVERNMENT );
+        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_GOVERNMENT );
     end
 
     SetActiveAreaLens(MODDED_LENS_ID.NONE);
@@ -1899,11 +1914,13 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
             end
         end
 
-        if SHOW_CITIZEN_MANAGEMENT_AREA then
+        if SHOW_CITIZEN_MANAGEMENT_AREA and m_EnableCitizenManagementArea then
+            local selectedCity = UI.GetHeadSelectedCity()
+            local selectedUnit = UI.GetHeadSelectedUnit()
 
-            -- Cancel if unit, district or city is selected
-            if not (UI.IsCitySelected() or UI.IsDistrictSelected() or UI.IsUnitSelected()) then
-                if pPlot:IsCity() then
+            -- Cancel if unit is selected or Modal Lens Panel is out
+            if (selectedUnit == nil and UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS) then
+                if pPlot:IsCity() and pPlot:GetOwner() == Game.GetLocalPlayer() then
                     RefreshCitizenManagementArea();
                 elseif m_CitizenManagementOn then
                     ClearAreaLens()
@@ -2790,6 +2807,12 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             end
         end
     end
+
+    if eOldMode == InterfaceModeTypes.CITY_MANAGEMENT then
+        ClearAreaLens()
+        m_EnableCitizenManagementArea = true;
+        m_CitizenManagementOn = false
+    end
 end
 
 -- For modded lens on unit selection
@@ -2876,6 +2899,12 @@ function OnUnitMoved( playerID:number, unitID:number )
                 ShowScoutLens();
             end
         end
+    end
+end
+
+function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
+    if SHOW_CITIZEN_MANAGEMENT_AREA and ownerPlayerID == Game.GetLocalPlayer() then
+        RefreshCitizenManagementArea(cityID)
     end
 end
 
@@ -3079,6 +3108,9 @@ function Initialize()
     Events.UnitChargesChanged.Add( OnUnitChargesChanged );
     Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap );
     Events.UnitMoved.Add( OnUnitMoved );
+
+    -- For Area Lens
+    Events.CityWorkerChanged.Add( OnCityWorkerChanged );
 
     -- External Lens Controls
     LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
