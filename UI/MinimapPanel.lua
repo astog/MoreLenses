@@ -9,6 +9,8 @@ include( "SupportFunctions" );
 --  CONSTANTS
 -- ===========================================================================
 local MINIMAP_COLLAPSED_OFFSETY :number = -180;
+local LENS_PANEL_OFFSET:number = 50;
+local MINIMAP_BACKING_PADDING_SIZEY:number = 60;
 
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
@@ -36,7 +38,7 @@ local AREA_LENS_ID:table = {
 -- Should the builder lens auto apply, when a builder is selected.
 local AUTO_APPLY_BUILDER_LENS:boolean = true;
 
--- Should the archeologist lens auto apply, when a archeologist is selected.
+-- Should the archaeologist lens auto apply, when a archaeologist is selected.
 local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 
 -- Should the scout lens auto apply, when a scout/ranger is selected.
@@ -77,6 +79,7 @@ local m_ToggleSettlerLensId     = Input.GetActionId("LensSettler");
 local m_ToggleGovernmentLensId  = Input.GetActionId("LensGovernment");
 local m_TogglePoliticalLensId   = Input.GetActionId("LensPolitical");
 local m_ToggleTourismLensId     = Input.GetActionId("LensTourism");
+local m_Toggle2DViewId          = Input.GetActionId("Toggle2DView");
 
 
 local m_isMouseDragEnabled      :boolean = true; -- Can the camera be moved by dragging on the minimap?
@@ -177,8 +180,8 @@ end
 -- ===========================================================================
 function RefreshMinimapOptions()
     Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
-    Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
     Controls.ToggleGridButton:SetCheck(bGridOn);
+    Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
 end
 
 -- ===========================================================================
@@ -225,6 +228,16 @@ function OnToggleLensList()
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
+    else
+        Controls.ReligionLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_RELIGION"));
+        Controls.AppealLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_APPEAL"));
+        Controls.GovernmentLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_GOVERNMENT"));
+        Controls.WaterLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_SETTLER"));
+        Controls.TourismLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_TOURISM"));
+        -- Controls.LensToggleStack:CalculateSize();
+
+        -- Don't call this otherwise the panel is ridiculously long
+        -- Controls.LensPanel:SetSizeY(Controls.LensToggleStack:GetSizeY() + LENS_PANEL_OFFSET);
     end
 end
 
@@ -609,7 +622,7 @@ function OnCollapseToggle()
     if ( m_isCollapsed ) then
         UI.PlaySound("Minimap_Open");
         Controls.ExpandButton:SetHide( true );
-        Controls.ExpandAnim:SetEndVal(0, -Controls.MinimapImage:GetOffsetY() - Controls.MinimapImage:GetSizeY());
+        Controls.ExpandAnim:SetEndVal(0, -Controls.MinimapContainer:GetOffsetY() - Controls.MinimapContainer:GetSizeY());
         Controls.ExpandAnim:SetToBeginning();
         Controls.ExpandAnim:Play();
         Controls.CompassArm:SetPercent(.25);
@@ -617,12 +630,22 @@ function OnCollapseToggle()
         UI.PlaySound("Minimap_Closed");
         Controls.ExpandButton:SetHide( false );
         Controls.Pause:Play();
-        Controls.CollapseAnim:SetEndVal(0, Controls.MinimapImage:GetOffsetY() + Controls.MinimapImage:GetSizeY());
+        Controls.CollapseAnim:SetEndVal(0, Controls.MinimapContainer:GetOffsetY() + Controls.MinimapContainer:GetSizeY());
         Controls.CollapseAnim:SetToBeginning();
         Controls.CollapseAnim:Play();
         Controls.CompassArm:SetPercent(.5);
     end
     m_isCollapsed = not m_isCollapsed;
+end
+
+-- ===========================================================================
+function OnMinimapImageSizeChanged()
+    ResizeBacking();
+end
+
+-- ===========================================================================
+function ResizeBacking()
+    Controls.MinimapBacking:SetSizeY(Controls.MinimapImage:GetSizeY() + MINIMAP_BACKING_PADDING_SIZEY);
 end
 
 -- ===========================================================================
@@ -756,7 +779,7 @@ function SetOwingCivHexes()
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
         for i, player in ipairs(players) do
-            local cities = player:GetCities();
+            local cities = players[i]:GetCities();
             local primaryColor, secondaryColor = UI.GetPlayerColors( player:GetID() );
 
             for _, pCity in cities:Members() do
@@ -918,20 +941,25 @@ function SetGovernmentHexes()
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
         for i, player in ipairs(players) do
-            local cities = player:GetCities();
+            local cities = players[i]:GetCities();
             local culture = player:GetCulture();
             local governmentId :number = culture:GetCurrentGovernment();
             local GovernmentColor;
-            if(governmentId < 0) or GameInfo.Governments[governmentId] == nil then
-                GovernmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
+
+            if culture:IsInAnarchy() then
+                GovernmentColor = UI.GetColorValue("COLOR_CLEAR");
             else
-                GovernmentColor = UI.GetColorValue("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType);
+                if(governmentId < 0) then
+                    GovernmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
+                else
+                    GovernmentColor = UI.GetColorValue("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType);
+                end
             end
 
             for _, pCity in cities:Members() do
                 local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
 
-                if table.count(visibleCityPlots) > 0 then
+                if(table.count(visibleCityPlots) > 0) then
                     UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, GovernmentColor );
                 end
             end
@@ -1272,14 +1300,17 @@ function Alt_SetCityOverlapLens()
 
     local pPlot = Map.GetPlotByIndex(plotId)
     local localPlayer = Game.GetLocalPlayer()
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
     local cityPlots:table = {}
     local normalPlot:table = {}
 
     for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, m_CityOverlapRange, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-        if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
-            table.insert(cityPlots, pAdjacencyPlot:GetIndex());
-        else
-            table.insert(normalPlot, pAdjacencyPlot:GetIndex());
+        if localPlayerVis:IsRevealed(pAdjacencyPlot:GetX(), pAdjacencyPlot:GetY()) then
+            if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
+                table.insert(cityPlots, pAdjacencyPlot:GetIndex());
+            else
+                table.insert(normalPlot, pAdjacencyPlot:GetIndex());
+            end
         end
     end
 
@@ -2878,6 +2909,10 @@ function OnInputActionTriggered( actionId )
                 ToggleTourismLens();
                 UI.PlaySound("Play_UI_Click");
     end
+    if m_Toggle2DViewId ~= nil and (actionId == m_Toggle2DViewId) then
+        UI.PlaySound("Play_UI_Click");
+        Toggle2DView();
+    end
 end
 
 -- ===========================================================================
@@ -3154,6 +3189,8 @@ end
 function Initialize()
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     m_ContinentsCache = Map.GetContinentsInUse();
+
+    Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
     UI.SetMinimapImageControl(Controls.MinimapImage);
     Controls.LensChooserList:CalculateSize();
 
