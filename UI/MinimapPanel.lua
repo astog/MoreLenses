@@ -44,7 +44,10 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
-local SHOW_CITIZEN_MANAGEMENT_AREA:boolean = true;
+-- Show citizen management area when hovering over city plot
+local SHOW_CITIZEN_MANAGEMENT_ONHOVER:boolean = true;
+-- Show citizen management when managing citizens
+local SHOW_CITIZEN_MANAGEMENT_INSCREEN:boolean = true;
 
 local CITY_WORK_RANGE:number = 3;
 
@@ -241,7 +244,7 @@ function OnToggleLensList()
     end
 end
 
-------------------------------------------------------------------------------
+-- ===========================================================================
 function ToggleMapPinMode()
     Controls.MapPinListPanel:SetHide( not Controls.MapPinListPanel:IsHidden() );
     RealizeFlyouts(Controls.MapPinListPanel);
@@ -376,7 +379,6 @@ end
 
 -- ===========================================================================
 -- Modded lenses
--- ===========================================================================
 -- ===========================================================================
 function ToggleBuilderLens()
     if Controls.BuilderLensButton:IsChecked() then
@@ -591,6 +593,9 @@ function ToggleNaturalistLens()
 end
 
 -- ===========================================================================
+-- Remaining MINIMAP
+-- Resize functions, callbacks, etc
+-- ===========================================================================
 function ToggleGrid()
     bGridOn = not bGridOn;
     UI.ToggleGrid( bGridOn );
@@ -704,14 +709,6 @@ function OnLensLayerOn( layerNum:number )
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.TOURIST_TOKENS then
         UI.PlaySound("UI_Lens_Overlay_On");
-
-    -- Citizen Management Area.
-    elseif layerNum == LensLayers.CITIZEN_MANAGEMENT then
-        local selectedCity = UI.GetHeadSelectedCity();
-        if (selectedCity ~= nil) then
-            ShowCitizenManagementArea(selectedCity:GetID())
-            m_EnableCitizenManagementArea = false;
-        end
     end
 end
 
@@ -1835,7 +1832,9 @@ function ShowCitizenManagementArea(cityID)
         pCity = Players[localPlayer]:GetCities():FindID(cityID);
     else
         local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-        pCity = CityManager.GetCityAt(pPlot:GetX(), pPlot:GetY());
+        if pPlot:IsCity() and pPlot:GetOwner() == Game.GetLocalPlayer() then
+            pCity = CityManager.GetCityAt(pPlot:GetX(), pPlot:GetY());
+        end
     end
 
     if pCity ~= nil then
@@ -2048,7 +2047,7 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
             end
         end
 
-        if SHOW_CITIZEN_MANAGEMENT_AREA and m_EnableCitizenManagementArea then
+        if SHOW_CITIZEN_MANAGEMENT_ONHOVER and m_EnableCitizenManagementArea then
 
             -- Cancel if unit is selected or Modal Lens Panel is out
             if (selectedUnit == nil and UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS) then
@@ -2919,6 +2918,23 @@ end
 --  Game Engine Event
 -- ===========================================================================
 function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
+
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN then
+        if eOldMode == InterfaceModeTypes.CITY_MANAGEMENT then
+            ClearAreaLens()
+            m_EnableCitizenManagementArea = true;
+            m_CitizenManagementOn = false
+        end
+
+        if eNewMode == InterfaceModeTypes.CITY_MANAGEMENT then
+            local selectedCity = UI.GetHeadSelectedCity();
+            if (selectedCity ~= nil) then
+                RefreshCitizenManagementArea(selectedCity:GetID())
+                m_EnableCitizenManagementArea = false;
+            end
+        end
+    end
+
     --and eNewMode ~= InterfaceModeTypes.VIEW_MODAL_LENS
     if eOldMode == InterfaceModeTypes.VIEW_MODAL_LENS then
         if not Controls.LensPanel:IsHidden() then
@@ -2959,12 +2975,6 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
                 ClearAreaLens()
             end
         end
-    end
-
-    if eOldMode == InterfaceModeTypes.CITY_MANAGEMENT then
-        ClearAreaLens()
-        m_EnableCitizenManagementArea = true;
-        m_CitizenManagementOn = false
     end
 end
 
@@ -3058,7 +3068,7 @@ function OnUnitMoved( playerID:number, unitID:number )
 end
 
 function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
-    if SHOW_CITIZEN_MANAGEMENT_AREA and ownerPlayerID == Game.GetLocalPlayer() then
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and ownerPlayerID == Game.GetLocalPlayer() then
         RefreshCitizenManagementArea(cityID)
     end
 end
@@ -3288,5 +3298,9 @@ function Initialize()
     LuaEvents.Lens_ClearCustomLens.Add( ClearCustomLens );
     LuaEvents.Lens_ApplyModdedLens.Add( OnApplyModdedLens );
     LuaEvents.Lens_ClearModdedLens.Add( OnClearModdedLens );
+    LuaEvents.Area_ShowCitizenManagement.Add( ShowCitizenManagementArea );
+    LuaEvents.Area_RefreshCitizenManagement.Add( RefreshCitizenManagementArea );
+    LuaEvents.Area_ClearCitizenManagement.Add( ClearAreaLens );
 end
+
 Initialize();
