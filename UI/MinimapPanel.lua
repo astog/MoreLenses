@@ -46,8 +46,12 @@ local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
 -- Show citizen management area when hovering over city plot
 local SHOW_CITIZEN_MANAGEMENT_ONHOVER:boolean = false;
+
 -- Show citizen management when managing citizens
 local SHOW_CITIZEN_MANAGEMENT_INSCREEN:boolean = true;
+
+-- Highlight nothing to do (red plots) in builder lens
+local HIGHLIGHT_NOTHING_TODO_IN_BUILDER_LENS:boolean = false;
 
 local CITY_WORK_RANGE:number = 3;
 
@@ -1167,7 +1171,7 @@ function SetBuilderLensHexes()
     if table.count(genericHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, genericHexes, GenericColor );
     end
-    if table.count(unworkableHexes) > 0 then
+    if SHOW_NOTHING_TODO_IN_BUILDER_LENS and table.count(unworkableHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, unworkableHexes, NothingColor );
     end
 end
