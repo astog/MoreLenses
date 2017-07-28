@@ -141,13 +141,16 @@
       <Text>Naturalist</Text>
     </Row>
     <Row Tag="LOC_HUD_NATURALIST_LENS_TOOLTIP">
-      <Text>Highlights places where naturalist can build national parks.</Text>
+      <Text>Highlights places where National Parks can be built</Text>
     </Row>
     <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_NPARK">
-      <Text>Valid Park Location</Text>
+      <Text>Area is ready for National Park</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_INPARK">
-      <Text>Impassable Park Location</Text>
+    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_OK">
+      <Text>Tile could be used, if some other plot is fixed</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE">
+      <Text>Needs fixing to be used for a park</Text>
     </Row>
 
   </BaseGameText>

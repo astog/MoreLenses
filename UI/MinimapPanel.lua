@@ -45,7 +45,7 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
 -- Show citizen management area when hovering over city plot
-local SHOW_CITIZEN_MANAGEMENT_ONHOVER:boolean = true;
+local SHOW_CITIZEN_MANAGEMENT_ONHOVER:boolean = false;
 -- Show citizen management when managing citizens
 local SHOW_CITIZEN_MANAGEMENT_INSCREEN:boolean = true;
 
@@ -858,15 +858,7 @@ function SetSettlerLens()
         if localPlayerVis:IsRevealed(plotX, plotY) then
 
             table.insert(tNonDimPlots, plotID)
-            local plotInCityRange:boolean = false
-            for _, pCity in localPlayerCities:Members() do
-                if Map.GetPlotDistance(plotX, plotY, pCity:GetX(), pCity:GetY()) <= CITY_WORK_RANGE then
-                    plotInCityRange = true
-                    break
-                end
-            end
-
-            if plotInCityRange then
+            if plotWithinWorkingRange(localPlayer, plotID) then
                 table.insert(tOverlapPlots, plotID)
 
             elseif pRangePlot:IsImpassable() then
@@ -1788,36 +1780,173 @@ end
 -- ===========================================================================
 function SetNaturalistLens()
     print("Show Naturalist lens")
-
     local localPlayer:number = Game.GetLocalPlayer();
+    local localPlayerVis:table = PlayersVisibility[localPlayer];
+
     local parkPlotColor:number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
-    local impasPlotColor:number = UI.GetColorValue("COLOR_IMPASSABLE_NATURALIST_LENS");
+    local OkColor:number = UI.GetColorValue("COLOR_OK_NATURALIST_LENS");
+    local FixableColor:number = UI.GetColorValue("COLOR_FIXABLE_NATURALIST_LENS");
 
+    local fixableHexes:table = {};
+    local okHexes:table = {};
+    local tiles:table = {};
+
+    -- Get plots that can be made into National Parks without any changes
     local rawParkPlots:table = Game.GetNationalParks():GetPossibleParkTiles(localPlayer);
-    local validPlots:table = {}
-    local impasPlots:table = {}
 
-    for _, plotID in ipairs(rawParkPlots) do
-        local pPlot:table = Map.GetPlotByIndex(plotID);
-        if (pPlot:IsImpassable()) then
-            table.insert(impasPlots, plotID);
-        else
-            table.insert(validPlots, plotID);
+    -- Collect individual tile data
+    local mapWidth, mapHeight = Map.GetGridSize();
+    for plotIndex = 0, (mapWidth * mapHeight) - 1, 1 do
+        local pPlot:table = Map.GetPlotByIndex(plotIndex);
+        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
+            local data =  {
+                X     = pPlot:GetX();
+                Y     = pPlot:GetY();
+                Level = 0;
+                Cities = nil;
+                Use   = false;
+            };
+
+            -- Level 3 = OK
+            -- Level 2 = Fixable
+            -- Level 1 = Semifixable
+
+            -- Base requirements
+            if plotHasNaturalWonder(pPlot) then
+                data.Level = 3;
+
+            elseif pPlot:IsMountain() then
+                data.Level = 3;
+
+            -- Appeal charming or better
+            elseif pPlot:GetAppeal() >= 2 then
+                data.Level = 3;
+
+            -- Check for fixable plots by doing something to increase appeal
+            elseif pPlot:GetAppeal() >= 1 then
+                -- Removable unappealing feature
+                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
+                if featureInfo ~= nil then
+                    local featureType = featureInfo.FeatureType
+                    if featureType == "FEATURE_JUNGLE" or featureType == "FEATURE_MARSH" then
+                        data.Level = 2;
+                    end
+                end
+
+                -- TODO - Check for plantable forest?
+            end
+
+            -- An improvement can be removed, downgrade to fixable
+            if data.Level > 2 and plotHasImprovement(pPlot) then
+                data.Level = 2;
+            end
+
+            -- If not owned by any player
+            if pPlot:GetOwner() ~= Game.GetLocalPlayer() then
+                if data.Level > 2 then
+                    data.Level = 2;
+                end
+            end
+
+            -- Blocking changes
+            if plotHasWonder(pPlot) then
+                data.Level = 0;
+            elseif plotHasDistrict(pPlot) then -- also checks for cities (city district)
+                data.Level = 0;
+            elseif pPlot:IsNationalPark() then
+                data.Level = 0;
+            end
+
+            -- Only keep relevant tiles and those that have cities in range
+            if data.Level > 0 then
+                data.Cities = GetCitiesWithinWorkingRange(localPlayer, plotIndex)
+                if table.count(data.Cities) > 0 then
+                    -- print(plotIndex, unpack(data.Cities))
+                    tiles[plotIndex] = data;
+                end
+            end
         end
     end
 
-    -- Dim hexes that are not encapments
-    -- if table.count(barbAdjacent) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
-    -- end
+    -- Mark those that are interesting
+    -- They must belong to a diamond where all four are at least semifixable.
+    for i1, data in pairs(tiles) do
+        -- Get the four plots for the vertical diamond
+        local p1:table = Map.GetPlot(data.X, data.Y)
+        local p2:table = Map.GetPlot(data.X + data.Y % 2 - 1, data.Y + 1);
+        local p3:table = Map.GetPlot(data.X + data.Y % 2, data.Y + 1);
+        local p4:table = Map.GetPlot(data.X, data.Y + 2);
 
+        -- All four must exist
+        if p1 ~= nil and p2 ~= nil and p3 ~= nil and p4 ~= nil then
+            local i2 = p2:GetIndex();
+            local i3 = p3:GetIndex();
+            local i4 = p4:GetIndex();
+            -- All three calculated diamond plots should have data
+            if tiles[i2] ~= nil and tiles[i3] ~= nil and tiles[i4] ~= nil then
+
+                -- Make sure the four plots have some common city in range
+                local commonCities12 = get_common_values(tiles[i1].Cities, tiles[i2].Cities)
+                local commonCities34 = get_common_values(tiles[i3].Cities, tiles[i4].Cities)
+                local netCommonCities = get_common_values(commonCities12, commonCities34)
+
+                if table.count(netCommonCities) > 0 then
+                    -- Use these plots only if they passable
+                    if not tiles[i1].Use and not p1:IsImpassable() then
+                        tiles[i1].Use = true;
+                    end
+                    if not tiles[i2].Use and not p2:IsImpassable() then
+                        tiles[i2].Use = true;
+                    end
+                    if not tiles[i3].Use and not p3:IsImpassable() then
+                        tiles[i3].Use = true;
+                    end
+                    if not tiles[i4].Use and not p4:IsImpassable() then
+                        tiles[i4].Use = true;
+                    end
+                end
+            end
+        end
+    end
+
+    -- Extract info. Don't use plots that exist in rawParkPlots
+    for i, data in pairs(tiles) do
+        if tiles[i].Use and not has_value(rawParkPlots, i) then
+            if tiles[i].Level == 3 then
+                -- print("ok", i)
+                table.insert(okHexes, i)
+            elseif tiles[i].Level == 2 then
+                -- print("fix", i)
+                table.insert(fixableHexes, i)
+            end
+        end
+    end
+
+    if table.count(fixableHexes) > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, fixableHexes, FixableColor );
+    end
+    if table.count(okHexes) > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, okHexes, OkColor );
+    end
     if table.count(rawParkPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, validPlots, parkPlotColor );
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, rawParkPlots, parkPlotColor );
     end
+end
 
-    if table.count(impasPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, impasPlots, impasPlotColor );
+-- Returns a table of cities that are within working range of the plot
+function  GetCitiesWithinWorkingRange(playerID:number, plotIndex:number)
+    local localPlayerCities = Players[playerID]:GetCities()
+    local pPlot = Map.GetPlotByIndex(plotIndex)
+    local plotX = pPlot:GetX()
+    local plotY = pPlot:GetY()
+
+    local tCities = {}
+    for _, pCity in localPlayerCities:Members() do
+        if Map.GetPlotDistance(plotX, plotY, pCity:GetX(), pCity:GetY()) <= CITY_WORK_RANGE then
+            table.insert(tCities, pCity:GetID())
+        end
     end
+    return tCities
 end
 
 -- ===========================================================================
@@ -2082,6 +2211,20 @@ end
 -- ===========================================================================
 --  Utility/Helper Functions
 -- ===========================================================================
+
+function plotWithinWorkingRange(playerID, plotIndex)
+    local localPlayerCities = Players[playerID]:GetCities()
+    local pPlot = Map.GetPlotByIndex(plotIndex)
+    local plotX = pPlot:GetX()
+    local plotY = pPlot:GetY()
+
+    for _, pCity in localPlayerCities:Members() do
+        if Map.GetPlotDistance(plotX, plotY, pCity:GetX(), pCity:GetY()) <= CITY_WORK_RANGE then
+            return true
+        end
+    end
+    return false
+end
 
 function plotHasImprovement(plot)
     return plot:GetImprovementType() ~= -1;
@@ -2674,22 +2817,20 @@ function GetUnitType( playerID: number, unitID : number )
 end
 
 function has_value (tab, val)
-    for index, value in ipairs (tab) do
+    for _, value in ipairs (tab) do
         if value == val then
             return true
         end
     end
-
     return false
 end
 
 function has_rInfo (tab, val)
-    for index, value in ipairs (tab) do
+    for _, value in ipairs (tab) do
         if value.ResourceType == val then
             return true
         end
     end
-
     return false
 end
 
@@ -2706,6 +2847,18 @@ function ndup_insert(tab, val)
     if not has_value(tab, val) then
         table.insert(tab, val);
     end
+end
+
+function get_common_values(tab1, tab2)
+    local common_table = {}
+    for _, value1 in ipairs (tab1) do
+        for _, value2 in ipairs (tab2) do
+            if value1 == value2 then
+                table.insert(common_table, value1)
+            end
+        end
+    end
+    return common_table
 end
 
 --------------------------------------------
