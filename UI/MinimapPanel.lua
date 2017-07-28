@@ -3226,6 +3226,16 @@ function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
     end
 end
 
+function OnCityMadePurchase(owner:number, cityID:number, plotX:number, plotY:number, purchaseType, objectType)
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and owner == Game.GetLocalPlayer()
+            and purchaseType == EventSubTypes.PLOT then
+
+        -- Add plot so that the plot is properly cleared
+        table.insert(m_tAreaPlotsColored, Map.GetPlotIndex(plotX, plotY))
+        RefreshCitizenManagementArea(cityID)
+    end
+end
+
 function GetMinimapMouseCoords( mousex:number, mousey:number )
     local topLeftX, topLeftY = Controls.MinimapImage:GetScreenOffset();
 
@@ -3445,6 +3455,7 @@ function Initialize()
 
     -- For Area Lens
     Events.CityWorkerChanged.Add( OnCityWorkerChanged );
+    Events.CityMadePurchase.Add( OnCityMadePurchase );
 
     -- External Lens Controls
     LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
