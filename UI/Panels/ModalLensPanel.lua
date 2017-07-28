@@ -5,25 +5,25 @@ include( "InstanceManager" );
 -- Similiar to MinimapPanel.lua to control modded lenses
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
-    NONE = 0,
-    APPEAL = 1,
-    BUILDER = 2,
-    ARCHAEOLOGIST = 3,
-    BARBARIAN = 4,
-    CITY_OVERLAP = 5,
-    RESOURCE = 6,
-    WONDER = 7,
-    ADJACENCY_YIELD = 8,
-    SCOUT = 9,
-    NATURALIST = 10,
-    CUSTOM = 11
+    NONE = 0;
+    APPEAL = 1;
+    BUILDER = 2;
+    ARCHAEOLOGIST = 3;
+    BARBARIAN = 4;
+    CITY_OVERLAP = 5;
+    RESOURCE = 6;
+    WONDER = 7;
+    ADJACENCY_YIELD = 8;
+    SCOUT = 9;
+    NATURALIST = 10;
+    CUSTOM = 11;
 };
 
 -- Different from above, since it uses a government lens, instead of appeal
 local AREA_LENS_ID:table = {
-    NONE = 0,
-    GOVERNMENT = 1,
-    CITIZEN_MANAGEMENT = 2,
+    NONE = 0;
+    GOVERNMENT = 1;
+    CITIZEN_MANAGEMENT = 2;
 }
 
 local m_KeyStackIM:table = InstanceManager:new( "KeyEntry", "KeyColorImage", Controls.KeyStack );
@@ -455,15 +455,16 @@ function OnLensLayerOn( layerNum:number )
         elseif m_CurrentModdedLensOn == MODDED_LENS_ID.NATURALIST then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_NATURALIST_LENS")));
             ShowNaturalistLensKey();
-        -- elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CUSTOM then
-        --     print("Hiding")
-        --     ContextPtr:SetHide(true);   -- Hide the Modal Panel if custom
+        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CUSTOM then
+            print("Hiding")
+            ContextPtr:SetHide(true);   -- Hide the Modal Panel if custom
         end
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
         if m_CurrentAreaLensOn == AREA_LENS_ID.GOVERNMENT then
             Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));
             ShowGovernmentLensKey();
-        -- else -- Add extra area lenses here
+        -- else
+            -- Add extra area lenses here
         end
     elseif layerNum == LensLayers.HEX_COLORING_OWING_CIV then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_OWNER_LENS")));

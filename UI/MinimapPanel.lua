@@ -14,25 +14,25 @@ local MINIMAP_BACKING_PADDING_SIZEY:number = 60;
 
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
-    NONE = 0,
-    APPEAL = 1,
-    BUILDER = 2,
-    ARCHAEOLOGIST = 3,
-    BARBARIAN = 4,
-    CITY_OVERLAP = 5,
-    RESOURCE = 6,
-    WONDER = 7,
-    ADJACENCY_YIELD = 8,
-    SCOUT = 9,
-    NATURALIST = 10,
-    CUSTOM = 11
+    NONE = 0;
+    APPEAL = 1;
+    BUILDER = 2;
+    ARCHAEOLOGIST = 3;
+    BARBARIAN = 4;
+    CITY_OVERLAP = 5;
+    RESOURCE = 6;
+    WONDER = 7;
+    ADJACENCY_YIELD = 8;
+    SCOUT = 9;
+    NATURALIST = 10;
+    CUSTOM = 11;
 };
 
 -- Different from above, since it uses a government lens, instead of appeal
 local AREA_LENS_ID:table = {
-    NONE = 0,
-    GOVERNMENT = 1,
-    CITIZEN_MANAGEMENT = 2,
+    NONE = 0;
+    GOVERNMENT = 1;
+    CITIZEN_MANAGEMENT = 2;
 }
 
 -- Should the builder lens auto apply, when a builder is selected.
@@ -87,7 +87,6 @@ local m_ToggleGovernmentLensId  = Input.GetActionId("LensGovernment");
 local m_TogglePoliticalLensId   = Input.GetActionId("LensPolitical");
 local m_ToggleTourismLensId     = Input.GetActionId("LensTourism");
 local m_Toggle2DViewId          = Input.GetActionId("Toggle2DView");
-
 
 local m_isMouseDragEnabled      :boolean = true; -- Can the camera be moved by dragging on the minimap?
 local m_isMouseDragging         :boolean = false; -- Was LMB clicked inside the minimap, and has not been released yet?
@@ -309,7 +308,6 @@ function ToggleAppealLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -395,7 +393,6 @@ function ToggleBuilderLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -418,7 +415,6 @@ function ToggleArchaeologistLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -466,7 +462,6 @@ function ToggleBarbarianLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -516,7 +511,6 @@ function ToggleWonderLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -539,7 +533,6 @@ function ToggleAdjacencyYieldLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -562,7 +555,6 @@ function ToggleScoutLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -631,6 +623,7 @@ function OnCollapseToggle()
     if ( m_isCollapsed ) then
         UI.PlaySound("Minimap_Open");
         Controls.ExpandButton:SetHide( true );
+        Controls.CollapseButton:SetHide( false );
         Controls.ExpandAnim:SetEndVal(0, -Controls.MinimapContainer:GetOffsetY() - Controls.MinimapContainer:GetSizeY());
         Controls.ExpandAnim:SetToBeginning();
         Controls.ExpandAnim:Play();
@@ -638,6 +631,7 @@ function OnCollapseToggle()
     else
         UI.PlaySound("Minimap_Closed");
         Controls.ExpandButton:SetHide( false );
+        Controls.CollapseButton:SetHide( true );
         Controls.Pause:Play();
         Controls.CollapseAnim:SetEndVal(0, Controls.MinimapContainer:GetOffsetY() + Controls.MinimapContainer:GetSizeY());
         Controls.CollapseAnim:SetToBeginning();
@@ -2314,7 +2308,6 @@ function IsAdjYieldWonder(featureInfo)
             end
         end
     end
-
     return false
 end
 
@@ -2325,7 +2318,6 @@ function plotNextToBuffingWonder(plot)
             return true
         end
     end
-
     return false
 end
 
@@ -2365,9 +2357,7 @@ function plotHasRecomFeature(plot)
                 return true
             end
         end
-
     end
-
     return false
 end
 
@@ -2376,7 +2366,6 @@ function plotHasAnitquitySite(plot)
     if resourceInfo ~= nil and resourceInfo.ResourceType == "RESOURCE_ANTIQUITY_SITE" then
         return true;
     end
-
     return false
 end
 
@@ -2412,6 +2401,7 @@ function plotCanHaveFarm(plot)
             return true;
         end
     end
+    return false
 end
 
 function plotHasGoodyHut(plot)
