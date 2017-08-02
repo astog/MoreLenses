@@ -3362,7 +3362,7 @@ function Initialize()
     m_ContinentsCache = Map.GetContinentsInUse();
 
     -- Check for function nil for backward compatibiliy. @Summer Patch 2017
-    if Controls.MinimapImage:RegisterSizeChanged ~= nil then
+    if Controls.MinimapImage.RegisterSizeChanged ~= nil then
         Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
     end
     UI.SetMinimapImageControl(Controls.MinimapImage);
