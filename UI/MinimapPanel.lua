@@ -44,14 +44,14 @@ local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
 -- Should the scout lens auto apply, when a scout/ranger is selected.
 local AUTO_APPLY_SCOUT_LENS:boolean = true;
 
--- Show citizen management area when hovering over city plot
-local SHOW_CITIZEN_MANAGEMENT_ONHOVER:boolean = false;
-
 -- Show citizen management when managing citizens
 local SHOW_CITIZEN_MANAGEMENT_INSCREEN:boolean = true;
 
 -- Highlight nothing to do (red plots) in builder lens
-local HIGHLIGHT_NOTHING_TODO_IN_BUILDER_LENS:boolean = false;
+local SHOW_NOTHING_TODO_IN_BUILDER_LENS:boolean = true;
+
+-- Highlight generic (white plots) in builder lens
+local SHOW_GENERIC_PLOTS_IN_BUILDER_LENS:boolean = true;
 
 local CITY_WORK_RANGE:number = 3;
 
@@ -107,7 +107,6 @@ local m_CityOverlapRange:number = 6;
 local m_CurrentCursorPlotID:number = -1;
 
 -- Citizen management lens variables
-local m_EnableCitizenManagementArea:boolean = true;
 local m_CitizenManagementOn:boolean = false;
 local m_FullClearAreaLens:boolean = true;
 local m_tAreaPlotsColored:table = {}
@@ -1162,7 +1161,7 @@ function SetBuilderLensHexes()
     if table.count(featureHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, featureHexes, FeatureColor );
     end
-    if table.count(genericHexes) > 0 then
+    if SHOW_GENERIC_PLOTS_IN_BUILDER_LENS and table.count(genericHexes) > 0 then
         UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, genericHexes, GenericColor );
     end
     if SHOW_NOTHING_TODO_IN_BUILDER_LENS and table.count(unworkableHexes) > 0 then
@@ -2174,19 +2173,6 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
             end
         end
 
-        if SHOW_CITIZEN_MANAGEMENT_ONHOVER and m_EnableCitizenManagementArea then
-
-            -- Cancel if unit is selected or Modal Lens Panel is out
-            if (selectedUnit == nil and UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS) then
-                if pPlot:IsCity() and pPlot:GetOwner() == Game.GetLocalPlayer() then
-                    RefreshCitizenManagementArea();
-                elseif m_CitizenManagementOn then
-                    ClearAreaLens()
-                    m_CitizenManagementOn = false
-                end
-            end
-        end
-
         -- Handler for alternate settler lens
         if m_CtrlDown then
             if selectedUnit ~= nil then
@@ -3069,7 +3055,6 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
     if SHOW_CITIZEN_MANAGEMENT_INSCREEN then
         if eOldMode == InterfaceModeTypes.CITY_MANAGEMENT then
             ClearAreaLens()
-            m_EnableCitizenManagementArea = true;
             m_CitizenManagementOn = false
         end
 
@@ -3077,7 +3062,6 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             local selectedCity = UI.GetHeadSelectedCity();
             if (selectedCity ~= nil) then
                 RefreshCitizenManagementArea(selectedCity:GetID())
-                m_EnableCitizenManagementArea = false;
             end
         end
     end
@@ -3125,6 +3109,36 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
     end
 end
 
+function OnCitySelectionChanged(owner, ID, i, j, k, bSelected, bEditable)
+    if owner ~= Game.GetLocalPlayer() then
+        return
+    end
+
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN then
+        if bSelected and m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
+            RefreshCitizenManagementArea(ID)
+        end
+    end
+end
+
+function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and ownerPlayerID == Game.GetLocalPlayer() and
+            m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
+        RefreshCitizenManagementArea(cityID)
+    end
+end
+
+function OnCityMadePurchase(owner:number, cityID:number, plotX:number, plotY:number, purchaseType, objectType)
+    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and owner == Game.GetLocalPlayer() and
+            m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT and
+            purchaseType == EventSubTypes.PLOT then
+
+        -- Add plot so that the plot is properly cleared
+        table.insert(m_tAreaPlotsColored, Map.GetPlotIndex(plotX, plotY))
+        RefreshCitizenManagementArea(cityID)
+    end
+end
+
 -- For modded lens on unit selection
 function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
     if playerID == Game.GetLocalPlayer() then
@@ -3150,6 +3164,12 @@ function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, he
                     ClearSettlerLens();
                 end
             end
+        end
+
+        -- If unit is selected and citizen management area was on, turn on selection interface mode.
+        -- Lens will cleared in the OnInterfaceModeChanged event
+        if SHOW_CITIZEN_MANAGEMENT_INSCREEN and m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
+            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION)
         end
     end
 end
@@ -3211,22 +3231,6 @@ function OnUnitMoved( playerID:number, unitID:number )
                 ShowScoutLens();
             end
         end
-    end
-end
-
-function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and ownerPlayerID == Game.GetLocalPlayer() then
-        RefreshCitizenManagementArea(cityID)
-    end
-end
-
-function OnCityMadePurchase(owner:number, cityID:number, plotX:number, plotY:number, purchaseType, objectType)
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and owner == Game.GetLocalPlayer()
-            and purchaseType == EventSubTypes.PLOT then
-
-        -- Add plot so that the plot is properly cleared
-        table.insert(m_tAreaPlotsColored, Map.GetPlotIndex(plotX, plotY))
-        RefreshCitizenManagementArea(cityID)
     end
 end
 
@@ -3441,6 +3445,7 @@ function Initialize()
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
 
     -- For modded lenses
+    Events.CitySelectionChanged.Add( OnCitySelectionChanged );
     Events.UnitSelectionChanged.Add( OnUnitSelectionChanged );
     Events.UnitCaptured.Add( OnUnitCaptured );
     Events.UnitChargesChanged.Add( OnUnitChargesChanged );
@@ -3460,5 +3465,4 @@ function Initialize()
     LuaEvents.Area_RefreshCitizenManagement.Add( RefreshCitizenManagementArea );
     LuaEvents.Area_ClearCitizenManagement.Add( ClearAreaLens );
 end
-
 Initialize();
