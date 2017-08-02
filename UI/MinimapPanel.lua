@@ -576,7 +576,6 @@ function ToggleNaturalistLens()
         end
 
         UILens.SetActive("Appeal");
-
         RefreshInterfaceMode();
     else
         m_shouldCloseLensMenu = false;
@@ -823,6 +822,7 @@ function SetWaterHexes()
 end
 
 function SetSettlerLens()
+    -- If cursor is not on a plot, don't do anything
     local plotId = UI.GetCursorPlotID();
 
     -- If Modal Panel, or cursor is not on a plot, show normal Water Hexes
@@ -1948,6 +1948,7 @@ end
 
 -- ===========================================================================
 function ShowCitizenManagementArea(cityID)
+    print("Showing city manage area for " .. cityID)
     SetActiveAreaLens(AREA_LENS_ID.CITIZEN_MANAGEMENT)
     UILens.ToggleLayerOn(LensLayers.HEX_COLORING_GOVERNMENT)
 
@@ -3284,7 +3285,6 @@ function OnInputHandler( pInputStruct:table )
     -- Skip all other handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
 
-
         -- Enable drag on LMB down
         if msg == MouseEvents.LButtonDown then
             local minix, miniy = GetMinimapMouseCoords( pInputStruct:GetX(), pInputStruct:GetY() );
@@ -3361,7 +3361,10 @@ function Initialize()
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     m_ContinentsCache = Map.GetContinentsInUse();
 
-    Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
+    -- Check for function nil for backward compatibiliy. @Summer Patch 2017
+    if Controls.MinimapImage:RegisterSizeChanged ~= nil then
+        Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
+    end
     UI.SetMinimapImageControl(Controls.MinimapImage);
     Controls.LensChooserList:CalculateSize();
 
