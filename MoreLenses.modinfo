@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="1.0">
-	<Properties>
-		<Name>LOC_MORELENSES_NAME</Name>
-		<Stability>LOC_MORELENSES_STABILITY</Stability>
-		<Teaser>LOC_MORELENSES_TEASER</Teaser>
-		<Description>LOC_MORELENSES_DESCRIPTION</Description>
-		<Authors>LOC_MORELENSES_AUTHORS</Authors>
-	</Properties>
+<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1">
+  <Properties>
+    <Name>LOC_MORELENSES_NAME</Name>
+    <Stability>LOC_MORELENSES_STABILITY</Stability>
+    <Teaser>LOC_MORELENSES_TEASER</Teaser>
+    <Description>LOC_MORELENSES_DESCRIPTION</Description>
+    <Authors>LOC_MORELENSES_AUTHORS</Authors>
+  </Properties>
 
-	<Components>
-		<ImportFiles id="MORELENSES_IMPORT_FILES">
-			<Items>
-				<File>UI/MinimapPanel.lua</File>
-				<File>UI/MinimapPanel.xml</File>
-				<File>UI/Panels/ModalLensPanel.lua</File>
-				<File>UI/Panels/ModalLensPanel.xml</File>
-			</Items>
-		</ImportFiles>
+  <Components>
+    <ImportFiles id="MORELENSES_IMPORT_FILES">
+      <Items>
+        <File>UI/MinimapPanel.lua</File>
+        <File>UI/MinimapPanel.xml</File>
+        <File>UI/Panels/ModalLensPanel.lua</File>
+        <File>UI/Panels/ModalLensPanel.xml</File>
+      </Items>
+    </ImportFiles>
 
-		<UpdateDatabase id="MORELENSES_DATABASE">
-			<Items>
-				<File>MoreLenses_Colors.sql</File>
-			</Items>
-		</UpdateDatabase>
+    <UpdateDatabase id="MORELENSES_DATABASE">
+      <Items>
+        <File>MoreLenses_Colors.sql</File>
+      </Items>
+    </UpdateDatabase>
 
-		<LocalizedText id="MORELENSES_TEXT">
-			<Items>
-				<File>Text/MoreLenses_Text.xml</File>
-			  <File>Text/MoreLenses_Text_de.xml</File>
-			  <File>Text/MoreLenses_Text_fr.xml</File>
-			  <File>Text/MoreLenses_Text_it.xml</File>
-			  <File>Text/MoreLenses_Text_ko.xml</File>
-			  <File>Text/MoreLenses_Text_pl.xml</File>
-			  <File>Text/MoreLenses_Text_ru.xml</File>
-			  <File>Text/MoreLenses_Text_zh.xml</File>
-			  <File>Text/MoreLenses_Text_es.xml</File>
-			</Items>
-		</LocalizedText>
-	</Components>
+    <LocalizedText id="MORELENSES_TEXT">
+      <Items>
+        <File>Text/MoreLenses_Text.xml</File>
+        <File>Text/MoreLenses_Text_de.xml</File>
+        <File>Text/MoreLenses_Text_fr.xml</File>
+        <File>Text/MoreLenses_Text_it.xml</File>
+        <File>Text/MoreLenses_Text_ko.xml</File>
+        <File>Text/MoreLenses_Text_pl.xml</File>
+        <File>Text/MoreLenses_Text_ru.xml</File>
+        <File>Text/MoreLenses_Text_zh.xml</File>
+        <File>Text/MoreLenses_Text_es.xml</File>
+      </Items>
+    </LocalizedText>
+  </Components>
 
-	<LocalizedText>
-		<Text id="LOC_MORELENSES_NAME">
-			<en_US>More Lenses</en_US>
-		</Text>
-		<Text id="LOC_MORELENSES_STABILITY">
-			<en_US>Alpha</en_US>
-		</Text>
-		<Text id="LOC_MORELENSES_TEASER">
-			<en_US>Adds more lenses to the game.</en_US>
-		</Text>
-		<Text id="LOC_MORELENSES_DESCRIPTION">
-			<en_US>Adds more lenses to the game.</en_US>
-		</Text>
-		<Text id="LOC_MORELENSES_AUTHORS">
-			<en_US>astog</en_US>
-		</Text>
-	</LocalizedText>
+  <LocalizedText>
+    <Text id="LOC_MORELENSES_NAME">
+      <en_US>More Lenses</en_US>
+    </Text>
+    <Text id="LOC_MORELENSES_STABILITY">
+      <en_US>Alpha</en_US>
+    </Text>
+    <Text id="LOC_MORELENSES_TEASER">
+      <en_US>Adds more lenses to the game.</en_US>
+    </Text>
+    <Text id="LOC_MORELENSES_DESCRIPTION">
+      <en_US>Adds more lenses to the game.</en_US>
+    </Text>
+    <Text id="LOC_MORELENSES_AUTHORS">
+      <en_US>astog</en_US>
+    </Text>
+  </LocalizedText>
 
-	<Files>
+  <Files>
     <File>Text/MoreLenses_Text.xml</File>
     <File>Text/MoreLenses_Text_de.xml</File>
     <File>Text/MoreLenses_Text_fr.xml</File>
@@ -67,11 +67,11 @@
     <File>Text/MoreLenses_Text_ru.xml</File>
     <File>Text/MoreLenses_Text_zh.xml</File>
     <File>Text/MoreLenses_Text_es.xml</File>
-		<File>UI/MinimapPanel.lua</File>
-		<File>UI/MinimapPanel.xml</File>
-		<File>UI/Panels/ModalLensPanel.lua</File>
-		<File>UI/Panels/ModalLensPanel.xml</File>
-		<File>MoreLenses_Colors.sql</File>
-		<File>Text/MoreLenses_Text.xml</File>
-	</Files>
+    <File>UI/MinimapPanel.lua</File>
+    <File>UI/MinimapPanel.xml</File>
+    <File>UI/Panels/ModalLensPanel.lua</File>
+    <File>UI/Panels/ModalLensPanel.xml</File>
+    <File>MoreLenses_Colors.sql</File>
+    <File>Text/MoreLenses_Text.xml</File>
+  </Files>
 </Mod>
