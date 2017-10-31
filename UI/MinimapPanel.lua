@@ -4,7 +4,7 @@
 include( "InstanceManager" );
 include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
 include( "SupportFunctions" );
-include( "TradeSupport" )
+--include( "TradeSupport" )
 
 -- ===========================================================================
 --  CONSTANTS
@@ -3156,7 +3156,10 @@ function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, he
         -- If unit is selected and citizen management area was on, turn on selection interface mode.
         -- Lens will cleared in the OnInterfaceModeChanged event
         if SHOW_CITIZEN_MANAGEMENT_INSCREEN and m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION)
+            -- AZURENCY : fix weird behavior when a unit was selected and the citybanner mouse hover state
+            --UI.SetInterfaceMode(InterfaceModeTypes.SELECTION)
+            ClearAreaLens()
+            m_CitizenManagementOn = false
         end
     end
 end
