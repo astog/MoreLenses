@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1">
+<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1.1">
   <Properties>
-    <Name>LOC_MORELENSES_NAME</Name>
-    <Stability>LOC_MORELENSES_STABILITY</Stability>
-    <Teaser>LOC_MORELENSES_TEASER</Teaser>
-    <Description>LOC_MORELENSES_DESCRIPTION</Description>
-    <Authors>LOC_MORELENSES_AUTHORS</Authors>
+    <Name>More Lenses</Name>
+    <Stability>Beta</Stability>
+    <Teaser>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Teaser>
+    <Description>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Description>
+    <Authors>astog</Authors>
   </Properties>
 
   <Components>
@@ -38,24 +38,6 @@
       </Items>
     </LocalizedText>
   </Components>
-
-  <LocalizedText>
-    <Text id="LOC_MORELENSES_NAME">
-      <en_US>More Lenses</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_STABILITY">
-      <en_US>Alpha</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_TEASER">
-      <en_US>Adds more lenses to the game.</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_DESCRIPTION">
-      <en_US>Adds more lenses to the game.</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_AUTHORS">
-      <en_US>astog</en_US>
-    </Text>
-  </LocalizedText>
 
   <Files>
     <File>Text/MoreLenses_Text.xml</File>
