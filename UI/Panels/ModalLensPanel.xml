@@ -27,7 +27,7 @@
   <Instance Name="KeyEntry">
     <Image ID="KeyColorImage" Size="32,36" Texture="Controls_KeySwatchHex">
       <Stack ID="KeyInfoStack" StackGrowth="Down" Anchor="L,C" Offset="38,0">
-        <Label ID="KeyLabel" Style="FontNormal14" String="LOC_HUD_UNIT_PANEL_TOOLTIP_NO_WATER" WrapWidth="130"/>
+        <Label ID="KeyLabel" Style="FontNormal14" String="LOC_HUD_UNIT_PANEL_TOOLTIP_NO_WATER" WrapWidth="110"/>
         <Stack ID="KeyBonusStack" StackGrowth="Right">
           <Image ID="KeyBonusImage" Size="16,16" Icon="ICON_HOUSING" IconSize="16"/>
           <Label ID="KeyBonusLabel" Offset="0,2" Style="FontNormal14"/>

@@ -9,9 +9,9 @@ include( "SupportFunctions" );
 -- ===========================================================================
 --  CONSTANTS
 -- ===========================================================================
-local MINIMAP_COLLAPSED_OFFSETY :number = -180;
-local LENS_PANEL_OFFSET:number = 50;
-local MINIMAP_BACKING_PADDING_SIZEY:number = 60;
+local MINIMAP_COLLAPSED_OFFSETY     :number = -180;
+local LENS_PANEL_OFFSET             :number = 50;
+local MINIMAP_BACKING_PADDING_SIZEY :number = 54;
 
 -- Used to control ModalLensPanel.lua
 local MODDED_LENS_ID:table = {
@@ -207,33 +207,7 @@ function OnToggleLensList()
     Controls.LensButton:SetSelected( not Controls.LensPanel:IsHidden() );
     Controls.LensChooserList:CalculateSize();
     if Controls.LensPanel:IsHidden() then
-        m_shouldCloseLensMenu = true;
-        Controls.ReligionLensButton:SetCheck(false);
-        Controls.ContinentLensButton:SetCheck(false);
-        Controls.AppealLensButton:SetCheck(false);
-        Controls.GovernmentLensButton:SetCheck(false);
-        Controls.WaterLensButton:SetCheck(false);
-        Controls.OwnerLensButton:SetCheck(false);
-        Controls.TourismLensButton:SetCheck(false);
-
-        -- Modded lens
-        Controls.ScoutLensButton:SetCheck(false);
-        Controls.AdjacencyYieldLensButton:SetCheck(false);
-        Controls.WonderLensButton:SetCheck(false);
-        Controls.ResourceLensButton:SetCheck(false);
-        Controls.BarbarianLensButton:SetCheck(false);
-        Controls.CityOverlapLensButton:SetCheck(false);
-        Controls.ArchaeologistLensButton:SetCheck(false);
-        Controls.BuilderLensButton:SetCheck(false);
-        Controls.NaturalistLensButton:SetCheck(false);
-
-        -- Side Menus
-        Controls.ResourceLensOptionsPanel:SetHide(true);
-        Controls.OverlapLensOptionsPanel:SetHide(true);
-
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
+        CloseLensList();
     else
         Controls.ReligionLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_RELIGION"));
         Controls.AppealLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_APPEAL"));
@@ -244,6 +218,37 @@ function OnToggleLensList()
 
         -- Don't call this otherwise the panel is ridiculously long
         -- Controls.LensPanel:SetSizeY(Controls.LensToggleStack:GetSizeY() + LENS_PANEL_OFFSET);
+    end
+end
+
+-- ===========================================================================
+function CloseLensList()
+    m_shouldCloseLensMenu = true;
+    Controls.ReligionLensButton:SetCheck(false);
+    Controls.ContinentLensButton:SetCheck(false);
+    Controls.AppealLensButton:SetCheck(false);
+    Controls.GovernmentLensButton:SetCheck(false);
+    Controls.WaterLensButton:SetCheck(false);
+    Controls.OwnerLensButton:SetCheck(false);
+    Controls.TourismLensButton:SetCheck(false);
+
+    -- Modded lens
+    Controls.ScoutLensButton:SetCheck(false);
+    Controls.AdjacencyYieldLensButton:SetCheck(false);
+    Controls.WonderLensButton:SetCheck(false);
+    Controls.ResourceLensButton:SetCheck(false);
+    Controls.BarbarianLensButton:SetCheck(false);
+    Controls.CityOverlapLensButton:SetCheck(false);
+    Controls.ArchaeologistLensButton:SetCheck(false);
+    Controls.BuilderLensButton:SetCheck(false);
+    Controls.NaturalistLensButton:SetCheck(false);
+
+    -- Side Menus
+    Controls.ResourceLensOptionsPanel:SetHide(true);
+    Controls.OverlapLensOptionsPanel:SetHide(true);
+
+    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
     end
 end
 
@@ -787,10 +792,10 @@ function SetOwingCivHexes()
             local primaryColor, secondaryColor = UI.GetPlayerColors( player:GetID() );
 
             for _, pCity in cities:Members() do
-                local visibleCityPlots  :table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
+                local plots  :table = Map.GetCityPlots():GetPurchasedPlots(pCity);
 
-                if(table.count(visibleCityPlots) > 0) then
-                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_OWING_CIV, localPlayer, visibleCityPlots, primaryColor );
+                if(table.count(plots) > 0) then
+                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_OWING_CIV, localPlayer, plots, primaryColor );
                 end
             end
         end
@@ -954,10 +959,10 @@ function SetGovernmentHexes()
             end
 
             for _, pCity in cities:Members() do
-                local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
+                local plots:table = Map.GetCityPlots():GetPurchasedPlots(pCity);
 
-                if(table.count(visibleCityPlots) > 0) then
-                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, GovernmentColor );
+                if(table.count(plots) > 0) then
+                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, plots, GovernmentColor );
                 end
             end
         end
@@ -2993,6 +2998,10 @@ function OnInputActionTriggered( actionId )
     if (Game.GetLocalPlayer() == -1) then
         return;
     end
+    if UI.GetInterfaceMode() == InterfaceModeTypes.DISTRICT_PLACEMENT then
+        return;
+    end
+
     if m_ToggleReligionLensId ~= nil and (actionId == m_ToggleReligionLensId) then
         LensPanelHotkeyControl( Controls.ReligionLensButton );
         ToggleReligionLens();
