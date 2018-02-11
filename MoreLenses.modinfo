@@ -9,7 +9,20 @@
   </Properties>
 
   <Components>
+    <ImportFiles id="MORELENSES_LENSES">
+      <Properties>
+        <LoadOrder>10</LoadOrder>
+        <Context>InGame</Context>
+      </Properties>
+      <Items>
+        <File>UI/LensSupport.lua</File>
+      </Items>
+    </ImportFiles>
+
     <ImportFiles id="MORELENSES_IMPORT_FILES">
+      <Properties>
+        <LoadOrder>100</LoadOrder>
+      </Properties>
       <Items>
         <File>UI/MinimapPanel.lua</File>
         <File>UI/MinimapPanel.xml</File>
@@ -49,6 +62,7 @@
     <File>Text/MoreLenses_Text_ru.xml</File>
     <File>Text/MoreLenses_Text_zh.xml</File>
     <File>Text/MoreLenses_Text_es.xml</File>
+    <File>UI/LensSupport.lua</File>
     <File>UI/MinimapPanel.lua</File>
     <File>UI/MinimapPanel.xml</File>
     <File>UI/Panels/ModalLensPanel.lua</File>
