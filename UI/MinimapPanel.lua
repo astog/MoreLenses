@@ -2,10 +2,16 @@
 --  MINIMAP PANEL
 -- ===========================================================================
 include( "InstanceManager" );
-include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
-include( "SupportFunctions" );
-include( "LensSupport" );
---include( "TradeSupport" )
+
+-- ===========================================================================
+--  MODDED LENS
+-- ===========================================================================
+
+g_ModLenses = {} -- Populated by ModLens_*.lua scripts
+include( "ModLens_", true )
+
+local m_LensButtonIM:table = InstanceManager:new("LensButtonInstance", "LensButton", Controls.LensToggleStack)
+local m_CurrentModdedLensOn:string = nil
 
 -- ===========================================================================
 --  CONSTANTS
@@ -14,48 +20,10 @@ local MINIMAP_COLLAPSED_OFFSETY     :number = -180;
 local LENS_PANEL_OFFSET             :number = 50;
 local MINIMAP_BACKING_PADDING_SIZEY :number = 54;
 
--- Used to control ModalLensPanel.lua
-local MODDED_LENS_ID:table = {
-    NONE = 0;
-    APPEAL = 1;
-    BUILDER = 2;
-    ARCHAEOLOGIST = 3;
-    BARBARIAN = 4;
-    CITY_OVERLAP = 5;
-    RESOURCE = 6;
-    WONDER = 7;
-    ADJACENCY_YIELD = 8;
-    SCOUT = 9;
-    NATURALIST = 10;
-    CUSTOM = 11;
-};
-
--- Different from above, since it uses a government lens, instead of appeal
-local AREA_LENS_ID:table = {
-    NONE = 0;
-    GOVERNMENT = 1;
-    CITIZEN_MANAGEMENT = 2;
-}
-
--- Should the builder lens auto apply, when a builder is selected.
-local AUTO_APPLY_BUILDER_LENS:boolean = true;
-
--- Should the archaeologist lens auto apply, when a archaeologist is selected.
-local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
-
--- Should the scout lens auto apply, when a scout/ranger is selected.
-local AUTO_APPLY_SCOUT_LENS:boolean = true;
-
--- Show citizen management when managing citizens
-local SHOW_CITIZEN_MANAGEMENT_INSCREEN:boolean = true;
-
--- Highlight nothing to do (red plots) in builder lens
-local SHOW_NOTHING_TODO_IN_BUILDER_LENS:boolean = true;
-
--- Highlight generic (white plots) in builder lens
-local SHOW_GENERIC_PLOTS_IN_BUILDER_LENS:boolean = true;
-
-local CITY_WORK_RANGE:number = 3;
+-- ===========================================================================
+--  GLOBALS
+-- ===========================================================================
+m_shouldCloseLensMenu = true;    -- Controls when the Lens menu should be closed.
 
 -- ===========================================================================
 --  MEMBERS
@@ -70,16 +38,12 @@ local m_MiniMap_xmloffsety      :number = 0;
 local m_ContinentsCache         :table = {};
 local m_kFlyoutControlIds       :table = { "MapOptions", "Lens", "MapPinList"}; -- Name of controls that are the backing for "flyout" menus.
 
-local m_shouldCloseLensMenu     :boolean = true;    -- Controls when the Lens menu should be closed.
-
-local m_LensLayers:table = {
-    LensLayers.HEX_COLORING_RELIGION,
-    LensLayers.HEX_COLORING_CONTINENT,
-    LensLayers.HEX_COLORING_APPEAL_LEVEL,
-    LensLayers.HEX_COLORING_GOVERNMENT,
-    LensLayers.HEX_COLORING_OWING_CIV,
-    LensLayers.HEX_COLORING_WATER_AVAILABLITY
-};
+local m_LensLayers              :table = {  LensLayers.HEX_COLORING_RELIGION,
+                                            LensLayers.HEX_COLORING_CONTINENT,
+                                            LensLayers.HEX_COLORING_APPEAL_LEVEL,
+                                            LensLayers.HEX_COLORING_GOVERNMENT,
+                                            LensLayers.HEX_COLORING_OWING_CIV,
+                                            LensLayers.HEX_COLORING_WATER_AVAILABLITY   };
 
 local m_ToggleReligionLensId    = Input.GetActionId("LensReligion");
 local m_ToggleContinentLensId   = Input.GetActionId("LensContinent");
@@ -90,31 +54,11 @@ local m_TogglePoliticalLensId   = Input.GetActionId("LensPolitical");
 local m_ToggleTourismLensId     = Input.GetActionId("LensTourism");
 local m_Toggle2DViewId          = Input.GetActionId("Toggle2DView");
 
+
 local m_isMouseDragEnabled      :boolean = true; -- Can the camera be moved by dragging on the minimap?
 local m_isMouseDragging         :boolean = false; -- Was LMB clicked inside the minimap, and has not been released yet?
 local m_hasMouseDragged         :boolean = false; -- Has there been any movements since m_isMouseDragging became true?
 local m_wasMouseInMinimap       :boolean = false; -- Was the mouse over the minimap the last time we checked?
-
-local m_CurrentModdedLensOn     :number  = MODDED_LENS_ID.NONE;
-local m_CurrentAreaLensOn       :number  = AREA_LENS_ID.NONE;
-
-local m_CustomLens_PlotsAndColors:table = {}
-
--- Resource Lens Specific Vars
-local ResourcesToHide:table = {};
-local ResourceCategoryToHide:table = {};
-
-local m_CityOverlapRange:number = 6;
-
-local m_CurrentCursorPlotID:number = -1;
-
--- Citizen management lens variables
-local m_CitizenManagementOn:boolean = false;
-local m_FullClearAreaLens:boolean = true;
-local m_tAreaPlotsColored:table = {}
-
--- Settler Lens Variables
-local m_CtrlDown:boolean = false;
 
 -- ===========================================================================
 --  FUNCTIONS
@@ -152,6 +96,8 @@ function CloseAllFlyouts()
         else
             UI.DataError("Minimap's CloseAllFlyouts() attempted to unselect'"..buttonId.."' but the control doesn't exist in the XML.");
         end
+
+
     end
 end
 
@@ -206,7 +152,6 @@ function OnToggleLensList()
     Controls.LensPanel:SetHide( not Controls.LensPanel:IsHidden() );
     RealizeFlyouts(Controls.LensPanel);
     Controls.LensButton:SetSelected( not Controls.LensPanel:IsHidden() );
-    Controls.LensChooserList:CalculateSize();
     if Controls.LensPanel:IsHidden() then
         CloseLensList();
     else
@@ -215,14 +160,11 @@ function OnToggleLensList()
         Controls.GovernmentLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_GOVERNMENT"));
         Controls.WaterLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_SETTLER"));
         Controls.TourismLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_TOURISM"));
-        -- Controls.LensToggleStack:CalculateSize();
-
-        -- Don't call this otherwise the panel is ridiculously long
-        -- Controls.LensPanel:SetSizeY(Controls.LensToggleStack:GetSizeY() + LENS_PANEL_OFFSET);
+        Controls.LensToggleStack:CalculateSize();
+        Controls.LensPanel:SetSizeY(Controls.LensToggleStack:GetSizeY() + LENS_PANEL_OFFSET);
     end
 end
 
--- ===========================================================================
 function CloseLensList()
     m_shouldCloseLensMenu = true;
     Controls.ReligionLensButton:SetCheck(false);
@@ -233,27 +175,21 @@ function CloseLensList()
     Controls.OwnerLensButton:SetCheck(false);
     Controls.TourismLensButton:SetCheck(false);
 
-    -- Modded lens
-    Controls.ScoutLensButton:SetCheck(false);
-    Controls.AdjacencyYieldLensButton:SetCheck(false);
-    Controls.WonderLensButton:SetCheck(false);
-    Controls.ResourceLensButton:SetCheck(false);
-    Controls.BarbarianLensButton:SetCheck(false);
-    Controls.CityOverlapLensButton:SetCheck(false);
-    Controls.ArchaeologistLensButton:SetCheck(false);
-    Controls.BuilderLensButton:SetCheck(false);
-    Controls.NaturalistLensButton:SetCheck(false);
-
-    -- Side Menus
-    Controls.ResourceLensOptionsPanel:SetHide(true);
-    Controls.OverlapLensOptionsPanel:SetHide(true);
+    -- Toggle each mod lens
+    local i = 1
+    local lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
+    while lensButtonInstance ~= nil do
+        lensButtonInstance.LensButton:SetCheck(false)
+        i = i + 1
+        lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
+    end
 
     if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
         UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
     end
 end
 
--- ===========================================================================
+------------------------------------------------------------------------------
 function ToggleMapPinMode()
     Controls.MapPinListPanel:SetHide( not Controls.MapPinListPanel:IsHidden() );
     RealizeFlyouts(Controls.MapPinListPanel);
@@ -305,7 +241,7 @@ end
 -- ===========================================================================
 function ToggleAppealLens()
     if Controls.AppealLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.APPEAL);
+        SetActiveModdedLens("VANILLA_APPEAL");
 
         -- Check if the appeal lens is already active. Needed to clear any modded lens
         if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
@@ -320,7 +256,7 @@ function ToggleAppealLens()
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
+        SetActiveModdedLens("NONE");
     end
 end
 
@@ -340,14 +276,6 @@ end
 -- ===========================================================================
 function ToggleGovernmentLens()
     if Controls.GovernmentLensButton:IsChecked() then
-        SetActiveAreaLens(AREA_LENS_ID.GOVERNMENT);
-
-        -- Check if the gov lens is already active. Needed to clear any gov lens
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_GOVERNMENT) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
         UILens.SetActive("Government");
         RefreshInterfaceMode();
     else
@@ -355,7 +283,6 @@ function ToggleGovernmentLens()
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
-        SetActiveAreaLens(AREA_LENS_ID.NONE);
     end
 end
 
@@ -386,217 +313,6 @@ function ToggleTourismLens()
 end
 
 -- ===========================================================================
--- Modded lenses
--- ===========================================================================
-function ToggleBuilderLens()
-    if Controls.BuilderLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.BUILDER);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleArchaeologistLens()
-    if Controls.ArchaeologistLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.ARCHAEOLOGIST);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleCityOverlapLens()
-    if Controls.CityOverlapLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.CITY_OVERLAP);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-
-        RefreshInterfaceMode();
-        Controls.OverlapLensOptionsPanel:SetHide(false);
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        Controls.OverlapLensOptionsPanel:SetHide(true);
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleBarbarianLens()
-    if Controls.BarbarianLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.BARBARIAN);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleResourceLens()
-    if Controls.ResourceLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.RESOURCE);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-
-        RefreshResourcePicker();
-        RefreshInterfaceMode();
-
-        Controls.ResourceLensOptionsPanel:SetHide(false);
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        Controls.ResourceLensOptionsPanel:SetHide(true);
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleWonderLens()
-    if Controls.WonderLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.WONDER);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleAdjacencyYieldLens()
-    if Controls.AdjacencyYieldLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.ADJACENCY_YIELD);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleScoutLens()
-    if Controls.ScoutLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.SCOUT);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
-function ToggleNaturalistLens()
-    if Controls.NaturalistLensButton:IsChecked() then
-        SetActiveModdedLens(MODDED_LENS_ID.NATURALIST);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-        RefreshInterfaceMode();
-    else
-        m_shouldCloseLensMenu = false;
-        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-        end
-        SetActiveModdedLens(MODDED_LENS_ID.NONE);
-    end
-end
-
--- ===========================================================================
--- Remaining MINIMAP
--- Resize functions, callbacks, etc
--- ===========================================================================
 function ToggleGrid()
     bGridOn = not bGridOn;
     UI.ToggleGrid( bGridOn );
@@ -616,6 +332,7 @@ function Toggle2DView()
         end
         UI.PlaySound("Stop_Unit_Movement_Master");
     end
+
 end
 
 -- ===========================================================================
@@ -628,7 +345,6 @@ function OnCollapseToggle()
     if ( m_isCollapsed ) then
         UI.PlaySound("Minimap_Open");
         Controls.ExpandButton:SetHide( true );
-        Controls.CollapseButton:SetHide( false );
         Controls.ExpandAnim:SetEndVal(0, -Controls.MinimapContainer:GetOffsetY() - Controls.MinimapContainer:GetSizeY());
         Controls.ExpandAnim:SetToBeginning();
         Controls.ExpandAnim:Play();
@@ -636,7 +352,6 @@ function OnCollapseToggle()
     else
         UI.PlaySound("Minimap_Closed");
         Controls.ExpandButton:SetHide( false );
-        Controls.CollapseButton:SetHide( true );
         Controls.Pause:Play();
         Controls.CollapseAnim:SetEndVal(0, Controls.MinimapContainer:GetOffsetY() + Controls.MinimapContainer:GetSizeY());
         Controls.CollapseAnim:SetToBeginning();
@@ -668,9 +383,6 @@ function RefreshInterfaceMode()
     if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
         UI.SetInterfaceMode(InterfaceModeTypes.VIEW_MODAL_LENS);
     end
-
-    Controls.ResourceLensOptionsPanel:SetHide(true);
-    Controls.OverlapLensOptionsPanel:SetHide(true);
 end
 
 -- ===========================================================================
@@ -679,36 +391,15 @@ function OnLensLayerOn( layerNum:number )
         UI.PlaySound("UI_Lens_Overlay_On");
         UILens.SetDesaturation(1.0);
     elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
-        if m_CurrentModdedLensOn == MODDED_LENS_ID.APPEAL then
+        if m_CurrentModdedLensOn == "VANILLA_APPEAL" then
             SetAppealHexes();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BUILDER then
-            SetBuilderLensHexes();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ARCHAEOLOGIST then
-            SetArchaeologistLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CITY_OVERLAP then
-            SetCityOverlapLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.BARBARIAN then
-            SetBarbarianLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.RESOURCE then
-            SetResourceLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.WONDER then
-            SetWonderLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ADJACENCY_YIELD then
-            SetAdjacencyYieldLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
-            SetScoutLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.NATURALIST then
-            SetNaturalistLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.CUSTOM then
-            SetCustomLens();
+        else
+            SetModLens();
         end
         UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
-        if m_CurrentAreaLensOn == AREA_LENS_ID.GOVERNMENT then
-            SetGovernmentHexes();
-            UI.PlaySound("UI_Lens_Overlay_On");
-        -- else Extra Area Lenses go here
-        end
+        SetGovernmentHexes();
+        UI.PlaySound("UI_Lens_Overlay_On");
     elseif layerNum == LensLayers.HEX_COLORING_OWING_CIV then
         SetOwingCivHexes();
         UI.PlaySound("UI_Lens_Overlay_On");
@@ -725,11 +416,10 @@ end
 
 -- ===========================================================================
 function OnLensLayerOff( layerNum:number )
-    if layerNum == LensLayers.HEX_COLORING_RELIGION then
-        UILens.SetDesaturation(0.0);
-
-    elseif (layerNum == LensLayers.HEX_COLORING_CONTINENT or
-            layerNum == LensLayers.HEX_COLORING_OWING_CIV) then
+    if (layerNum == LensLayers.HEX_COLORING_RELIGION        or
+            layerNum == LensLayers.HEX_COLORING_CONTINENT       or
+            layerNum == LensLayers.HEX_COLORING_GOVERNMENT      or
+            layerNum == LensLayers.HEX_COLORING_OWING_CIV)      then
         UI.PlaySound("UI_Lens_Overlay_Off");
 
     -- Clear Modded Lens (Appeal lens included)
@@ -740,20 +430,16 @@ function OnLensLayerOff( layerNum:number )
         end
         UI.PlaySound("UI_Lens_Overlay_Off");
 
-    -- Clear Area Lens (Government lens included)
-    elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
-        UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
-        if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
-            UILens.ClearLayerHexes(LensLayers.HEX_COLORING_GOVERNMENT);
-        end
-        UI.PlaySound("UI_Lens_Overlay_Off");
-
     elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then
         -- Only clear the water lens if we're turning off lenses altogether, but not if switching to another modal lens (Turning on another modal lens clears it already).
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
             UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
         end
         UI.PlaySound("UI_Lens_Overlay_Off");
+    end
+
+    if (layerNum == LensLayers.HEX_COLORING_RELIGION) then
+        UILens.SetDesaturation(0.0);
     end
 end
 
@@ -793,7 +479,7 @@ function SetOwingCivHexes()
             local primaryColor, secondaryColor = UI.GetPlayerColors( player:GetID() );
 
             for _, pCity in cities:Members() do
-                local plots  :table = Map.GetCityPlots():GetPurchasedPlots(pCity);
+                local plots :table = Map.GetCityPlots():GetPurchasedPlots(pCity);
 
                 if(table.count(plots) > 0) then
                     UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_OWING_CIV, localPlayer, plots, primaryColor );
@@ -805,136 +491,32 @@ end
 
 -- ===========================================================================
 function SetWaterHexes()
-    if (not m_CtrlDown) or UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-        local FullWaterPlots:table = {};
-        local CoastalWaterPlots:table = {};
-        local NoWaterPlots:table = {};
-        local NoSettlePlots:table = {};
+    local FullWaterPlots:table = {};
+    local CoastalWaterPlots:table = {};
+    local NoWaterPlots:table = {};
+    local NoSettlePlots:table = {};
 
-        UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
-        FullWaterPlots, CoastalWaterPlots, NoWaterPlots, NoSettlePlots = Map.GetContinentPlotsWaterAvailability();
+    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
+    FullWaterPlots, CoastalWaterPlots, NoWaterPlots, NoSettlePlots = Map.GetContinentPlotsWaterAvailability();
 
-        local BreathtakingColor :number = UI.GetColorValue("COLOR_BREATHTAKING_APPEAL");
-        local CharmingColor     :number = UI.GetColorValue("COLOR_CHARMING_APPEAL");
-        local AverageColor      :number = UI.GetColorValue("COLOR_AVERAGE_APPEAL");
-        local DisgustingColor   :number = UI.GetColorValue("COLOR_DISGUSTING_APPEAL");
-        local localPlayer       :number = Game.GetLocalPlayer();
+    local BreathtakingColor :number = UI.GetColorValue("COLOR_BREATHTAKING_APPEAL");
+    local CharmingColor     :number = UI.GetColorValue("COLOR_CHARMING_APPEAL");
+    local AverageColor      :number = UI.GetColorValue("COLOR_AVERAGE_APPEAL");
+    local DisgustingColor   :number = UI.GetColorValue("COLOR_DISGUSTING_APPEAL");
+    local localPlayer       :number = Game.GetLocalPlayer();
 
-        if(table.count(FullWaterPlots) > 0) then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, FullWaterPlots, BreathtakingColor );
-        end
-        if(table.count(CoastalWaterPlots) > 0) then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, CoastalWaterPlots, CharmingColor );
-        end
-        if(table.count(NoWaterPlots) > 0) then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoWaterPlots, AverageColor );
-        end
-        if(table.count(NoSettlePlots) > 0) then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoSettlePlots, DisgustingColor );
-        end
-
-    else -- A settler is selected, show alternate highlighting
-        SetSettlerLens()
+    if(table.count(FullWaterPlots) > 0) then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, FullWaterPlots, BreathtakingColor );
     end
-end
-
-function SetSettlerLens()
-    -- If cursor is not on a plot, don't do anything
-    local plotId = UI.GetCursorPlotID();
-
-    -- If Modal Panel, or cursor is not on a plot, show normal Water Hexes
-    if (not Map.IsPlot(plotId)) then
-        return
+    if(table.count(CoastalWaterPlots) > 0) then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, CoastalWaterPlots, CharmingColor );
     end
-
-    local pPlot = Map.GetPlotByIndex(plotId)
-    local localPlayer:number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-    local localPlayerCities = Players[localPlayer]:GetCities()
-
-    local tNonDimPlots:table = {}
-    local tUnusablePlots:table = {}
-    local tOverlapPlots:table = {}
-    local tResourcePlots:table = {}
-    local tRegularPlots:table = {}
-
-    local iUnusableColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_UNUSABLE");
-    local iOverlapColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_OVERLAP");
-    local iResourceColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_RESOURCE");
-    local iRegularColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_REGULAR");
-
-    for pRangePlot in PlotAreaSpiralIterator(pPlot, CITY_WORK_RANGE,
-            SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-
-        local plotX = pRangePlot:GetX()
-        local plotY = pRangePlot:GetY()
-        local plotID = pRangePlot:GetIndex()
-        if localPlayerVis:IsRevealed(plotX, plotY) then
-
-            table.insert(tNonDimPlots, plotID)
-            if plotWithinWorkingRange(localPlayer, plotID) then
-                table.insert(tOverlapPlots, plotID)
-
-            elseif pRangePlot:IsImpassable() then
-                table.insert(tUnusablePlots, plotID)
-
-            elseif pRangePlot:IsOwned() and pRangePlot:GetOwner() ~= localPlayer then
-                table.insert(tUnusablePlots, plotID)
-
-            elseif plotHasResource(pRangePlot) and
-                    playerHasDiscoveredResource(localPlayer, plotID) then
-
-                table.insert(tResourcePlots, plotID)
-            else
-                table.insert(tRegularPlots, plotID)
-            end
-        end
+    if(table.count(NoWaterPlots) > 0) then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoWaterPlots, AverageColor );
     end
-
-    -- Alt_HighlightPlots(tNonDimPlots)
-
-    if #tOverlapPlots > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tOverlapPlots, iOverlapColor );
+    if(table.count(NoSettlePlots) > 0) then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoSettlePlots, DisgustingColor );
     end
-
-    if #tUnusablePlots > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tUnusablePlots, iUnusableColor );
-    end
-
-    if #tResourcePlots > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tResourcePlots, iResourceColor );
-    end
-
-    if #tRegularPlots  > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tRegularPlots, iRegularColor );
-    end
-end
-
-function RefreshSettlerLens()
-    ClearSettlerLens()
-    UILens.ToggleLayerOn( LensLayers.HEX_COLORING_WATER_AVAILABLITY );
-end
-
-function ClearSettlerLens()
-    -- Alt_ClearHighlightedPlots()
-
-    if UILens.IsLayerOn( LensLayers.HEX_COLORING_WATER_AVAILABLITY ) then
-        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_WATER_AVAILABLITY );
-    end
-end
-
--- Checks to see if settler lens should be reapplied
-function RecheckSettlerLens()
-    local selectedUnit = UI.GetHeadSelectedUnit()
-    if (selectedUnit ~= nil) then
-        local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
-        if (unitType == "UNIT_SETTLER") then
-            RefreshSettlerLens()
-            return
-        end
-    end
-
-    ClearSettlerLens()
 end
 
 -- ===========================================================================
@@ -968,8 +550,6 @@ function SetGovernmentHexes()
             end
         end
     end
-
-    m_FullClearAreaLens = true;
 end
 
 -- ===========================================================================
@@ -1027,1203 +607,6 @@ function SetContinentHexes()
 end
 
 -- ===========================================================================
-function SetBuilderLensHexes()
-    -- Check required to work properly with hotkey.
-    -- print("Highlight Builder Lens Hexes");
-    local mapWidth, mapHeight = Map.GetGridSize();
-
-    local ResourceColor:number = UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS");
-    local HillColor:number = UI.GetColorValue("COLOR_HILL_BUILDER_LENS");
-    local RecomFeatureColor:number = UI.GetColorValue("COLOR_RECOMFEATURE_BUILDER_LENS")
-    local FeatureColor:number = UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS");
-    local GenericColor:number = UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS");
-    local NothingColor:number = UI.GetColorValue("COLOR_NOTHING_BUILDER_LENS");
-    local localPlayer:number = Game.GetLocalPlayer();
-
-    local unworkableHexes:table = {};
-    local repairableHexes:table = {};
-    local resourceHexes:table = {};
-    local featureHexes:table = {};
-    local recomFeatureHexes:table = {}
-    local hillHexes:table = {};
-    local genericHexes:table = {};
-    local specialHexes:table = {};
-    local localPlayerHexes:table = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if pPlot:GetOwner() == Game.GetLocalPlayer() then
-            table.insert(localPlayerHexes, i);
-
-            -- IMPASSABLE
-            --------------------------------------
-            if pPlot:IsImpassable() then
-                table.insert(unworkableHexes, i)
-
-            -- NATIONAL PARK
-            --------------------------------------
-            elseif pPlot:IsNationalPark() then
-                table.insert(unworkableHexes, i)
-
-            -- IMPROVEMENTS
-            --------------------------------------
-            elseif plotHasImprovement(pPlot) then
-                if pPlot:IsImprovementPillaged() then
-                    table.insert(repairableHexes, i);
-                elseif not plotHasCorrectImprovement(pPlot) then
-                    table.insert(resourceHexes, i)
-                else
-                    table.insert(unworkableHexes, i);
-                end
-
-            -- NATURAL WONDER
-            --------------------------------------
-            elseif plotHasNaturalWonder(pPlot) then
-                if plotHasImprovableWonder(pPlot) then
-                    table.insert(recomFeatureHexes, i)
-                else
-                    table.insert(unworkableHexes, i)
-                end
-
-            -- PLAYER WONDER - CHINESE UA
-            --------------------------------------
-            elseif plotHasWonder(pPlot) then
-                -- Check for a UA similiar to china's
-                if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete())
-                    and isAncientClassicalWonder(pPlot:GetWonderType()) then
-                        table.insert(specialHexes, i);
-                else
-                    table.insert(unworkableHexes, i);
-                end
-
-            -- DISTRICT - AZTEC UA
-            --------------------------------------
-            elseif plotHasDistrict(pPlot) then
-                -- Check for a UA similiar to Aztec's
-                if (not pPlot:IsCity()) and (not districtComplete(localPlayer, i)) and
-                    playerHasBuilderDistrictModifier(localPlayer) then
-                        table.insert(specialHexes, i);
-                else
-                    table.insert(unworkableHexes, i);
-                end
-
-            -- VISIBLE RESOURCE
-            --------------------------------------
-            elseif plotHasResource(pPlot) and playerHasDiscoveredResource(localPlayer, i) then
-                -- Is the resource improvable?
-                if plotResourceImprovable(pPlot) then
-                    table.insert(resourceHexes, i);
-                else
-                    table.insert(unworkableHexes, i);
-                end
-
-            -- FEATURE - Note: This includes natural wonders, since wonder is also a "feature". Check Features.xml
-            --------------------------------------
-            elseif plotHasFeature(pPlot) then
-                -- Recommended Feature
-                if plotHasRecomFeature(pPlot) then
-                    table.insert(recomFeatureHexes, i)
-                -- Harvestable feature
-                elseif playerCanRemoveFeature(localPlayer, i) then
-                    table.insert(featureHexes, i);
-                else
-                    table.insert(unworkableHexes, i)
-                end
-
-            -- Below this we assume comman tiles that are
-            -- only useful if within working range of city
-            --------------------------------------
-            elseif plotWithinWorkingRange(localPlayer, i)  then
-
-                -- HILL - MINE
-                --------------------------------------
-                if plotHasImprovableHill(pPlot) then
-                    if plotNextToBuffingWonder(pPlot) then
-                        table.insert(recomFeatureHexes, i)
-                    else
-                        table.insert(hillHexes, i);
-                    end
-
-                -- GENERIC TILE
-                --------------------------------------
-                elseif plotCanHaveImprovement(localPlayer, i) then
-                    if plotNextToBuffingWonder(pPlot) then
-                        table.insert(recomFeatureHexes, i)
-                    elseif plotCanHaveFarm(plot) then
-                        table.insert(genericHexes, i)
-                    end
-
-                -- NOTHING TO DO
-                --------------------------------------
-                else
-                     table.insert(unworkableHexes, i)
-                end
-            end
-        end
-    end
-
-    -- Dim other hexes
-    -- if table.count(localPlayerHexes) > 0 then
-    --  UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, localPlayerHexes );
-    -- end
-
-    if table.count(repairableHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, repairableHexes, ResourceColor );
-    end
-    if table.count(resourceHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, resourceHexes, ResourceColor );
-    end
-    if table.count(specialHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, specialHexes, ResourceColor );
-    end
-    if table.count(hillHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, hillHexes, HillColor );
-    end
-    if table.count(recomFeatureHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, recomFeatureHexes, RecomFeatureColor );
-    end
-    if table.count(featureHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, featureHexes, FeatureColor );
-    end
-    if SHOW_GENERIC_PLOTS_IN_BUILDER_LENS and table.count(genericHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, genericHexes, GenericColor );
-    end
-    if SHOW_NOTHING_TODO_IN_BUILDER_LENS and table.count(unworkableHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, unworkableHexes, NothingColor );
-    end
-end
-
-function ClearBuilderLensHexes()
-    -- print("Clear Builder Lens Hexes");
-    ClearModdedLens();
-end
-
--- Called when a builder is selected
-function ShowBuilderLens()
-    -- UILens.SetActive("Default");
-    SetActiveModdedLens(MODDED_LENS_ID.BUILDER);
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-end
-
--- ===========================================================================
-function SetArchaeologistLens()
-    -- print("Show archeologist lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local artifactPlots     :table = {};
-    local antiquityPlots    :table = {};
-    local shipwreckPlots    :table = {};
-
-    local AntiquityColor = UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS");
-    local ShipwreckColor = UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS");
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(localPlayer, i) then
-            if plotHasAnitquitySite(pPlot) then
-                table.insert(artifactPlots, i);
-                table.insert(antiquityPlots, i);
-            elseif plotHasShipwreck(pPlot) then
-                table.insert(shipwreckPlots, i);
-                table.insert(antiquityPlots, i);
-            end
-        end
-    end
-
-    -- Dim hexes that are not artifacts or shipwrecks
-    -- if table.count(antiquityPlots) > 0 then
-    --  UILens.SetLayerHexesArea(LensLayers.MAP_HEX_MASK, localPlayer, antiquityPlots );
-    -- end
-
-    if table.count(artifactPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, artifactPlots, AntiquityColor );
-    end
-    if table.count(shipwreckPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, shipwreckPlots, ShipwreckColor );
-    end
-end
-
-function ClearArchaeologistLens()
-    -- print("Clear Archaeologist Lens Hexes");
-    ClearModdedLens();
-end
-
--- Called when a archeologist is selected
-function ShowArchaeologistLens()
-    SetActiveModdedLens(MODDED_LENS_ID.ARCHAEOLOGIST);
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-end
-
--- ===========================================================================
-function SetCityOverlapLens()
-    -- print("Show City Overlap 6 lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local plotEntries       :table = {};
-    local numCityEntries    :table = {};
-    local localPlayerCities = Players[localPlayer]:GetCities()
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            if pPlot:GetOwner() == localPlayer or Controls.ShowLensOutsideBorder:IsChecked() then
-                local numCities = 0;
-                for _, pCity in localPlayerCities:Members() do
-                    if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCity:GetX(), pCity:GetY()) <= m_CityOverlapRange then
-                        numCities = numCities + 1;
-                    end
-                end
-
-                if numCities > 0 then
-                    numCities = Clamp(numCities, 1, 8);
-
-                    table.insert(plotEntries, i);
-                    table.insert(numCityEntries, numCities);
-                end
-            end
-        end
-    end
-
-    -- Dim hexes that are not encapments.
-    -- if table.count(plotEntries) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, plotEntries );
-    -- end
-
-    for i = 1, #plotEntries, 1 do
-        local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i]);
-        local color:number = UI.GetColorValue(colorLookup);
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, {plotEntries[i]}, color );
-    end
-end
-
-function Alt_SetCityOverlapLens()
-    local plotId = UI.GetCursorPlotID();
-    if (not Map.IsPlot(plotId)) then
-        return;
-    end
-
-    local pPlot = Map.GetPlotByIndex(plotId)
-    local localPlayer = Game.GetLocalPlayer()
-    local localPlayerVis:table = PlayersVisibility[localPlayer]
-    local cityPlots:table = {}
-    local normalPlot:table = {}
-
-    for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, m_CityOverlapRange, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-        if localPlayerVis:IsRevealed(pAdjacencyPlot:GetX(), pAdjacencyPlot:GetY()) then
-            if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
-                table.insert(cityPlots, pAdjacencyPlot:GetIndex());
-            else
-                table.insert(normalPlot, pAdjacencyPlot:GetIndex());
-            end
-        end
-    end
-
-    if (table.count(cityPlots) > 0) then
-        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1");
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, cityPlots, plotColor );
-    end
-
-    if (table.count(normalPlot) > 0) then
-        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3");
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, normalPlot, plotColor );
-    end
-end
-
-function RefreshCityOverlapLens()
-    -- Assuming City Overlap lens is already applied
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    SetCityOverlapLens();
-end
-
-function Refresh_AltCityOverlapLens()
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    Alt_SetCityOverlapLens();
-end
-
-function IncreseOverlapRange()
-    m_CityOverlapRange = m_CityOverlapRange + 1;
-    Controls.OverlapRangeLabel:SetText(m_CityOverlapRange);
-    RefreshCityOverlapLens();
-end
-
-function DecreaseOverlapRange()
-    if (m_CityOverlapRange > 0) then
-        m_CityOverlapRange = m_CityOverlapRange - 1;
-    end
-    Controls.OverlapRangeLabel:SetText(m_CityOverlapRange);
-    RefreshCityOverlapLens();
-end
-
--- ===========================================================================
-function SetBarbarianLens()
-    -- print("Show archeologist lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local BarbarianColor = UI.GetColorValue("COLOR_BARBARIAN_BARB_LENS");
-    local barbPlots:table = {};
-    local barbAdjacent:table = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and plotHasBarbCamp(pPlot) then
-            table.insert(barbPlots, i);
-            table.insert(barbAdjacent, i);
-
-            -- for pAdjacencyPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
-            --  table.insert(barbAdjacent, pAdjacencyPlot:GetIndex());
-            -- end
-        end
-    end
-
-    -- Dim hexes that are not encapments
-    -- if table.count(barbAdjacent) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
-    -- end
-
-    if table.count(barbPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, barbPlots, BarbarianColor );
-    end
-end
-
--- ===========================================================================
-function SetResourceLens()
-    -- print("Show Resource lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local LuxConnectedColor   :number = UI.GetColorValue("COLOR_LUXCONNECTED_RES_LENS");
-    local StratConnectedColor :number = UI.GetColorValue("COLOR_STRATCONNECTED_RES_LENS");
-    local BonusConnectedColor :number = UI.GetColorValue("COLOR_BONUSCONNECTED_RES_LENS");
-    local LuxNConnectedColor  :number = UI.GetColorValue("COLOR_LUXNCONNECTED_RES_LENS");
-    local StratNConnectedColor  :number = UI.GetColorValue("COLOR_STRATNCONNECTED_RES_LENS");
-    local BonusNConnectedColor  :number = UI.GetColorValue("COLOR_BONUSNCONNECTED_RES_LENS");
-
-    -- Resources to exclude in the "Resource Lens"
-    local ResourceExclusionList:table = {
-        "RESOURCE_ANTIQUITY_SITE",
-        "RESOURCE_SHIPWRECK"
-    }
-
-    local ConnectedLuxury       = {};
-    local ConnectedStrategic    = {};
-    local ConnectedBonus        = {};
-    local NotConnectedLuxury    = {};
-    local NotConnectedStrategic = {};
-    local NotConnectedBonus     = {};
-    local ResourcePlots         = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(localPlayer, i) then
-            local resourceType = pPlot:GetResourceType()
-            if resourceType ~= nil and resourceType >= 0 then
-                local resourceInfo = GameInfo.Resources[resourceType];
-                if resourceInfo ~= nil then
-
-                    -- Check if resource is not in exclusion list
-                    if not has_value(ResourceExclusionList, resourceInfo.ResourceType) and (not has_value(ResourcesToHide, resourceInfo.ResourceType)) then
-                        table.insert(ResourcePlots, i);
-                        if resourceInfo.ResourceClassType == "RESOURCECLASS_BONUS" and
-                                not has_value(ResourceCategoryToHide, "Bonus") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedBonus, i)
-                            else
-                                table.insert(NotConnectedBonus, i)
-                            end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_LUXURY" and
-                                not has_value(ResourceCategoryToHide, "Luxury") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedLuxury, i)
-                            else
-                                table.insert(NotConnectedLuxury, i)
-                            end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_STRATEGIC" and
-                                not has_value(ResourceCategoryToHide, "Strategic") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedStrategic, i)
-                            else
-                                table.insert(NotConnectedStrategic, i)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -- Dim other hexes
-    -- if table.count(ResourcePlots) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, ResourcePlots );
-    -- end
-
-    if table.count(ConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedLuxury, LuxConnectedColor );
-    end
-    if table.count(ConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedStrategic, StratConnectedColor );
-    end
-    if table.count(ConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedBonus, BonusConnectedColor );
-    end
-    if table.count(NotConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedLuxury, LuxNConnectedColor );
-    end
-    if table.count(NotConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedStrategic, StratNConnectedColor );
-    end
-    if table.count(NotConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedBonus, BonusNConnectedColor );
-    end
-end
-
-function RefreshResourcePicker()
-    print("Show Resource Picker")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    -- Resources to exclude in the "Resource Lens"
-    local ResourceExclusionList:table = {
-        "RESOURCE_ANTIQUITY_SITE",
-        "RESOURCE_SHIPWRECK"
-    }
-
-    local BonusResources:table = {}
-    local LuxuryResources:table = {}
-    local StrategicResources:table = {}
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(localPlayer, i) then
-            local resourceType = pPlot:GetResourceType()
-            if resourceType ~= nil and resourceType >= 0 then
-                local resourceInfo = GameInfo.Resources[resourceType];
-                if resourceInfo ~= nil then
-                    -- Check if resource is not in exclusion list
-                    if not has_value(ResourceExclusionList, resourceInfo.ResourceType) then
-                        if resourceInfo.ResourceClassType == "RESOURCECLASS_BONUS" then
-                            if not has_rInfo(BonusResources, resourceInfo.ResourceType) then
-                                table.insert(BonusResources, resourceInfo)
-                            end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_LUXURY" then
-                            if not has_rInfo(LuxuryResources, resourceInfo.ResourceType) then
-                                table.insert(LuxuryResources, resourceInfo)
-                            end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_STRATEGIC" then
-                            if not has_rInfo(StrategicResources, resourceInfo.ResourceType) then
-                                table.insert(StrategicResources, resourceInfo)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    Controls.BonusResourcePickStack:DestroyAllChildren();
-    Controls.LuxuryResourcePickStack:DestroyAllChildren();
-    Controls.StrategicResourcePickStack:DestroyAllChildren();
-
-    -- Bonus Resources
-    if table.count(BonusResources) > 0 and
-            not has_value(ResourceCategoryToHide, "Bonus") then
-        for i, resourceInfo in ipairs(BonusResources) do
-            -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.BonusResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
-
-            if has_value(ResourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
-            end
-
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
-        end
-    end
-
-    -- Luxury Resources
-    if table.count(LuxuryResources) > 0 and
-            not has_value(ResourceCategoryToHide, "Luxury") then
-        for i, resourceInfo in ipairs(LuxuryResources) do
-            -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.LuxuryResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
-
-            if has_value(ResourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
-            end
-
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
-        end
-    end
-
-    -- Strategic Resources
-    if table.count(StrategicResources) > 0 and
-            not has_value(ResourceCategoryToHide, "Strategic") then
-        for i, resourceInfo in ipairs(StrategicResources) do
-            -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.StrategicResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
-
-            if has_value(ResourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
-            end
-
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
-        end
-    end
-
-    -- Cleanup
-    Controls.BonusResourcePickStack:CalculateSize();
-    Controls.LuxuryResourcePickStack:CalculateSize();
-    Controls.StrategicResourcePickStack:CalculateSize();
-    Controls.ResourcePickList:CalculateSize();
-end
-
-function ToggleResourceLens_Bonus()
-    if not Controls.ShowBonusResource:IsChecked() then
-        print("Hide Bonus Resource")
-        ndup_insert(ResourceCategoryToHide, "Bonus")
-    else
-        print("Show Bonus Resource")
-        find_and_remove(ResourceCategoryToHide, "Bonus");
-    end
-
-    -- Assuming resource lens is already applied
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    RefreshResourcePicker();
-    SetResourceLens();
-end
-
-function ToggleResourceLens_Luxury()
-    if not Controls.ShowLuxuryResource:IsChecked() then
-        print("Hide Luxury Resource")
-        ndup_insert(ResourceCategoryToHide, "Luxury")
-    else
-        print("Show Luxury Resource")
-        find_and_remove(ResourceCategoryToHide, "Luxury");
-    end
-
-    -- Assuming resource lens is already applied
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    RefreshResourcePicker();
-    SetResourceLens();
-end
-
-function ToggleResourceLens_Strategic()
-    if not Controls.ShowStrategicResource:IsChecked() then
-        print("Hide Strategic Resource")
-        ndup_insert(ResourceCategoryToHide, "Strategic")
-    else
-        print("Show Strategic Resource")
-        find_and_remove(ResourceCategoryToHide, "Strategic");
-    end
-
-    -- Assuming resource lens is already applied
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    RefreshResourcePicker();
-    SetResourceLens();
-end
-
-function HandleResourceCheckbox(pControl, resourceType)
-    if not pControl.ResourceCheckbox:IsChecked() then
-        -- Don't show this resource
-        if not has_value(ResourcesToHide, resourceType) then
-            table.insert(ResourcesToHide, resourceType)
-        end
-    else
-        -- Show this resource
-        for i, rType in ipairs(ResourcesToHide) do
-            if rType == resourceType then
-                table.remove(ResourcesToHide, i)
-                break
-            end
-        end
-    end
-
-    -- Assuming resource lens is already applied
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    SetResourceLens();
-end
-
--- ===========================================================================
-function SetWonderLens()
-    -- print("Show wonder lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local NaturalWonderColor  :number = UI.GetColorValue("COLOR_NATURAL_WONDER_LENS");
-    local PlayerWonderColor   :number = UI.GetColorValue("COLOR_PLAYER_WONDER_LENS");
-
-    local naturalWonderPlots  :table = {};
-    local playerWonderPlots   :table = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            -- check for player wonder.
-            if plotHasWonder(pPlot) then
-                table.insert(playerWonderPlots, i);
-            else
-                -- Check for natural wonder
-                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()];
-                if featureInfo ~= nil and featureInfo.NaturalWonder then
-                    table.insert(naturalWonderPlots, i)
-                end
-            end
-        end
-    end
-
-    -- Dim hexes that are not encapments
-    -- if table.count(barbAdjacent) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
-    -- end
-
-    if table.count(naturalWonderPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, naturalWonderPlots, NaturalWonderColor );
-    end
-    if table.count(playerWonderPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, playerWonderPlots, PlayerWonderColor );
-    end
-end
-
--- ===========================================================================
-function SetAdjacencyYieldLens()
-    -- print("Show adjacency yield lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local districtPlots   :table = {};
-    local districtAdjYield  :table = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and pPlot:GetOwner() == localPlayer then
-            if plotHasDistrict(pPlot) and (not pPlot:IsCity()) and (not plotHasWonder(pPlot)) then
-                local pPlayer = Players[localPlayer];
-                local districtID = pPlot:GetDistrictID()
-                local pDistrict = pPlayer:GetDistricts():FindID(districtID);
-                local pCity = pDistrict:GetCity();
-                local hadAdjacency:boolean = false;
-                -- Get adjacency yield
-                for yieldInfo in GameInfo.Yields() do
-                    iBonus = pPlot:GetAdjacencyYield(localPlayer, pCity:GetID(), pPlot:GetDistrictType(), yieldInfo.Index);
-                    if iBonus > 0 then
-                        table.insert(districtPlots, i)
-                        table.insert(districtAdjYield, iBonus)
-                        hadAdjacency = true
-                        -- print("Yield " .. yieldInfo.YieldType .. " bonus " .. iBonus);
-                        break;
-                    end
-                end
-
-                if not hadAdjacency then
-                    table.insert(districtPlots, i)
-                    table.insert(districtAdjYield, 0)
-                end
-            end
-        end
-    end
-
-    -- Dim hexes that are not encapments
-    -- if table.count(barbAdjacent) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
-    -- end
-
-    for i = 1, #districtPlots, 1 do
-        local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(Clamp(districtAdjYield[i], 0, 7) + 1);  -- Gradient goes from 1 - 8
-        local color:number = UI.GetColorValue(colorLookup);
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, {districtPlots[i]}, color );
-    end
-end
-
--- ===========================================================================
-function SetScoutLens()
-    -- print("Show scout lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local GoodyHutColor   :number = UI.GetColorValue("COLOR_GHUT_SCOUT_LENS");
-
-    local goodyHutPlots   :table = {};
-
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            -- check for player wonder. It has to be complete
-            if plotHasGoodyHut(pPlot) then
-                table.insert(goodyHutPlots, i);
-            end
-        end
-    end
-
-    -- Dim hexes that are not encapments
-    -- if table.count(barbAdjacent) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, barbAdjacent );
-    -- end
-
-    if table.count(goodyHutPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, goodyHutPlots, GoodyHutColor );
-    end
-end
-
-function ClearScoutLens()
-    -- print("Clear Scout Lens Hexes");
-    ClearModdedLens();
-end
-
--- Called when a scout is selected
-function ShowScoutLens()
-    SetActiveModdedLens(MODDED_LENS_ID.SCOUT);
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-end
-
--- ===========================================================================
-function SetNaturalistLens()
-    print("Show Naturalist lens")
-    local localPlayer:number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
-
-    local parkPlotColor:number = UI.GetColorValue("COLOR_PARK_NATURALIST_LENS");
-    local OkColor:number = UI.GetColorValue("COLOR_OK_NATURALIST_LENS");
-    local FixableColor:number = UI.GetColorValue("COLOR_FIXABLE_NATURALIST_LENS");
-
-    local fixableHexes:table = {};
-    local okHexes:table = {};
-    local tiles:table = {};
-
-    -- Get plots that can be made into National Parks without any changes
-    local rawParkPlots:table = Game.GetNationalParks():GetPossibleParkTiles(localPlayer);
-
-    -- Collect individual tile data
-    local mapWidth, mapHeight = Map.GetGridSize();
-    for plotIndex = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(plotIndex);
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            local data =  {
-                X     = pPlot:GetX();
-                Y     = pPlot:GetY();
-                Level = 0;
-                Cities = nil;
-                Use   = false;
-            };
-
-            -- Level 3 = OK
-            -- Level 2 = Fixable
-            -- Level 1 = Semifixable
-
-            -- Base requirements
-            if plotHasNaturalWonder(pPlot) then
-                data.Level = 3;
-
-            elseif pPlot:IsMountain() then
-                data.Level = 3;
-
-            -- Appeal charming or better
-            elseif pPlot:GetAppeal() >= 2 then
-                data.Level = 3;
-
-            -- Check for fixable plots by doing something to increase appeal
-            elseif pPlot:GetAppeal() >= 1 then
-                -- Removable unappealing feature
-                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
-                if featureInfo ~= nil then
-                    local featureType = featureInfo.FeatureType
-                    if featureType == "FEATURE_JUNGLE" or featureType == "FEATURE_MARSH" then
-                        data.Level = 2;
-                    end
-                end
-
-                -- TODO - Check for plantable forest?
-            end
-
-            -- An improvement can be removed, downgrade to fixable
-            if data.Level > 2 and plotHasImprovement(pPlot) then
-                data.Level = 2;
-            end
-
-            -- If not owned by any player
-            if pPlot:GetOwner() ~= Game.GetLocalPlayer() then
-                if data.Level > 2 then
-                    data.Level = 2;
-                end
-            end
-
-            -- Blocking changes
-            if plotHasWonder(pPlot) then
-                data.Level = 0;
-            elseif plotHasDistrict(pPlot) then -- also checks for cities (city district)
-                data.Level = 0;
-            elseif pPlot:IsNationalPark() then
-                data.Level = 0;
-            end
-
-            -- Only keep relevant tiles and those that have cities in range
-            if data.Level > 0 then
-                data.Cities = GetCitiesWithinWorkingRange(localPlayer, plotIndex)
-                if table.count(data.Cities) > 0 then
-                    -- print(plotIndex, unpack(data.Cities))
-                    tiles[plotIndex] = data;
-                end
-            end
-        end
-    end
-
-    -- Mark those that are interesting
-    -- They must belong to a diamond where all four are at least semifixable.
-    for i1, data in pairs(tiles) do
-        -- Get the four plots for the vertical diamond
-        local p1:table = Map.GetPlot(data.X, data.Y)
-        local p2:table = Map.GetPlot(data.X + data.Y % 2 - 1, data.Y + 1);
-        local p3:table = Map.GetPlot(data.X + data.Y % 2, data.Y + 1);
-        local p4:table = Map.GetPlot(data.X, data.Y + 2);
-
-        -- All four must exist
-        if p1 ~= nil and p2 ~= nil and p3 ~= nil and p4 ~= nil then
-            local i2 = p2:GetIndex();
-            local i3 = p3:GetIndex();
-            local i4 = p4:GetIndex();
-            -- All three calculated diamond plots should have data
-            if tiles[i2] ~= nil and tiles[i3] ~= nil and tiles[i4] ~= nil then
-
-                -- Make sure the four plots have some common city in range
-                local commonCities12 = get_common_values(tiles[i1].Cities, tiles[i2].Cities)
-                local commonCities34 = get_common_values(tiles[i3].Cities, tiles[i4].Cities)
-                local netCommonCities = get_common_values(commonCities12, commonCities34)
-
-                if table.count(netCommonCities) > 0 then
-                    -- Use these plots only if they passable
-                    if not tiles[i1].Use and not p1:IsImpassable() then
-                        tiles[i1].Use = true;
-                    end
-                    if not tiles[i2].Use and not p2:IsImpassable() then
-                        tiles[i2].Use = true;
-                    end
-                    if not tiles[i3].Use and not p3:IsImpassable() then
-                        tiles[i3].Use = true;
-                    end
-                    if not tiles[i4].Use and not p4:IsImpassable() then
-                        tiles[i4].Use = true;
-                    end
-                end
-            end
-        end
-    end
-
-    -- Extract info. Don't use plots that exist in rawParkPlots
-    for i, data in pairs(tiles) do
-        if tiles[i].Use and not has_value(rawParkPlots, i) then
-            if tiles[i].Level == 3 then
-                -- print("ok", i)
-                table.insert(okHexes, i)
-            elseif tiles[i].Level == 2 then
-                -- print("fix", i)
-                table.insert(fixableHexes, i)
-            end
-        end
-    end
-
-    if table.count(fixableHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, fixableHexes, FixableColor );
-    end
-    if table.count(okHexes) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, okHexes, OkColor );
-    end
-    if table.count(rawParkPlots) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, rawParkPlots, parkPlotColor );
-    end
-end
-
--- Returns a table of cities that are within working range of the plot
-function  GetCitiesWithinWorkingRange(playerID:number, plotIndex:number)
-    local localPlayerCities = Players[playerID]:GetCities()
-    local pPlot = Map.GetPlotByIndex(plotIndex)
-    local plotX = pPlot:GetX()
-    local plotY = pPlot:GetY()
-
-    local tCities = {}
-    for _, pCity in localPlayerCities:Members() do
-        if Map.GetPlotDistance(plotX, plotY, pCity:GetX(), pCity:GetY()) <= CITY_WORK_RANGE then
-            table.insert(tCities, pCity:GetID())
-        end
-    end
-    return tCities
-end
-
--- ===========================================================================
-function ShowCitizenManagementArea(cityID)
-    print("Showing city manage area for " .. cityID)
-    SetActiveAreaLens(AREA_LENS_ID.CITIZEN_MANAGEMENT)
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_GOVERNMENT)
-
-    local pCity:table;
-    local localPlayer = Game.GetLocalPlayer()
-
-    if (cityID ~= nil) then
-        pCity = Players[localPlayer]:GetCities():FindID(cityID);
-    else
-        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-        if pPlot:IsCity() and pPlot:GetOwner() == Game.GetLocalPlayer() then
-            pCity = CityManager.GetCityAt(pPlot:GetX(), pPlot:GetY());
-        end
-    end
-
-    if pCity ~= nil then
-        print("Show citizens for " .. Locale.Lookup(pCity:GetName()))
-        m_tAreaPlotsColored = {}
-
-        local tParameters:table = {};
-        local cityPlotID = Map.GetPlot(pCity:GetX(), pCity:GetY()):GetIndex()
-        tParameters[CityCommandTypes.PARAM_MANAGE_CITIZEN] = UI.GetInterfaceModeParameter(CityCommandTypes.PARAM_MANAGE_CITIZEN);
-
-        local tWorkingPlots:table = {}  -- Plots worked by unlocked citizens
-        local tLockedPlots:table = {}   -- Plots worked by locked citizes
-
-        -- Get city plot and citizens info
-        local tResults:table = CityManager.GetCommandTargets(pCity, CityCommandTypes.MANAGE, tParameters);
-        if tResults == nil then
-            print("Could not find plots")
-            return
-        end
-
-        local tPlots:table = tResults[CityCommandResults.PLOTS];
-        local tUnits:table = tResults[CityCommandResults.CITIZENS];
-        local tLockedUnits:table = tResults[CityCommandResults.LOCKED_CITIZENS];
-
-        if tPlots ~= nil then
-            for i, plotID in ipairs(tPlots) do
-                table.insert(m_tAreaPlotsColored, plotID);
-                if (tLockedUnits[i] > 0 or cityPlotID == plotID) then
-                    table.insert(tLockedPlots, plotID);
-                elseif (tUnits[i] > 0) then
-                    table.insert(tWorkingPlots, plotID);
-                end
-            end
-        end
-
-        local workingColor:number = UI.GetColorValue("COLOR_CITY_PLOT_WORKING");
-        local lockedColor:number = UI.GetColorValue("COLOR_CITY_PLOT_LOCKED");
-
-        if #tWorkingPlots > 0 then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tWorkingPlots, workingColor );
-        end
-
-        if #tLockedPlots > 0 then
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, tLockedPlots, lockedColor );
-        end
-
-        m_CitizenManagementOn = true;
-    end
-end
-
-function RefreshCitizenManagementArea(cityID)
-    ClearAreaLens();
-    ShowCitizenManagementArea(cityID);
-end
-
--- ===========================================================================
-function SetCustomLens()
-    local localPlayer = Game.GetLocalPlayer()
-    for i, plot_color in ipairs(m_CustomLens_PlotsAndColors) do
-        -- print(i .. " layer")
-        local color:number = plot_color.Color;
-        local plots:table = plot_color.Plots;
-
-        if table.count(plots) > 0 then
-            -- print("Apply Lens")
-            -- dump(plots)
-            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color );
-        end
-    end
-end
-
-function ApplyCustomLens(plot_color_table)
-    SetActiveModdedLens(MODDED_LENS_ID.CUSTOM);
-
-    -- Check if the appeal lens is already active
-    if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-        -- Unapply the appeal lens, so it can be cleared from the screen
-        UILens.ToggleLayerOff(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-    end
-
-    UILens.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL);
-
-    m_CustomLens_PlotsAndColors = plot_color_table
-end
-
-function ClearCustomLens()
-    ClearModdedLens();
-
-    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-    end
-end
-
--- ===========================================================================
-function OnApplyModdedLens(moddedLensID, showModalPanel:boolean)
-    if showModalPanel then
-        SetActiveModdedLens(moddedLensID);
-
-        -- Check if the appeal lens is already active
-        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
-            -- Unapply the appeal lens, so it can be cleared from the screen
-            UILens.SetActive("Default");
-        end
-
-        UILens.SetActive("Appeal");
-
-        RefreshInterfaceMode();
-    else
-        SetActiveModdedLens(moddedLensID);
-        UI.ToggleLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL)
-    end
-end
-
-function OnClearModdedLens(showedModalPanel:boolean)
-    ClearModdedLens()
-
-    if showedModalPanel and UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
-        UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
-    end
-end
-
--- Modded lens helper functions ===========================================================
-function ClearModdedLens()
-    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
-    if UILens.IsLayerOn( LensLayers.HEX_COLORING_APPEAL_LEVEL ) then
-        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_APPEAL_LEVEL );
-    end
-    SetActiveModdedLens(MODDED_LENS_ID.NONE);
-end
-
-function ClearAreaLens()
-    print("Clearing area lens")
-
-    -- Because of engine limitations, clear previous color of tiles
-    local neutralColor:number = UI.GetColorValue("COLOR_AREA_LENS_NEUTRAL");
-    local localPlayer:number = Game.GetLocalPlayer();
-
-    if m_FullClearAreaLens then
-        local players = Game.GetPlayers();
-        for _, player in ipairs(players) do
-            local cities = player:GetCities();
-            for _, pCity in cities:Members() do
-                local visibleCityPlots:table = Map.GetCityPlots():GetVisiblePurchasedPlots(pCity);
-                if #visibleCityPlots > 0 then
-                    UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, visibleCityPlots, neutralColor );
-                end
-            end
-        end
-    elseif (table.count(m_tAreaPlotsColored) > 0) then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_GOVERNMENT, localPlayer, m_tAreaPlotsColored, neutralColor );
-        m_tAreaPlotsColored = {}
-    end
-
-    -- UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
-    if UILens.IsLayerOn( LensLayers.HEX_COLORING_GOVERNMENT ) then
-        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_GOVERNMENT );
-    end
-
-    SetActiveAreaLens(MODDED_LENS_ID.NONE);
-
-    m_FullClearAreaLens = false;
-end
-
-function SetActiveModdedLens(lensID)
-    m_CurrentModdedLensOn = lensID;
-    LuaEvents.MinimapPanel_ModdedLensOn(lensID);
-end
-
-function SetActiveAreaLens(lensID)
-    m_CurrentAreaLensOn = lensID;
-    LuaEvents.MinimapPanel_AreaLensOn(lensID);
-end
-
-function Alt_HighlightPlots(plotIndices)
-    UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, Game.GetLocalPlayer(), plotIndices );
-
-    -- UILens.ToggleLayerOn(LensLayers.HEX_COLORING_ATTACK);
-    -- UILens.SetLayerHexesArea(LensLayers.HEX_COLORING_ATTACK, Game.GetLocalPlayer(), plotIndices);
-end
-
-function Alt_ClearHighlightedPlots()
-    UILens.ClearLayerHexes( LensLayers.MAP_HEX_MASK );
-    -- UILens.ToggleLayerOff(LensLayers.HEX_COLORING_ATTACK);
-end
-
-function HandleMouseForModdedLens( mousex:number, mousey:number )
-    -- Don't do anything if mouse is dragging
-    if not m_isMouseDragging then
-        -- Get plot under cursor
-        local plotId = UI.GetCursorPlotID();
-        if (not Map.IsPlot(plotId)) then
-            return;
-        end
-
-        -- If the cursor plot has not changed don't refresh
-        if (m_CurrentCursorPlotID == plotId) then
-            return
-        end
-
-        m_CurrentCursorPlotID = plotId
-
-        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-        local selectedCity = UI.GetHeadSelectedCity()
-        local selectedUnit = UI.GetHeadSelectedUnit()
-
-        -- Handler for City Overlap lens
-        if (m_CurrentModdedLensOn == MODDED_LENS_ID.CITY_OVERLAP) then
-            if (Controls.OverlapLensMouseRange:IsChecked()) then
-                Refresh_AltCityOverlapLens();
-            end
-        end
-
-        -- Handler for alternate settler lens
-        if m_CtrlDown then
-            if selectedUnit ~= nil then
-                local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
-                if unitType == "UNIT_SETTLER" then
-                    RefreshSettlerLens();
-                else
-                    print(unitType)
-                end
-
-            -- Clear Settler lens, if not in modal screen
-            elseif UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
-
-                ClearSettlerLens();
-            end
-        end
-    end
-end
-
--- ===========================================================================
---  Utility/Helper Functions
--- ===========================================================================
-
-
--- ===========================================================================
 --  Support function for Hotkey Event
 -- ===========================================================================
 function LensPanelHotkeyControl( pControl:table )
@@ -2246,6 +629,7 @@ function OnInputActionTriggered( actionId )
     if (Game.GetLocalPlayer() == -1) then
         return;
     end
+
     if UI.GetInterfaceMode() == InterfaceModeTypes.DISTRICT_PLACEMENT then
         return;
     end
@@ -2281,9 +665,9 @@ function OnInputActionTriggered( actionId )
         UI.PlaySound("Play_UI_Click");
     end
     if m_ToggleTourismLensId ~= nil and (actionId == m_ToggleTourismLensId) then
-                LensPanelHotkeyControl( Controls.TourismLensButton );
-                ToggleTourismLens();
-                UI.PlaySound("Play_UI_Click");
+        LensPanelHotkeyControl( Controls.TourismLensButton );
+        ToggleTourismLens();
+        UI.PlaySound("Play_UI_Click");
     end
     if m_Toggle2DViewId ~= nil and (actionId == m_Toggle2DViewId) then
         UI.PlaySound("Play_UI_Click");
@@ -2295,21 +679,6 @@ end
 --  Game Engine Event
 -- ===========================================================================
 function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
-
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN then
-        if eOldMode == InterfaceModeTypes.CITY_MANAGEMENT then
-            ClearAreaLens()
-            m_CitizenManagementOn = false
-        end
-
-        if eNewMode == InterfaceModeTypes.CITY_MANAGEMENT then
-            local selectedCity = UI.GetHeadSelectedCity();
-            if (selectedCity ~= nil) then
-                RefreshCitizenManagementArea(selectedCity:GetID())
-            end
-        end
-    end
-
     --and eNewMode ~= InterfaceModeTypes.VIEW_MODAL_LENS
     if eOldMode == InterfaceModeTypes.VIEW_MODAL_LENS then
         if not Controls.LensPanel:IsHidden() then
@@ -2327,155 +696,13 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
             Controls.OwnerLensButton:SetCheck(false);
             Controls.TourismLensButton:SetCheck(false);
 
-            -- Modded lens
-            Controls.ScoutLensButton:SetCheck(false);
-            Controls.AdjacencyYieldLensButton:SetCheck(false);
-            Controls.WonderLensButton:SetCheck(false);
-            Controls.ResourceLensButton:SetCheck(false);
-            Controls.BarbarianLensButton:SetCheck(false);
-            Controls.CityOverlapLensButton:SetCheck(false);
-            Controls.ArchaeologistLensButton:SetCheck(false);
-            Controls.BuilderLensButton:SetCheck(false);
-            Controls.NaturalistLensButton:SetCheck(false);
-
-            -- Side Menus
-            Controls.ResourceLensOptionsPanel:SetHide(true);
-            Controls.OverlapLensOptionsPanel:SetHide(true);
-
-            if m_CurrentModdedLensOn ~= MODDED_LENS_ID.NONE then
-                ClearModdedLens()
-            end
-
-            if m_CurrentAreaLensOn ~= AREA_LENS_ID.NONE then
-                ClearAreaLens()
-            end
-        end
-    end
-end
-
-function OnCitySelectionChanged(owner, ID, i, j, k, bSelected, bEditable)
-    if owner ~= Game.GetLocalPlayer() then
-        return
-    end
-
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN then
-        if bSelected and m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
-            RefreshCitizenManagementArea(ID)
-        end
-    end
-end
-
-function OnCityWorkerChanged(ownerPlayerID:number, cityID:number)
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and ownerPlayerID == Game.GetLocalPlayer() and
-            m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
-        RefreshCitizenManagementArea(cityID)
-    end
-end
-
-function OnCityMadePurchase(owner:number, cityID:number, plotX:number, plotY:number, purchaseType, objectType)
-    if SHOW_CITIZEN_MANAGEMENT_INSCREEN and owner == Game.GetLocalPlayer() and
-            m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT and
-            purchaseType == EventSubTypes.PLOT then
-
-        -- Add plot so that the plot is properly cleared
-        table.insert(m_tAreaPlotsColored, Map.GetPlotIndex(plotX, plotY))
-        RefreshCitizenManagementArea(cityID)
-    end
-end
-
--- For modded lens on unit selection
-function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
-    if playerID == Game.GetLocalPlayer() then
-        local unitType = GetUnitType(playerID, unitID);
-        if unitType then
-            if bSelected then
-                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
-                    ShowBuilderLens();
-                elseif unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
-                    ShowArchaeologistLens();
-                elseif (unitType == "UNIT_SCOUT" or unitType == "UNIT_RANGER") and AUTO_APPLY_SCOUT_LENS then
-                    ShowScoutLens();
-                end
-            -- Deselection
-            else
-                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
-                    ClearBuilderLensHexes();
-                elseif unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
-                    ClearArchaeologistLens();
-                elseif (unitType == "UNIT_SCOUT" or unitType == "UNIT_RANGER") and AUTO_APPLY_SCOUT_LENS then
-                    ClearScoutLens();
-                elseif (unitType == "UNIT_SETTLER") then
-                    ClearSettlerLens();
-                end
-            end
-        end
-
-        -- If unit is selected and citizen management area was on, turn on selection interface mode.
-        -- Lens will cleared in the OnInterfaceModeChanged event
-        if SHOW_CITIZEN_MANAGEMENT_INSCREEN and m_CurrentAreaLensOn == AREA_LENS_ID.CITIZEN_MANAGEMENT then
-            -- AZURENCY : fix weird behavior when a unit was selected and the citybanner mouse hover state
-            --UI.SetInterfaceMode(InterfaceModeTypes.SELECTION)
-            ClearAreaLens()
-            m_CitizenManagementOn = false
-        end
-    end
-end
-
--- For builder lens
-function OnUnitChargesChanged( playerID: number, unitID : number, newCharges : number, oldCharges : number )
-    local localPlayer = Game.GetLocalPlayer()
-
-    if playerID == localPlayer then
-        local unitType = GetUnitType(playerID, unitID)
-
-        if unitType and unitType == "UNIT_BUILDER" then
-            if newCharges == 0 then
-                ClearBuilderLensHexes();
-            end
-        end
-    end
-end
-
--- For modded lens during multiplayer. Might need to test this further
-function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPlayer )
-    local localPlayer = Game.GetLocalPlayer()
-
-    if owningPlayer == localPlayer then
-        local unitType = GetUnitType(owningPlayer, unitID)
-
-        if unitType and unitType == "UNIT_BUILDER" then
-            ClearBuilderLensHexes();
-        elseif unitType and unitType == "UNIT_ARCHAEOLOGIST" then
-            ClearArchaeologistLens();
-        end
-    end
-end
-
--- For modded lens on unit deletion
-function OnUnitRemovedFromMap( playerID: number, unitID : number )
-    local localPlayer = Game.GetLocalPlayer()
-
-    if playerID == localPlayer then
-        if m_CurrentModdedLensOn == MODDED_LENS_ID.BUILDER then
-            ClearBuilderLensHexes();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.ARCHAEOLOGIST then
-            ClearArchaeologistLens();
-        elseif m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
-            ClearScoutLens();
-        end
-    end
-end
-
--- To update the scout lens, when a scout/ranger moves
-function OnUnitMoved( playerID:number, unitID:number )
-    if playerID == Game.GetLocalPlayer() then
-        local unitType = GetUnitType(playerID, unitID);
-        if (unitType == "UNIT_SCOUT" or unitType == "UNIT_RANGER") and AUTO_APPLY_SCOUT_LENS then
-            -- Refresh the scout lens, if already applied. Need this check so scout lens
-            -- does not apply when a scout is currently under a operation
-            if m_CurrentModdedLensOn == MODDED_LENS_ID.SCOUT then
-                ClearScoutLens();
-                ShowScoutLens();
+            -- Toggle each mod lens
+            local i = 1
+            local lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
+            while lensButtonInstance ~= nil do
+                lensButtonInstance.LensButton:SetCheck(false)
+                i = i + 1
+                lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
             end
         end
     end
@@ -2512,24 +739,9 @@ function TranslateMinimapToWorld( minix:number, miniy:number )
 end
 
 function OnInputHandler( pInputStruct:table )
-    local msg = pInputStruct:GetMessageType();
-    if pInputStruct:GetKey() == Keys.VK_CONTROL then
-        if msg == KeyEvents.KeyDown then
-            m_CtrlDown = true
-
-            -- Reset cursor plot to recalculate HandleMouseForModdedLens
-            m_CurrentCursorPlotID = -1;
-        elseif msg == KeyEvents.KeyUp then
-            m_CtrlDown = false
-
-            RecheckSettlerLens()
-        end
-    end
-
-    HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
-
-    -- Skip all other handling when dragging is disabled or the minimap is collapsed
+    -- Skip all handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
+        local msg = pInputStruct:GetMessageType( );
 
         -- Enable drag on LMB down
         if msg == MouseEvents.LButtonDown then
@@ -2569,13 +781,9 @@ function OnInputHandler( pInputStruct:table )
             m_wasMouseInMinimap = isMouseInMinimap
             return isMouseInMinimap; -- Only consume event if it's inside the minimap.
 
-        -- Consume mouse right click if mouse is on minimap.
-        elseif msg == MouseEvents.RButtonDown or msg == MouseEvents.RButtonUp then
-            local minix, miniy = GetMinimapMouseCoords( pInputStruct:GetX(), pInputStruct:GetY() );
-            if IsMouseInMinimap( minix, miniy ) then
-                return true
-            end
         end
+
+        -- TODO the letterbox background should block mouse input
     end
     return false;
 end
@@ -2600,19 +808,88 @@ function OnShutdown()
 end
 
 -- ===========================================================================
+--  Modded Lens Support
+-- ===========================================================================
+function SetModLens()
+    if m_CurrentModdedLensOn ~= nil and m_CurrentModdedLensOn ~= "NONE" and
+            g_ModLenses[m_CurrentModdedLensOn] ~= nil then
+        print("Highlighting " .. m_CurrentModdedLensOn .. " hexes")
+        local getPlotColorFn = g_ModLenses[m_CurrentModdedLensOn].GetColorPlotTable
+        if getPlotColorFn ~= nil then
+            SetModLensHexes(getPlotColorFn())
+        else
+            print("ERROR: No Plot Color Function")
+        end
+    else
+        print("ERROR: Given lens has no entry")
+    end
+end
+
+function SetModLensHexes(colorPlot:table)
+    local localPlayer = Game.GetLocalPlayer()
+    for color, plots in pairs(colorPlot) do
+        if table.count(plots) > 0 then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color);
+        end
+    end
+end
+
+function SetActiveModdedLens(lensName:string)
+    m_CurrentModdedLensOn = lensName
+    LuaEvents.MinimapPanel_ModdedLensOn(lensName)
+end
+
+function GetActiveModdedLens(returnLens:table)
+    returnLens[1] = m_CurrentModdedLensOn
+end
+
+function ToggleModLens(buttonControl:table, lensName:string)
+    if buttonControl:IsChecked() then
+        SetActiveModdedLens(lensName);
+
+        -- Check if the appeal lens is already active. Needed to clear any modded lens
+        if UILens.IsLayerOn(LensLayers.HEX_COLORING_APPEAL_LEVEL) then
+            -- Unapply the appeal lens, so it can be cleared from the screen
+            UILens.SetActive("Default");
+        end
+
+        UILens.SetActive("Appeal");
+        RefreshInterfaceMode();
+    else
+        m_shouldCloseLensMenu = false;
+        if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+            UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
+        end
+        SetActiveModdedLens("NONE");
+    end
+end
+
+function InitializeModLens()
+    print("Initializing " .. table.count(g_ModLenses) .. " lenses")
+    for lensName, modLens in pairs(g_ModLenses) do
+        print("Adding ModLens: " .. lensName)
+        modLens.Initialize()
+
+        -- Add this lens to button stack
+        local modLensToggle = m_LensButtonIM:GetInstance();
+        local pLensButton = modLensToggle.LensButton:GetTextButton()
+        local pToolTip = Locale.Lookup(modLens.LensButtonTooltip)
+        pLensButton:LocalizeAndSetText(modLens.LensButtonText)
+        modLensToggle.LensButton:SetToolTipString(pToolTip)
+        modLensToggle.LensButton:RegisterCallback(Mouse.eLClick, function() ToggleModLens(modLensToggle.LensButton, lensName); end)
+    end
+end
+
+-- ===========================================================================
 -- INITIALIZATION
 -- ===========================================================================
-
 function Initialize()
+
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     m_ContinentsCache = Map.GetContinentsInUse();
 
-    -- Check for function nil for backward compatibiliy. @Summer Patch 2017
-    if Controls.MinimapImage.RegisterSizeChanged ~= nil then
-        Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
-    end
-    UI.SetMinimapImageControl(Controls.MinimapImage);
-    Controls.LensChooserList:CalculateSize();
+    Controls.MinimapImage:RegisterSizeChanged( OnMinimapImageSizeChanged );
+    UI.SetMinimapImageControl( Controls.MinimapImage );
 
     ContextPtr:SetInputHandler( OnInputHandler, true );
     ContextPtr:SetShutdown( OnShutdown );
@@ -2621,28 +898,6 @@ function Initialize()
     Controls.MapOptionsPanel:ChangeParent(Controls.MapOptionsButton);
     Controls.ToggleResourcesButton:SetCheck( UserConfiguration.ShowMapResources() );
     Controls.ToggleYieldsButton:SetCheck( UserConfiguration.ShowMapYield() );
-
-    -- Modded lens
-    Controls.BuilderLensButton:RegisterCallback( Mouse.eLClick, ToggleBuilderLens );
-    Controls.ArchaeologistLensButton:RegisterCallback( Mouse.eLClick, ToggleArchaeologistLens );
-    Controls.CityOverlapLensButton:RegisterCallback( Mouse.eLClick, ToggleCityOverlapLens );
-    Controls.BarbarianLensButton:RegisterCallback( Mouse.eLClick, ToggleBarbarianLens );
-    Controls.ResourceLensButton:RegisterCallback( Mouse.eLClick, ToggleResourceLens );
-    Controls.WonderLensButton:RegisterCallback( Mouse.eLClick, ToggleWonderLens );
-    Controls.AdjacencyYieldLensButton:RegisterCallback( Mouse.eLClick, ToggleAdjacencyYieldLens );
-    Controls.ScoutLensButton:RegisterCallback( Mouse.eLClick, ToggleScoutLens );
-    Controls.NaturalistLensButton:RegisterCallback( Mouse.eLClick, ToggleNaturalistLens );
-
-    -- Resource Lens Picker
-    Controls.ShowBonusResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Bonus );
-    Controls.ShowLuxuryResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Luxury );
-    Controls.ShowStrategicResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Strategic );
-
-    -- City Overlap Lens Setting
-    Controls.ShowLensOutsideBorder:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
-    Controls.OverlapRangeUp:RegisterCallback( Mouse.eLClick, IncreseOverlapRange );
-    Controls.OverlapRangeDown:RegisterCallback( Mouse.eLClick, DecreaseOverlapRange );
-    Controls.OverlapLensMouseNone:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
 
     Controls.AppealLensButton:RegisterCallback( Mouse.eLClick, ToggleAppealLens );
     Controls.ContinentLensButton:RegisterCallback( Mouse.eLClick, ToggleContinentLens );
@@ -2693,25 +948,10 @@ function Initialize()
     LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
 
-    -- For modded lenses
-    Events.CitySelectionChanged.Add( OnCitySelectionChanged );
-    Events.UnitSelectionChanged.Add( OnUnitSelectionChanged );
-    Events.UnitCaptured.Add( OnUnitCaptured );
-    Events.UnitChargesChanged.Add( OnUnitChargesChanged );
-    Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap );
-    Events.UnitMoved.Add( OnUnitMoved );
-
-    -- For Area Lens
-    Events.CityWorkerChanged.Add( OnCityWorkerChanged );
-    Events.CityMadePurchase.Add( OnCityMadePurchase );
-
-    -- External Lens Controls
-    LuaEvents.Lens_ApplyCustomLens.Add( ApplyCustomLens );
-    LuaEvents.Lens_ClearCustomLens.Add( ClearCustomLens );
-    LuaEvents.Lens_ApplyModdedLens.Add( OnApplyModdedLens );
-    LuaEvents.Lens_ClearModdedLens.Add( OnClearModdedLens );
-    LuaEvents.Area_ShowCitizenManagement.Add( ShowCitizenManagementArea );
-    LuaEvents.Area_RefreshCitizenManagement.Add( RefreshCitizenManagementArea );
-    LuaEvents.Area_ClearCitizenManagement.Add( ClearAreaLens );
+    -- Mod Lens Support
+    InitializeModLens()
+    LuaEvents.MinimapPanel_SetActiveModLens.Add( SetActiveModdedLens );
+    LuaEvents.MinimapPanel_GetActiveModLens.Add( GetActiveModdedLens );
 end
 Initialize();
+
