@@ -22,6 +22,7 @@
         <File>UI/Lenses/ModLens_Barbarian.lua</File>
         <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
         <File>UI/Lenses/ModLens_Naturalist.lua</File>
+        <File>UI/Lenses/ModLens_Wonder.lua</File>
       </Items>
     </ImportFiles>
 
@@ -80,5 +81,6 @@
     <File>UI/Lenses/ModLens_Barbarian.lua</File>
     <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
     <File>UI/Lenses/ModLens_Naturalist.lua</File>
+    <File>UI/Lenses/ModLens_Wonder.lua</File>
   </Files>
 </Mod>
