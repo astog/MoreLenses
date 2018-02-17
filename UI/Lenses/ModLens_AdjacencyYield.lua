@@ -5,14 +5,6 @@ local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
 -- AdjYield Lens Support
 -- ===========================================================================
 
-local function plotHasBarbCamp(plot)
-    local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
-    if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
-        return true;
-    end
-    return false;
-end
-
 local function clamp(val, min, max)
     if val < min then
         return min

@@ -1,8 +1,7 @@
 include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
 include( "SupportFunctions" ); -- Split
 
-local CITY_WORK_RANGE:number = 3;
-
+CITY_WORK_RANGE = 3
 
 function plotWithinWorkingRange(playerID, plotIndex)
     local localPlayerCities = Players[playerID]:GetCities()
