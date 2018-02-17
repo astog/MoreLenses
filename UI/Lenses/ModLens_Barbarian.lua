@@ -68,7 +68,9 @@ end
 
 -- modallenspanel.lua
 if g_ModLensModalPanel ~= nil then
-    g_ModLensModalPanel[LENS_NAME] = {
-    {"LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT", UI.GetColorValue("COLOR_BARBARIAN_BARB_LENS")}
-}
+    g_ModLensModalPanel[LENS_NAME] = {}
+    g_ModLensModalPanel[LENS_NAME].LensTextKey = "LOC_HUD_BARBARIAN_LENS"
+    g_ModLensModalPanel[LENS_NAME].Legend = {
+        {"LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT", UI.GetColorValue("COLOR_BARBARIAN_BARB_LENS")}
+    }
 end

@@ -172,14 +172,18 @@ end
 
 --============================================================================
 function ShowModLensKey(lensName:string)
+    -- This is printed even if the modal panel is hidden
     print("Showing " .. lensName .. " modal panel")
+
     m_KeyStackIM: ResetInstances();
 
-    local info = g_ModLensModalPanel[lensName]
+    local info = g_ModLensModalPanel[lensName].Legend
+    local lensTextKey = g_ModLensModalPanel[lensName].LensTextKey
     for _, hexColorAndKey in ipairs(info) do
-        AddKeyEntry(hexColorAndKey[1], hexColorAndKey[2])
+        AddKeyEntry(unpack(hexColorAndKey))
     end
 
+    Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup(lensTextKey)));
     Controls.KeyPanel:SetHide(false);
     Controls.KeyScrollPanel:CalculateSize();
 end

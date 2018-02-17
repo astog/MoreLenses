@@ -20,6 +20,7 @@
         <File>UI/Lenses/ModLens_Scout.lua</File>
         <File>UI/Lenses/ModLens_Archaeologist.lua</File>
         <File>UI/Lenses/ModLens_Barbarian.lua</File>
+        <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
       </Items>
     </ImportFiles>
 
@@ -76,5 +77,6 @@
     <File>UI/Lenses/ModLens_Scout.lua</File>
     <File>UI/Lenses/ModLens_Archaeologist.lua</File>
     <File>UI/Lenses/ModLens_Barbarian.lua</File>
+    <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
   </Files>
 </Mod>

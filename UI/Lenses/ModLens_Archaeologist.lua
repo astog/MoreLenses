@@ -124,8 +124,10 @@ end
 
 -- modallenspanel.lua
 if g_ModLensModalPanel ~= nil then
-    g_ModLensModalPanel[LENS_NAME] = {
-    {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT",     UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS")},
-    {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK",    UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS")}
-}
+    g_ModLensModalPanel[LENS_NAME] = {}
+    g_ModLensModalPanel[LENS_NAME].LensTextKey = "LOC_HUD_ARCHAEOLOGIST_LENS"
+    g_ModLensModalPanel[LENS_NAME].Legend = {
+        {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT",     UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS")},
+        {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK",    UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS")}
+    }
 end
