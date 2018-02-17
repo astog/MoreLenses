@@ -46,22 +46,6 @@ function plotHasNaturalWonder(plot)
     return false
 end
 
-function plotHasAnitquitySite(plot)
-    local resourceInfo = GameInfo.Resources[plot:GetResourceType()];
-    if resourceInfo ~= nil and resourceInfo.ResourceType == "RESOURCE_ANTIQUITY_SITE" then
-        return true;
-    end
-    return false
-end
-
-function plotHasShipwreck(plot)
-    local resourceInfo = GameInfo.Resources[plot:GetResourceType()];
-    if resourceInfo ~= nil and resourceInfo.ResourceType == "RESOURCE_SHIPWRECK" then
-        return true;
-    end
-    return false
-end
-
 function plotHasBarbCamp(plot)
     local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
     if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
