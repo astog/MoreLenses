@@ -1,37 +1,8 @@
+include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
+include( "SupportFunctions" ); -- Split
+
 local CITY_WORK_RANGE:number = 3;
 
-
-function plotHasCorrectImprovement(plot)
-    local plotIndex = plot:GetIndex()
-    local playerID = Game.GetLocalPlayer()
-
-    -- If the plot has a resource, and the player has discovered it, get the improvement specific to that
-    if playerHasDiscoveredResource(playerID, plotIndex) then
-        local resourceInfo = GameInfo.Resources[plot:GetResourceType()]
-        if resourceInfo ~= nil then
-            local improvementType;
-            for validResourceInfo in GameInfo.Improvement_ValidResources() do
-                if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
-                    improvementType = validResourceInfo.ImprovementType;
-                    break
-                end
-            end
-
-            if improvementType ~= nil and GameInfo.Improvements[improvementType] ~= nil then
-                local improvementID = GameInfo.Improvements[improvementType].RowId - 1;
-                if plot:GetImprovementType() == improvementID then
-                    return true
-                end
-            end
-        end
-    else
-        -- This plot has either no resource or a undiscovered resource
-        -- hence assuming correct resource type
-        return true
-    end
-
-    return false
-end
 
 function plotWithinWorkingRange(playerID, plotIndex)
     local localPlayerCities = Players[playerID]:GetCities()
@@ -59,26 +30,6 @@ function plotHasFeature(plot)
     return plot:GetFeatureType() ~= -1;
 end
 
-function plotHasRemovableFeature(plot)
-    local featureInfo = GameInfo.Features[plot:GetFeatureType()];
-    if featureInfo ~= nil and featureInfo.Removable then
-        return true;
-    end
-    return false;
-end
-
-function plotHasImprovableHill(plot)
-    local terrainInfo = GameInfo.Terrains[plot:GetTerrainType()];
-    local improvInfo = GameInfo.Improvements["IMPROVEMENT_MINE"];
-    local playerID = Game.GetLocalPlayer()
-
-    if (terrainInfo ~= nil and terrainInfo.Hills
-            and playerCanHave(playerID, improvInfo)) then
-        return true
-    end
-    return false;
-end
-
 function plotHasWonder(plot)
     return plot:GetWonderType() ~= -1;
 end
@@ -91,95 +42,6 @@ function plotHasNaturalWonder(plot)
     local featureInfo = GameInfo.Features[plot:GetFeatureType()];
     if featureInfo ~= nil and featureInfo.NaturalWonder then
         return true
-    end
-    return false
-end
-
-function plotHasImprovableWonder(plot)
-    -- List of wonders that can have an improvement on them.
-    local permitWonderList = {
-        "FEATURE_CLIFFS_DOVER"
-    }
-
-    local featureInfo = GameInfo.Features[plot:GetFeatureType()];
-    if featureInfo ~= nil then
-        for i, wonderType in ipairs(permitWonderList) do
-            if featureInfo.FeatureType == wonderType then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-function IsAdjYieldWonder(featureInfo)
-    -- List any wonders here that provide yield bonuses, but not mentioned in Features.xml
-    local specialWonderList = {
-        "FEATURE_TORRES_DEL_PAINE"
-    }
-
-    if featureInfo ~= nil and featureInfo.NaturalWonder then
-        for adjYieldInfo in GameInfo.Feature_AdjacentYields() do
-            if adjYieldInfo ~= nil and adjYieldInfo.FeatureType == featureInfo.FeatureType then
-                return true
-            end
-        end
-
-        for i, featureType in ipairs(specialWonderList) do
-            if featureType == featureInfo.FeatureType then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-function plotNextToBuffingWonder(plot)
-    for pPlot in PlotRingIterator(plot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
-        local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
-        if IsAdjYieldWonder(featureInfo) then
-            return true
-        end
-    end
-    return false
-end
-
-function plotHasRecomFeature(plot)
-    local playerID = Game.GetLocalPlayer()
-    local featureInfo = GameInfo.Features[plot:GetFeatureType()]
-    local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
-    local lumberImprovInfo = GameInfo.Improvements["IMPROVEMENT_LUMBER_MILL"]
-
-    if featureInfo ~= nil then
-
-        -- 1. Is it a floodplain?
-        if featureInfo.FeatureType == "FEATURE_FLOODPLAINS" and
-                playerCanHave(playerID, farmImprovInfo) then
-            return true
-        end
-
-        -- 2. Is it a forest next to a river?
-        if featureInfo.FeatureType == "FEATURE_FOREST" and plot:IsRiver() and
-                playerCanHave(playerID, lumberImprovInfo) then
-            return true
-        end
-
-        -- 3. Is it a tile next to buffing wonder?
-        if plotNextToBuffingWonder(plot) then
-            return true
-        end
-
-        -- 4. Is it wonder, that can have an improvement?
-        if plotHasImprovableWonder(plot) then
-            if featureInfo.FeatureType == "FEATURE_FOREST" and
-                    playerCanHave(playerID, lumberImprovInfo) then
-                return true
-            end
-
-            if plotCanHaveFarm(plot) then
-                return true
-            end
-        end
     end
     return false
 end
@@ -203,33 +65,6 @@ end
 function plotHasBarbCamp(plot)
     local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
     if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
-        return true;
-    end
-    return false;
-end
-
--- TODO: Check for valid feature
-function plotCanHaveFarm(plot)
-    local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
-    if not playerCanHave(playerID, farmImprovInfo) then
-        return false;
-    end
-
-    local validTerrain:boolean = false;
-    local playerID = Game.GetLocalPlayer()
-
-    for improvTerrainInfo in GameInfo.Improvement_ValidTerrains() do
-        if (improvTerrainInfo.ImprovementType == "IMPROVEMENT_FARM"
-                and playerCanHave(playerID, improvTerrainInfo)) then
-            return true;
-        end
-    end
-    return false
-end
-
-function plotHasGoodyHut(plot)
-    local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
-    if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_GOODY_HUT" then
         return true;
     end
     return false;
@@ -260,119 +95,6 @@ function plotResourceImprovable(plot)
     end
 
     return false
-end
-
-function playerCanRemoveFeature(playerID, plotIndex)
-    local pPlot = Map.GetPlotByIndex(plotIndex)
-    local pPlayer = Players[playerID];
-    local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
-
-    if featureInfo ~= nil then
-        if not featureInfo.Removable then return false; end
-
-        -- Check for remove tech
-        if featureInfo.RemoveTech ~= nil then
-            local tech = GameInfo.Technologies[featureInfo.RemoveTech]
-            local playerTech:table = pPlayer:GetTechs();
-            if tech ~= nil  then
-                return playerTech:HasTech(tech.Index);
-            else
-                return false;
-            end
-        else
-            return true;
-        end
-    end
-
-    return false;
-end
-
-function BuilderCanConstruct(improvementInfo)
-    for improvementBuildUnits in GameInfo.Improvement_ValidBuildUnits() do
-        if improvementBuildUnits ~= nil and improvementBuildUnits.ImprovementType == improvementInfo.ImprovementType and
-            improvementBuildUnits.UnitType == "UNIT_BUILDER" then
-                return true
-        end
-    end
-
-    return false
-end
-
-function plotCanHaveImprovement(playerID, plotIndex)
-    local pPlot = Map.GetPlotByIndex(plotIndex)
-    local pPlayer = Players[playerID]
-
-    -- Handler for a generic tile
-    for improvementInfo in GameInfo.Improvements() do
-        if improvementInfo ~= nil and improvementInfo.Buildable then
-
-            -- Does the player the prereq techs and civis
-            if BuilderCanConstruct(improvementInfo) and playerCanHave(playerID, improvementInfo) then
-                local improvementValid:boolean = false;
-
-                -- Check for valid feature
-                for validFeatureInfo in GameInfo.Improvement_ValidFeatures() do
-                    if validFeatureInfo ~= nil and validFeatureInfo.ImprovementType == improvementInfo.ImprovementType then
-                        -- Does this plot have this feature?
-                        local featureInfo = GameInfo.Features[validFeatureInfo.FeatureType]
-                        if featureInfo ~= nil and pPlot:GetFeatureType() == featureInfo.Index then
-                            if playerCanHave(playerID, featureInfo) and playerCanHave(playerID, validFeatureInfo) then
-                                print("(feature) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                improvementValid = true;
-                                break;
-                            end
-                        end
-                    end
-                end
-
-                -- Check for valid terrain
-                if not improvementValid then
-                    for validTerrainInfo in GameInfo.Improvement_ValidTerrains() do
-                        if validTerrainInfo ~= nil and validTerrainInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local terrainInfo = GameInfo.Terrains[validTerrainInfo.TerrainType]
-                            if terrainInfo ~= nil and pPlot:GetTerrainType() == terrainInfo.Index then
-                                if playerCanHave(playerID, terrainInfo) and playerCanHave(playerID, validTerrainInfo)  then
-                                    print("(terrain) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true;
-                                    break;
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Check for valid resource
-                if not improvementValid then
-                    for validResourceInfo in GameInfo.Improvement_ValidResources() do
-                        if validResourceInfo ~= nil and validResourceInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local resourceInfo = GameInfo.Resources[validResourceInfo.ResourceType]
-                            if resourceInfo ~= nil and pPlot:GetResourceType() == resourceInfo.Index then
-                                if playerCanHave(playerID, resourceInfo) and playerCanHave(playerID, validResourceInfo)  then
-                                    print("(resource) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true;
-                                    break;
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Special check for coastal requirement
-                if improvementInfo.Coast and (not pPlot:IsCoastalLand()) then
-                    print(plotIndex .. " plot is not coastal")
-                    improvementValid = false;
-                end
-
-                if improvementValid then
-                    return true
-                end
-            end
-        end
-    end
-
-    return false;
 end
 
 -- General function to check if the player has xmlEntry.PrereqTech and xmlEntry.PrereqTech
@@ -469,14 +191,6 @@ function playerCanHave(playerID, xmlEntry)
     return true;
 end
 
-function playerHasBuilderWonderModifier(playerID)
-    return playerHasModifier(playerID, "MODIFIER_PLAYER_ADJUST_UNIT_WONDER_PERCENT");
-end
-
-function playerHasBuilderDistrictModifier(playerID)
-    return playerHasModifier(playerID, "MODIFIER_PLAYER_ADJUST_UNIT_DISTRICT_PERCENT");
-end
-
 function playerHasModifier(playerID, modifierType)
     -- Get civ, and leader
     local civTypeName = PlayerConfigurations[playerID]:GetCivilizationTypeName();
@@ -560,37 +274,6 @@ function districtComplete(playerID, plotIndex)
         local pDistrict = pPlayer:GetDistricts():FindID(districtID);
         if pDistrict ~= nil then
             return pDistrict:IsComplete()
-        end
-    end
-
-    return false;
-end
-
-function isAncientClassicalWonder(wonderTypeID)
-    -- print("Checking wonder " .. wonderTypeID .. " if ancient or classical")
-
-    for row in GameInfo.Buildings() do
-        if row.Index == wonderTypeID then
-            -- Make hash, and get era
-            if row.PrereqTech ~= nil then
-                prereqTechHash = DB.MakeHash(row.PrereqTech);
-                eraType = GameInfo.Technologies[prereqTechHash].EraType;
-            elseif row.PrereqCivic ~= nil then
-                prereqCivicHash = DB.MakeHash(row.PrereqCivic);
-                eraType = GameInfo.Civics[prereqCivicHash].EraType;
-            else
-                -- Wonder has no prereq
-                return true;
-            end
-
-            -- print("Era = " .. eraType);
-
-            if eraType == nil then
-                -- print("Could not find era for wonder " .. wonderTypeID)
-                return true
-            elseif eraType == "ERA_ANCIENT" or eraType == "ERA_CLASSICAL" then
-                return true;
-            end
         end
     end
 

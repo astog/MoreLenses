@@ -16,6 +16,8 @@
       </Properties>
       <Items>
         <File>UI/LensSupport.lua</File>
+        <File>UI/Lenses/ModLens_Builder.lua</File>
+        <File>UI/Lenses/ModLens_Scout.lua</File>
       </Items>
     </ImportFiles>
 
@@ -62,12 +64,13 @@
     <File>Text/MoreLenses_Text_ru.xml</File>
     <File>Text/MoreLenses_Text_zh.xml</File>
     <File>Text/MoreLenses_Text_es.xml</File>
-    <File>UI/LensSupport.lua</File>
     <File>UI/MinimapPanel.lua</File>
     <File>UI/MinimapPanel.xml</File>
     <File>UI/Panels/ModalLensPanel.lua</File>
     <File>UI/Panels/ModalLensPanel.xml</File>
     <File>MoreLenses_Colors.sql</File>
-    <File>Text/MoreLenses_Text.xml</File>
+    <File>UI/LensSupport.lua</File>
+    <File>UI/Lenses/ModLens_Builder.lua</File>
+    <File>UI/Lenses/ModLens_Scout.lua</File>
   </Files>
 </Mod>
