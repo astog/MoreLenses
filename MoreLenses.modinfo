@@ -19,6 +19,7 @@
         <File>UI/Lenses/ModLens_Builder.lua</File>
         <File>UI/Lenses/ModLens_Scout.lua</File>
         <File>UI/Lenses/ModLens_Archaeologist.lua</File>
+        <File>UI/Lenses/ModLens_Barbarian.lua</File>
       </Items>
     </ImportFiles>
 
@@ -74,5 +75,6 @@
     <File>UI/Lenses/ModLens_Builder.lua</File>
     <File>UI/Lenses/ModLens_Scout.lua</File>
     <File>UI/Lenses/ModLens_Archaeologist.lua</File>
+    <File>UI/Lenses/ModLens_Barbarian.lua</File>
   </Files>
 </Mod>

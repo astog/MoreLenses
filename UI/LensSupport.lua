@@ -46,14 +46,6 @@ function plotHasNaturalWonder(plot)
     return false
 end
 
-function plotHasBarbCamp(plot)
-    local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
-    if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
-        return true;
-    end
-    return false;
-end
-
 function plotResourceImprovable(plot)
     local plotIndex = plot:GetIndex()
     local playerID = Game.GetLocalPlayer()

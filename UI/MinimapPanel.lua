@@ -868,7 +868,9 @@ function InitializeModLens()
     print("Initializing " .. table.count(g_ModLenses) .. " lenses")
     for lensName, modLens in pairs(g_ModLenses) do
         print("Adding ModLens: " .. lensName)
-        modLens.Initialize()
+        if modLens.Initialize ~= nil then
+            modLens.Initialize()
+        end
 
         -- Add this lens to button stack
         local modLensToggle = m_LensButtonIM:GetInstance();
