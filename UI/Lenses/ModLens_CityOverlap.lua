@@ -49,15 +49,7 @@ end
 --  Exported functions
 -- ===========================================================================
 
-local function OnGetColorPlotTable(range, outsideBorder)
-    if range == nil then
-        range = 6
-    end
-
-    if outsideBorder == nil then
-        outsideBorder = true -- no param is defaulted to show tiles outside border
-    end
-
+local function SetCityOverlapLens()
     local mapWidth, mapHeight = Map.GetGridSize();
     local localPlayer   :number = Game.GetLocalPlayer();
     local localPlayerVis:table = PlayersVisibility[localPlayer];
@@ -70,16 +62,17 @@ local function OnGetColorPlotTable(range, outsideBorder)
         local pPlot:table = Map.GetPlotByIndex(i);
 
         if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            if pPlot:GetOwner() == localPlayer or outsideBorder then
+            if pPlot:GetOwner() == localPlayer or Controls.ShowLensOutsideBorder:IsChecked() then
                 local numCities = 0;
                 for _, pCity in localPlayerCities:Members() do
-                    if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCity:GetX(), pCity:GetY()) <= range then
+                    if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCity:GetX(), pCity:GetY()) <= m_cityOverlapRange then
                         numCities = numCities + 1;
                     end
                 end
 
                 if numCities > 0 then
                     numCities = clamp(numCities, 1, 8);
+
                     table.insert(plotEntries, i);
                     table.insert(numCityEntries, numCities);
                 end
@@ -87,20 +80,14 @@ local function OnGetColorPlotTable(range, outsideBorder)
         end
     end
 
-    local colorPlot = {}
-    for i = 1, 8 do
-        colorPlot[UI.GetColorValue("COLOR_GRADIENT8_" .. tostring(i))] = {}
-    end
-
     for i = 1, #plotEntries, 1 do
-        local colorKey:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i]);
-        local color:number = UI.GetColorValue(colorKey);
-        table.insert(colorPlot[color], plotEntries[i])
+        local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i]);
+        local color:number = UI.GetColorValue(colorLookup);
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, {plotEntries[i]}, color );
     end
-    return colorPlot
 end
 
-local function GetRangeMouseTable(range)
+local function SetRangeMouseLens(range)
     local plotId = UI.GetCursorPlotID();
     if (not Map.IsPlot(plotId)) then
         return;
@@ -109,23 +96,28 @@ local function GetRangeMouseTable(range)
     local pPlot = Map.GetPlotByIndex(plotId)
     local localPlayer = Game.GetLocalPlayer()
     local localPlayerVis:table = PlayersVisibility[localPlayer]
-
-    local cityPlotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1")
-    local normalColor:number = UI.GetColorValue("COLOR_GRADIENT8_3")
-    local colorPlot = {}
-    colorPlot[cityPlotColor] = {}
-    colorPlot[normalColor] = {}
+    local cityPlots:table = {}
+    local normalPlot:table = {}
 
     for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, m_cityOverlapRange, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
         if localPlayerVis:IsRevealed(pAdjacencyPlot:GetX(), pAdjacencyPlot:GetY()) then
             if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
-                table.insert(colorPlot[cityPlotColor], pAdjacencyPlot:GetIndex());
+                table.insert(cityPlots, pAdjacencyPlot:GetIndex());
             else
-                table.insert(colorPlot[normalColor], pAdjacencyPlot:GetIndex());
+                table.insert(normalPlot, pAdjacencyPlot:GetIndex());
             end
         end
     end
-    return colorPlot
+
+    if (table.count(cityPlots) > 0) then
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1");
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, cityPlots, plotColor );
+    end
+
+    if (table.count(normalPlot) > 0) then
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3");
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, normalPlot, plotColor );
+    end
 end
 
 -- ===========================================================================
@@ -135,20 +127,10 @@ end
 local function RefreshCityOverlapLens()
     -- Assuming city overlap lens is already applied
     UILens.ClearLayerHexes(ML_LENS_LAYER)
-    local colorPlot = nil
     if Controls.OverlapLensMouseRange:IsChecked() then
-        colorPlot = GetRangeMouseTable(m_cityOverlapRange)
+        SetRangeMouseLens()
     else
-        colorPlot = OnGetColorPlotTable(m_cityOverlapRange, Controls.ShowLensOutsideBorder:IsChecked())
-    end
-
-    -- Same from @SetModLensHexes in MinimapPanel.lua
-    local localPlayer = Game.GetLocalPlayer()
-    for color, plots in pairs(colorPlot) do
-        if table.count(plots) > 0 then
-            -- print("Showing " .. table.count(plots) .. " plots with color " .. color)
-            UILens.SetLayerHexesColoredArea(ML_LENS_LAYER, localPlayer, plots, color);
-        end
+        SetCityOverlapLens()
     end
 end
 
@@ -202,6 +184,16 @@ end
 -- ===========================================================================
 --  Game Engine Events
 -- ===========================================================================
+
+local function OnLensLayerOn(layerNum:number)
+    if layerNum == ML_LENS_LAYER then
+        local lens = {}
+        LuaEvents.MinimapPanel_GetActiveModLens(lens);
+        if lens[1] == LENS_NAME then
+            RefreshCityOverlapLens()
+        end
+    end
+end
 
 local function OnInputHandler(pInputStruct:table)
     -- Skip all if panel is hidden
@@ -260,7 +252,7 @@ local CityOverlapLensEntry = {
     LensButtonTooltip = "LOC_HUD_CITYOVERLAP_LENS_TOOLTIP",
     Initialize = nil,
     OnToggle = TogglePanel,
-    GetColorPlotTable = OnGetColorPlotTable
+    GetColorPlotTable = nil  -- Pass nil since we have our own trigger
 }
 
 -- modallenspanel.lua
@@ -296,6 +288,7 @@ local function Initialize()
             LuaEvents.ModalLensPanel_AddLensEntry(LENS_NAME, CityOverlapLensModalPanelEntry);
         end
     )
+    Events.LensLayerOn.Add( OnLensLayerOn );
 
     -- City Overlap Lens Setting
     Controls.OverlapRangeUp:RegisterCallback( Mouse.eLClick, IncreseOverlapRange );
