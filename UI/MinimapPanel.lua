@@ -175,7 +175,7 @@ function CloseLensList()
     Controls.OwnerLensButton:SetCheck(false);
     Controls.TourismLensButton:SetCheck(false);
 
-    -- Toggle each mod lens
+    -- Turn off each mod lens
     local i = 1
     local lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
     while lensButtonInstance ~= nil do
@@ -184,6 +184,7 @@ function CloseLensList()
         lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
     end
 
+    -- Hide each panel that exist for lens
     LuaEvents.ML_CloseLensPanels()
 
     if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
@@ -390,6 +391,7 @@ end
 
 -- ===========================================================================
 function OnLensLayerOn( layerNum:number )
+    -- print("OnLensLayerOn", layerNum)
     if layerNum == LensLayers.HEX_COLORING_RELIGION then
         UI.PlaySound("UI_Lens_Overlay_On");
         UILens.SetDesaturation(1.0);
@@ -419,6 +421,7 @@ end
 
 -- ===========================================================================
 function OnLensLayerOff( layerNum:number )
+    -- print("OnLensLayerOff", layerNum)
     if (layerNum == LensLayers.HEX_COLORING_RELIGION        or
             layerNum == LensLayers.HEX_COLORING_CONTINENT       or
             layerNum == LensLayers.HEX_COLORING_GOVERNMENT      or
@@ -707,6 +710,14 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
                 i = i + 1
                 lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
             end
+
+            -- If any modded lens is active clear it
+            if m_CurrentModdedLensOn ~= "NONE" then
+                if UILens.IsLayerOn( LensLayers.HEX_COLORING_APPEAL_LEVEL ) then
+                    UILens.ToggleLayerOff( LensLayers.HEX_COLORING_APPEAL_LEVEL );
+                end
+                SetActiveModdedLens("NONE")
+            end
         end
     end
 end
@@ -829,6 +840,7 @@ function SetModLens()
 end
 
 function SetModLensHexes(colorPlot:table)
+    -- UILens.ClearLayerHexes(LensLayers.HEX_COLORING_APPEAL_LEVEL);
     local localPlayer = Game.GetLocalPlayer()
     for color, plots in pairs(colorPlot) do
         if table.count(plots) > 0 then
@@ -866,6 +878,11 @@ function ToggleModLens(buttonControl:table, lensName:string)
             UILens.SetActive("Default");
         end
 
+        LuaEvents.ML_CloseLensPanels()
+        if g_ModLenses[lensName].OnToggle ~= nil then
+            -- print("Toggling....")
+            g_ModLenses[lensName].OnToggle()
+        end
         UILens.SetActive("Appeal");
         RefreshInterfaceMode();
     else
@@ -873,6 +890,7 @@ function ToggleModLens(buttonControl:table, lensName:string)
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
+        LuaEvents.ML_CloseLensPanels()
         SetActiveModdedLens("NONE");
     end
 end
@@ -892,9 +910,6 @@ function InitLens(lensName, modLens)
     modLensToggle.LensButton:RegisterCallback(Mouse.eLClick,
         function()
             ToggleModLens(modLensToggle.LensButton, lensName);
-            if modLens.OnToggle ~= nil then
-                modLens.OnToggle()
-            end
         end
     )
 end

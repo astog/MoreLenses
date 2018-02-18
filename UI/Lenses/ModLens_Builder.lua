@@ -448,6 +448,7 @@ local function ShowBuilderLens()
 end
 
 local function ClearBuilderLens()
+    -- print("Clearing builder lens")
     if UILens.IsLayerOn(ML_LENS_LAYER) then
         UILens.ToggleLayerOff(ML_LENS_LAYER);
     end

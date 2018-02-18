@@ -17,6 +17,7 @@
       <Items>
         <File>UI/Lenses/ModLens_CityOverlap.xml</File>
         <!-- ModLens_CityOverlap.lua implied -->
+        <File>UI/Lenses/ModLens_Resource.xml</File>
       </Items>
     </AddUserInterfaces>
 
@@ -95,5 +96,7 @@
     <File>UI/Lenses/ModLens_Wonder.lua</File>
     <File>UI/Lenses/ModLens_CityOverlap.xml</File>
     <File>UI/Lenses/ModLens_CityOverlap.lua</File>
+    <File>UI/Lenses/ModLens_Resource.xml</File>
+    <File>UI/Lenses/ModLens_Resource.lua</File>
   </Files>
 </Mod>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Context>
-  <Container ID="OverlapLensOptionsPanel" Offset="0,0" Size="230,350" Anchor="L,B" ConsumeMouse="1">
+  <Container ID="OverlapLensOptionsPanel" Size="230,350" Anchor="L,B" ConsumeMouse="1">
     <Grid  Size="parent,parent" Texture="Tracker_OptionsBacking.dds" SliceCorner="55,61" SliceSize="1,1" SliceTextureSize="121,119" ConsumeAllMouse="1" Hidden="0">
       <Label Anchor="C,T" String="{LOC_HUD_CITYOVERLAP_LENS:upper}" Offset="-6,10"  Style="FontFlair16" Color0="106,93,69,255" Color1="0,0,0,150" Color2="146,133,109,255" FontStyle="Glow" SmallCaps="20" SmallCapsLeading="0" SmallCapsType="EveryWord" KerningAdjustment="0" AutoScrollBar="1" AutoSizeScrollBar="1"/>
 

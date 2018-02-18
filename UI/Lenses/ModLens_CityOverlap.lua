@@ -18,6 +18,7 @@ local m_currentCursorPlotID:number = -1
 --  City Overlap Support functions
 -- ===========================================================================
 
+--[[
 local function ShowCityOverlapLens()
     print("Showing " .. LENS_NAME)
     LuaEvents.MinimapPanel_SetActiveModLens(LENS_NAME)
@@ -33,6 +34,7 @@ local function ClearCityOverlapLens()
     end
     LuaEvents.MinimapPanel_SetActiveModLens("NONE");
 end
+]]
 
 local function clamp(val, min, max)
     if val < min then
