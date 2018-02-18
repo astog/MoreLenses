@@ -300,6 +300,10 @@ end
 -- ===========================================================================
 --  INIT (ModalLensPanel)
 -- ===========================================================================
+function AddLensEntry(lensKey:string, lensEntry:table)
+    g_ModLensModalPanel[lensKey] = lensEntry
+end
+
 function InitializeModalLensPanel()
 
     if (Game.GetLocalPlayer() == -1) then
@@ -312,5 +316,8 @@ function InitializeModalLensPanel()
     Events.LensLayerOn.Add( OnLensLayerOn );
 
     LuaEvents.MinimapPanel_AddContinentColorPair.Add(OnAddContinentColorPair);
+
+    -- Mod Lens Support
+    LuaEvents.ModalLensPanel_AddLensEntry.Add( AddLensEntry )
 end
 InitializeModalLensPanel();

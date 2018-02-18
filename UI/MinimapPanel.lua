@@ -184,6 +184,8 @@ function CloseLensList()
         lensButtonInstance = m_LensButtonIM:GetAllocatedInstance(i)
     end
 
+    LuaEvents.ML_CloseLensPanels()
+
     if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
         UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
     end
@@ -332,7 +334,6 @@ function Toggle2DView()
         end
         UI.PlaySound("Stop_Unit_Movement_Master");
     end
-
 end
 
 -- ===========================================================================
@@ -359,11 +360,13 @@ function OnCollapseToggle()
         Controls.CompassArm:SetPercent(.5);
     end
     m_isCollapsed = not m_isCollapsed;
+    LuaEvents.ModLens_ReoffsetPanels( OnReoffsetPanel );
 end
 
 -- ===========================================================================
 function OnMinimapImageSizeChanged()
     ResizeBacking();
+    LuaEvents.ModLens_ReoffsetPanels( OnReoffsetPanel );
 end
 
 -- ===========================================================================
@@ -829,6 +832,7 @@ function SetModLensHexes(colorPlot:table)
     local localPlayer = Game.GetLocalPlayer()
     for color, plots in pairs(colorPlot) do
         if table.count(plots) > 0 then
+            -- print("Showing " .. table.count(plots) .. " plots with color " .. color)
             UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, plots, color);
         end
     end
@@ -841,6 +845,15 @@ end
 
 function GetActiveModdedLens(returnLens:table)
     returnLens[1] = m_CurrentModdedLensOn
+end
+
+function GetLensPanelOffsets(offsets:table)
+    local y = Controls.MinimapContainer:GetSizeY() + Controls.MinimapContainer:GetOffsetY()
+    if m_isCollapsed then
+        y = y - Controls.MinimapContainer:GetSizeY()
+    end
+    offsets.Y = y
+    offsets.X = Controls.LensPanel:GetSizeX() + Controls.LensPanel:GetOffsetX()
 end
 
 function ToggleModLens(buttonControl:table, lensName:string)
@@ -864,21 +877,37 @@ function ToggleModLens(buttonControl:table, lensName:string)
     end
 end
 
+function InitLens(lensName, modLens)
+    print("Adding ModLens: " .. lensName)
+    if modLens.Initialize ~= nil then
+        modLens.Initialize()
+    end
+
+    -- Add this lens to button stack
+    local modLensToggle = m_LensButtonIM:GetInstance();
+    local pLensButton = modLensToggle.LensButton:GetTextButton()
+    local pToolTip = Locale.Lookup(modLens.LensButtonTooltip)
+    pLensButton:LocalizeAndSetText(modLens.LensButtonText)
+    modLensToggle.LensButton:SetToolTipString(pToolTip)
+    modLensToggle.LensButton:RegisterCallback(Mouse.eLClick,
+        function()
+            ToggleModLens(modLensToggle.LensButton, lensName);
+            if modLens.OnToggle ~= nil then
+                modLens.OnToggle()
+            end
+        end
+    )
+end
+
+function AddLensEntry(lensKey:string, lensEntry:table)
+    g_ModLenses[lensKey] = lensEntry
+    InitLens(lensKey, lensEntry)
+end
+
 function InitializeModLens()
     print("Initializing " .. table.count(g_ModLenses) .. " lenses")
     for lensName, modLens in pairs(g_ModLenses) do
-        print("Adding ModLens: " .. lensName)
-        if modLens.Initialize ~= nil then
-            modLens.Initialize()
-        end
-
-        -- Add this lens to button stack
-        local modLensToggle = m_LensButtonIM:GetInstance();
-        local pLensButton = modLensToggle.LensButton:GetTextButton()
-        local pToolTip = Locale.Lookup(modLens.LensButtonTooltip)
-        pLensButton:LocalizeAndSetText(modLens.LensButtonText)
-        modLensToggle.LensButton:SetToolTipString(pToolTip)
-        modLensToggle.LensButton:RegisterCallback(Mouse.eLClick, function() ToggleModLens(modLensToggle.LensButton, lensName); end)
+        InitLens(lensName, modLens)
     end
 end
 
@@ -951,9 +980,10 @@ function Initialize()
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
 
     -- Mod Lens Support
-    InitializeModLens()
     LuaEvents.MinimapPanel_SetActiveModLens.Add( SetActiveModdedLens );
     LuaEvents.MinimapPanel_GetActiveModLens.Add( GetActiveModdedLens );
+    LuaEvents.MinimapPanel_GetLensPanelOffsets.Add( GetLensPanelOffsets );
+    LuaEvents.MinimapPanel_AddLensEntry.Add( AddLensEntry );
+    InitializeModLens()
 end
 Initialize();
-

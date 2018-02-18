@@ -8,7 +8,18 @@
     <Authors>astog</Authors>
   </Properties>
 
-  <Components>
+  <InGameActions>
+     <AddUserInterfaces id="MORELENSES_LENSES_WPANEL">
+      <Properties>
+        <Context>InGame</Context>
+        <LoadOrder>11</LoadOrder>
+      </Properties>
+      <Items>
+        <File>UI/Lenses/ModLens_CityOverlap.xml</File>
+        <!-- ModLens_CityOverlap.lua implied -->
+      </Items>
+    </AddUserInterfaces>
+
     <ImportFiles id="MORELENSES_LENSES">
       <Properties>
         <LoadOrder>10</LoadOrder>
@@ -57,7 +68,7 @@
         <File>Text/MoreLenses_Text_es.xml</File>
       </Items>
     </LocalizedText>
-  </Components>
+  </InGameActions>
 
   <Files>
     <File>Text/MoreLenses_Text.xml</File>
@@ -82,5 +93,7 @@
     <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
     <File>UI/Lenses/ModLens_Naturalist.lua</File>
     <File>UI/Lenses/ModLens_Wonder.lua</File>
+    <File>UI/Lenses/ModLens_CityOverlap.xml</File>
+    <File>UI/Lenses/ModLens_CityOverlap.lua</File>
   </Files>
 </Mod>
