@@ -1,15 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1">
+<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1.1">
   <Properties>
-    <Name>LOC_MORELENSES_NAME</Name>
-    <Stability>LOC_MORELENSES_STABILITY</Stability>
-    <Teaser>LOC_MORELENSES_TEASER</Teaser>
-    <Description>LOC_MORELENSES_DESCRIPTION</Description>
-    <Authors>LOC_MORELENSES_AUTHORS</Authors>
+    <Name>More Lenses</Name>
+    <Stability>Beta</Stability>
+    <Teaser>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Teaser>
+    <Description>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Description>
+    <Authors>astog</Authors>
   </Properties>
 
-  <Components>
+  <InGameActions>
+     <AddUserInterfaces id="MORELENSES_LENSES_WPANEL">
+      <Properties>
+        <Context>InGame</Context>
+        <LoadOrder>11</LoadOrder>
+      </Properties>
+      <Items>
+        <File>UI/Lenses/ModLens_CityOverlap.xml</File>
+        <!-- ModLens_CityOverlap.lua implied -->
+        <File>UI/Lenses/ModLens_Resource.xml</File>
+      </Items>
+    </AddUserInterfaces>
+
+    <ImportFiles id="MORELENSES_LENSES">
+      <Properties>
+        <LoadOrder>10</LoadOrder>
+        <Context>InGame</Context>
+      </Properties>
+      <Items>
+        <File>UI/LensSupport.lua</File>
+        <File>UI/Lenses/ModLens_Builder.lua</File>
+        <File>UI/Lenses/ModLens_Scout.lua</File>
+        <File>UI/Lenses/ModLens_Archaeologist.lua</File>
+        <File>UI/Lenses/ModLens_Barbarian.lua</File>
+        <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
+        <File>UI/Lenses/ModLens_Naturalist.lua</File>
+        <File>UI/Lenses/ModLens_Wonder.lua</File>
+      </Items>
+    </ImportFiles>
+
     <ImportFiles id="MORELENSES_IMPORT_FILES">
+      <Properties>
+        <LoadOrder>100</LoadOrder>
+      </Properties>
       <Items>
         <File>UI/MinimapPanel.lua</File>
         <File>UI/MinimapPanel.xml</File>
@@ -37,25 +69,7 @@
         <File>Text/MoreLenses_Text_es.xml</File>
       </Items>
     </LocalizedText>
-  </Components>
-
-  <LocalizedText>
-    <Text id="LOC_MORELENSES_NAME">
-      <en_US>More Lenses</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_STABILITY">
-      <en_US>Alpha</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_TEASER">
-      <en_US>Adds more lenses to the game.</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_DESCRIPTION">
-      <en_US>Adds more lenses to the game.</en_US>
-    </Text>
-    <Text id="LOC_MORELENSES_AUTHORS">
-      <en_US>astog</en_US>
-    </Text>
-  </LocalizedText>
+  </InGameActions>
 
   <Files>
     <File>Text/MoreLenses_Text.xml</File>
@@ -72,6 +86,17 @@
     <File>UI/Panels/ModalLensPanel.lua</File>
     <File>UI/Panels/ModalLensPanel.xml</File>
     <File>MoreLenses_Colors.sql</File>
-    <File>Text/MoreLenses_Text.xml</File>
+    <File>UI/LensSupport.lua</File>
+    <File>UI/Lenses/ModLens_Builder.lua</File>
+    <File>UI/Lenses/ModLens_Scout.lua</File>
+    <File>UI/Lenses/ModLens_Archaeologist.lua</File>
+    <File>UI/Lenses/ModLens_Barbarian.lua</File>
+    <File>UI/Lenses/ModLens_AdjacencyYield.lua</File>
+    <File>UI/Lenses/ModLens_Naturalist.lua</File>
+    <File>UI/Lenses/ModLens_Wonder.lua</File>
+    <File>UI/Lenses/ModLens_CityOverlap.xml</File>
+    <File>UI/Lenses/ModLens_CityOverlap.lua</File>
+    <File>UI/Lenses/ModLens_Resource.xml</File>
+    <File>UI/Lenses/ModLens_Resource.lua</File>
   </Files>
 </Mod>
