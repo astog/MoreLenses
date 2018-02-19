@@ -3,6 +3,9 @@ include("LensSupport")
 local LENS_NAME = "ML_BUILDER"
 local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
 
+-- Should the builder lens auto apply, when a builder is selected.
+local AUTO_APPLY_BUILDER_LENS:boolean = true
+
 -- ===========================================================================
 -- Builder Lens Support
 -- ===========================================================================
@@ -457,12 +460,12 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
         local unitType = GetUnitType(playerID, unitID);
         if unitType then
             if bSelected then
-                if unitType == "UNIT_BUILDER" then
+                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
                     ShowBuilderLens();
                 end
             -- Deselection
             else
-                if unitType == "UNIT_BUILDER" then
+                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
                     ClearBuilderLens();
                 end
             end
@@ -474,7 +477,7 @@ local function OnUnitChargesChanged( playerID: number, unitID : number, newCharg
     local localPlayer = Game.GetLocalPlayer()
     if playerID == localPlayer then
         local unitType = GetUnitType(playerID, unitID)
-        if unitType and unitType == "UNIT_BUILDER" then
+        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
             if newCharges == 0 then
                 ClearBuilderLens();
             end
@@ -487,7 +490,7 @@ local function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPl
     local localPlayer = Game.GetLocalPlayer()
     if owningPlayer == localPlayer then
         local unitType = GetUnitType(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_BUILDER" then
+        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
             ClearBuilderLens();
         end
     end
@@ -498,7 +501,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME then
+        if lens[1] == LENS_NAME and AUTO_APPLY_BUILDER_LENS then
             ClearBuilderLens();
         end
     end

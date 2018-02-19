@@ -1,6 +1,9 @@
 local LENS_NAME = "ML_SCOUT"
 local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
 
+-- Should the scout lens auto apply, when a scout/ranger is selected.
+local AUTO_APPLY_SCOUT_LENS:boolean = true
+
 -- ===========================================================================
 -- Scout Lens Support
 -- ===========================================================================
@@ -57,12 +60,12 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
         local unitType = GetUnitType(playerID, unitID);
         if unitType then
             if bSelected then
-                if unitType == "UNIT_SCOUT" then
+                if unitType == "UNIT_SCOUT" and AUTO_APPLY_SCOUT_LENS then
                     ShowScoutLens();
                 end
             -- Deselection
             else
-                if unitType == "UNIT_SCOUT" then
+                if unitType == "UNIT_SCOUT" and AUTO_APPLY_SCOUT_LENS then
                     ClearScoutLens();
                 end
             end
@@ -75,7 +78,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME then
+        if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
             ClearScoutLens();
         end
     end

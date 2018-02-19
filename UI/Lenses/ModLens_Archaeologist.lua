@@ -1,6 +1,9 @@
 local LENS_NAME = "ML_ARCHAEOLOGIST"
 local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
 
+-- Should the archaeologist lens auto apply, when a archaeologist is selected.
+local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = true
+
 -- ===========================================================================
 -- Archaeologist Lens Support
 -- ===========================================================================
@@ -69,12 +72,12 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
         local unitType = GetUnitType(playerID, unitID);
         if unitType then
             if bSelected then
-                if unitType == "UNIT_ARCHAEOLOGIST" then
+                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
                     ShowArchaeologistLens();
                 end
             -- Deselection
             else
-                if unitType == "UNIT_ARCHAEOLOGIST" then
+                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
                     ClearArchaeologistLens();
                 end
             end
@@ -87,7 +90,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME then
+        if lens[1] == LENS_NAME and AUTO_APPLY_ARCHEOLOGIST_LENS then
             ClearArchaeologistLens();
         end
     end
@@ -98,7 +101,7 @@ function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPlayer )
     local localPlayer = Game.GetLocalPlayer()
     if owningPlayer == localPlayer then
         local unitType = GetUnitType(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_ARCHAEOLOGIST" then
+        if unitType and unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
             ClearArchaeologistLens();
         end
     end
