@@ -830,6 +830,8 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
                 end
                 SetActiveModdedLens("NONE")
             end
+
+            LuaEvents.ML_CloseLensPanels()
         end
     end
 end

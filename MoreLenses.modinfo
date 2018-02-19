@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="2.1.1">
+<Mod id="35f33319-ad93-4d6b-bf27-406fac382d06"  version="3.0">
   <Properties>
     <Name>More Lenses</Name>
     <Stability>Beta</Stability>
     <Teaser>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Teaser>
     <Description>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Description>
     <Authors>astog</Authors>
+    <AffectsSavedGames>0</AffectsSavedGames>
   </Properties>
 
   <InGameActions>
