@@ -13,6 +13,9 @@ include( "ModLens_", true )
 local m_LensButtonIM:table = InstanceManager:new("LensButtonInstance", "LensButton", Controls.LensToggleStack)
 local m_CurrentModdedLensOn:string = nil
 
+-- Settler Lens Variables
+local m_SetterLensAlternateInverse:boolean = false;
+
 -- ===========================================================================
 --  CONSTANTS
 -- ===========================================================================
@@ -497,32 +500,141 @@ end
 
 -- ===========================================================================
 function SetWaterHexes()
-    local FullWaterPlots:table = {};
-    local CoastalWaterPlots:table = {};
-    local NoWaterPlots:table = {};
-    local NoSettlePlots:table = {};
+    local ctrlDown = m_CtrlDown
+    if m_SetterLensAlternateInverse then
+        ctrlDown = not ctrlDown
+    end
 
-    UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
-    FullWaterPlots, CoastalWaterPlots, NoWaterPlots, NoSettlePlots = Map.GetContinentPlotsWaterAvailability();
+    if (not ctrlDown) or UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+        local FullWaterPlots:table = {};
+        local CoastalWaterPlots:table = {};
+        local NoWaterPlots:table = {};
+        local NoSettlePlots:table = {};
 
-    local BreathtakingColor :number = UI.GetColorValue("COLOR_BREATHTAKING_APPEAL");
-    local CharmingColor     :number = UI.GetColorValue("COLOR_CHARMING_APPEAL");
-    local AverageColor      :number = UI.GetColorValue("COLOR_AVERAGE_APPEAL");
-    local DisgustingColor   :number = UI.GetColorValue("COLOR_DISGUSTING_APPEAL");
-    local localPlayer       :number = Game.GetLocalPlayer();
+        UILens.ClearLayerHexes(LensLayers.HEX_COLORING_WATER_AVAILABLITY);
+        FullWaterPlots, CoastalWaterPlots, NoWaterPlots, NoSettlePlots = Map.GetContinentPlotsWaterAvailability();
 
-    if(table.count(FullWaterPlots) > 0) then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, FullWaterPlots, BreathtakingColor );
+        local BreathtakingColor :number = UI.GetColorValue("COLOR_BREATHTAKING_APPEAL");
+        local CharmingColor     :number = UI.GetColorValue("COLOR_CHARMING_APPEAL");
+        local AverageColor      :number = UI.GetColorValue("COLOR_AVERAGE_APPEAL");
+        local DisgustingColor   :number = UI.GetColorValue("COLOR_DISGUSTING_APPEAL");
+        local localPlayer       :number = Game.GetLocalPlayer();
+
+        if(table.count(FullWaterPlots) > 0) then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, FullWaterPlots, BreathtakingColor );
+        end
+        if(table.count(CoastalWaterPlots) > 0) then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, CoastalWaterPlots, CharmingColor );
+        end
+        if(table.count(NoWaterPlots) > 0) then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoWaterPlots, AverageColor );
+        end
+        if(table.count(NoSettlePlots) > 0) then
+            UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoSettlePlots, DisgustingColor );
+        end
+
+    else -- A settler is selected, show alternate highlighting
+        SetSettlerLens()
     end
-    if(table.count(CoastalWaterPlots) > 0) then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, CoastalWaterPlots, CharmingColor );
+end
+
+function SetSettlerLens()
+    -- If cursor is not on a plot, don't do anything
+    local plotId = UI.GetCursorPlotID();
+
+    -- If Modal Panel, or cursor is not on a plot, show normal Water Hexes
+    if (not Map.IsPlot(plotId)) then
+        return
     end
-    if(table.count(NoWaterPlots) > 0) then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoWaterPlots, AverageColor );
+
+    local pPlot = Map.GetPlotByIndex(plotId)
+    local localPlayer:number = Game.GetLocalPlayer();
+    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local localPlayerCities = Players[localPlayer]:GetCities()
+
+    local tNonDimPlots:table = {}
+    local tUnusablePlots:table = {}
+    local tOverlapPlots:table = {}
+    local tResourcePlots:table = {}
+    local tRegularPlots:table = {}
+
+    local iUnusableColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_UNUSABLE");
+    local iOverlapColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_OVERLAP");
+    local iResourceColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_RESOURCE");
+    local iRegularColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_REGULAR");
+
+    for pRangePlot in PlotAreaSpiralIterator(pPlot, CITY_WORK_RANGE,
+            SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+
+        local plotX = pRangePlot:GetX()
+        local plotY = pRangePlot:GetY()
+        local plotID = pRangePlot:GetIndex()
+        if localPlayerVis:IsRevealed(plotX, plotY) then
+
+            table.insert(tNonDimPlots, plotID)
+            if plotWithinWorkingRange(localPlayer, plotID) then
+                table.insert(tOverlapPlots, plotID)
+
+            elseif pRangePlot:IsImpassable() then
+                table.insert(tUnusablePlots, plotID)
+
+            elseif pRangePlot:IsOwned() and pRangePlot:GetOwner() ~= localPlayer then
+                table.insert(tUnusablePlots, plotID)
+
+            elseif plotHasResource(pRangePlot) and
+                    playerHasDiscoveredResource(localPlayer, plotID) then
+
+                table.insert(tResourcePlots, plotID)
+            else
+                table.insert(tRegularPlots, plotID)
+            end
+        end
     end
-    if(table.count(NoSettlePlots) > 0) then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, NoSettlePlots, DisgustingColor );
+
+    -- Alt_HighlightPlots(tNonDimPlots)
+
+    if #tOverlapPlots > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tOverlapPlots, iOverlapColor );
     end
+
+    if #tUnusablePlots > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tUnusablePlots, iUnusableColor );
+    end
+
+    if #tResourcePlots > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tResourcePlots, iResourceColor );
+    end
+
+    if #tRegularPlots  > 0 then
+        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_WATER_AVAILABLITY, localPlayer, tRegularPlots, iRegularColor );
+    end
+end
+
+function RefreshSettlerLens()
+    ClearSettlerLens()
+    UILens.ToggleLayerOn( LensLayers.HEX_COLORING_WATER_AVAILABLITY );
+end
+
+function ClearSettlerLens()
+    -- Alt_ClearHighlightedPlots()
+
+    if UILens.IsLayerOn( LensLayers.HEX_COLORING_WATER_AVAILABLITY ) then
+        UILens.ToggleLayerOff( LensLayers.HEX_COLORING_WATER_AVAILABLITY );
+    end
+end
+
+-- Checks to see if settler lens should be reapplied
+function RecheckSettlerLens()
+    local selectedUnit = UI.GetHeadSelectedUnit()
+    if (selectedUnit ~= nil) then
+        local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
+        if (unitType == "UNIT_SETTLER") then
+            RefreshSettlerLens()
+            return
+        end
+    end
+
+    ClearSettlerLens()
 end
 
 -- ===========================================================================
@@ -753,6 +865,22 @@ function TranslateMinimapToWorld( minix:number, miniy:number )
 end
 
 function OnInputHandler( pInputStruct:table )
+    local msg = pInputStruct:GetMessageType();
+    if pInputStruct:GetKey() == Keys.VK_CONTROL then
+        if msg == KeyEvents.KeyDown then
+            m_CtrlDown = true
+
+            -- Reset cursor plot to recalculate HandleMouseForModdedLens
+            m_CurrentCursorPlotID = -1;
+            RecheckSettlerLens()
+        elseif msg == KeyEvents.KeyUp then
+            m_CtrlDown = false
+            RecheckSettlerLens()
+        end
+    end
+
+    HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
+
     -- Skip all handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
         local msg = pInputStruct:GetMessageType( );
@@ -923,6 +1051,50 @@ function InitializeModLens()
     print("Initializing " .. table.count(g_ModLenses) .. " lenses")
     for lensName, modLens in pairs(g_ModLenses) do
         InitLens(lensName, modLens)
+    end
+end
+
+function HandleMouseForModdedLens( mousex:number, mousey:number )
+    -- Don't do anything if mouse is dragging
+    if not m_isMouseDragging then
+        -- Get plot under cursor
+        local plotId = UI.GetCursorPlotID();
+        if (not Map.IsPlot(plotId)) then
+            return;
+        end
+
+        -- If the cursor plot has not changed don't refresh
+        if (m_CurrentCursorPlotID == plotId) then
+            return
+        end
+
+        m_CurrentCursorPlotID = plotId
+
+        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
+        local selectedCity = UI.GetHeadSelectedCity()
+        local selectedUnit = UI.GetHeadSelectedUnit()
+
+        -- Handler for alternate settler lens
+        local ctrlDown = m_CtrlDown
+        if m_SetterLensAlternateInverse then
+            ctrlDown = not ctrlDown
+        end
+
+        if ctrlDown then
+            if selectedUnit ~= nil then
+                local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
+                if unitType == "UNIT_SETTLER" then
+                    RefreshSettlerLens();
+                -- else
+                --     print(unitType)
+                end
+
+            -- Clear Settler lens, if not in modal screen
+            elseif UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
+
+                ClearSettlerLens();
+            end
+        end
     end
 end
 
