@@ -163,14 +163,12 @@ local function plotHasCorrectImprovement(plot)
             for validResourceInfo in GameInfo.Improvement_ValidResources() do
                 if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
                     improvementType = validResourceInfo.ImprovementType;
-                    break
-                end
-            end
-
-            if improvementType ~= nil and GameInfo.Improvements[improvementType] ~= nil then
-                local improvementID = GameInfo.Improvements[improvementType].RowId - 1;
-                if plot:GetImprovementType() == improvementID then
-                    return true
+                    if improvementType ~= nil and GameInfo.Improvements[improvementType] ~= nil then
+                        local improvementID = GameInfo.Improvements[improvementType].RowId - 1;
+                        if plot:GetImprovementType() == improvementID then
+                            return true
+                        end
+                    end
                 end
             end
         end
@@ -179,7 +177,6 @@ local function plotHasCorrectImprovement(plot)
         -- hence assuming correct resource type
         return true
     end
-
     return false
 end
 
@@ -347,8 +344,8 @@ local function OnGetColorPlotTable()
                     table.insert(colorPlot[HillColor], i)
                 elseif not plotHasCorrectImprovement(pPlot) then
                     table.insert(colorPlot[ResourceColor], i)
-                else
-                    table.insert(colorPlot[NothingColor], i)
+                -- else
+                    -- table.insert(colorPlot[NothingColor], i)
                 end
 
             -- NATURAL WONDER
@@ -367,8 +364,8 @@ local function OnGetColorPlotTable()
                 if playerHasBuilderWonderModifier(localPlayer) and (not pPlot:IsWonderComplete())
                     and isAncientClassicalWonder(pPlot:GetWonderType()) then
                         table.insert(colorPlot[ResourceColor], i)
-                else
-                    table.insert(colorPlot[NothingColor], i)
+                -- else
+                    -- table.insert(colorPlot[NothingColor], i)
                 end
 
             -- DISTRICT - AZTEC UA
@@ -378,8 +375,8 @@ local function OnGetColorPlotTable()
                 if (not pPlot:IsCity()) and (not districtComplete(localPlayer, i)) and
                     playerHasBuilderDistrictModifier(localPlayer) then
                         table.insert(colorPlot[ResourceColor], i)
-                else
-                    table.insert(colorPlot[NothingColor], i)
+                -- else
+                    -- table.insert(colorPlot[NothingColor], i)
                 end
 
             -- VISIBLE RESOURCE
