@@ -394,6 +394,10 @@ end
 
 -- ===========================================================================
 function OnLensLayerOn( layerNum:number )
+	-- clear any non-standard layers
+	UILens.ClearLayerHexes(LensLayers.ATTACK_RANGE);
+	UILens.ClearLayerHexes(LensLayers.HEX_COLORING_GREAT_PEOPLE);
+	UILens.ClearLayerHexes(LensLayers.MOVEMENT_ZONE_OF_CONTROL);
     -- print("OnLensLayerOn", layerNum)
     if layerNum == LensLayers.HEX_COLORING_RELIGION then
         UI.PlaySound("UI_Lens_Overlay_On");
@@ -424,6 +428,10 @@ end
 
 -- ===========================================================================
 function OnLensLayerOff( layerNum:number )
+	-- clear any non-standard layers
+	UILens.ClearLayerHexes(LensLayers.ATTACK_RANGE);
+	UILens.ClearLayerHexes(LensLayers.HEX_COLORING_GREAT_PEOPLE);
+	UILens.ClearLayerHexes(LensLayers.MOVEMENT_ZONE_OF_CONTROL);
     -- print("OnLensLayerOff", layerNum)
     if (layerNum == LensLayers.HEX_COLORING_RELIGION        or
             layerNum == LensLayers.HEX_COLORING_CONTINENT       or
@@ -831,6 +839,11 @@ function OnInterfaceModeChanged(eOldMode:number, eNewMode:number)
                 SetActiveModdedLens("NONE")
             end
 
+			-- clear any non-standard layers
+			UILens.ClearLayerHexes(LensLayers.ATTACK_RANGE);
+			UILens.ClearLayerHexes(LensLayers.HEX_COLORING_GREAT_PEOPLE);
+			UILens.ClearLayerHexes(LensLayers.MOVEMENT_ZONE_OF_CONTROL);
+
             LuaEvents.ML_CloseLensPanels()
         end
     end
@@ -959,9 +972,12 @@ function SetModLens()
             g_ModLenses[m_CurrentModdedLensOn] ~= nil then
         print("Highlighting " .. m_CurrentModdedLensOn .. " hexes")
         local getPlotColorFn = g_ModLenses[m_CurrentModdedLensOn].GetColorPlotTable
+        local funNonStandard = g_ModLenses[m_CurrentModdedLensOn].NonStandardFunction
         if getPlotColorFn ~= nil then
             SetModLensHexes(getPlotColorFn())
-        else
+        elseif funNonStandard ~= nil then
+			funNonStandard()
+		else
             print("ERROR: No Plot Color Function")
         end
     else
@@ -1051,8 +1067,15 @@ end
 
 function InitializeModLens()
     print("Initializing " .. table.count(g_ModLenses) .. " lenses")
+	-- sort here
+	local sortedModLenses:table = {}
     for lensName, modLens in pairs(g_ModLenses) do
-        InitLens(lensName, modLens)
+		table.insert(sortedModLenses, { SortOrder = modLens.SortOrder, Name = lensName, Lens = modLens } )
+	end
+	table.sort(sortedModLenses, function(a,b) return (a.SortOrder and a.SortOrder or 999) < (b.SortOrder and b.SortOrder or 999) end)
+    -- initilize sorted
+    for _,modLens in ipairs(sortedModLenses) do
+        InitLens(modLens.Name, modLens.Lens)
     end
 end
 
