@@ -1,5 +1,5 @@
 local LENS_NAME = "ML_ADJYIELD"
-local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
+local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- ===========================================================================
 -- AdjYield Lens Support

@@ -10,9 +10,23 @@ g_ModLensModalPanel = {} -- Populated by ModLens_*.lua scripts
 include( "ModLens_", true )
 
 -- ===========================================================================
+-- Globals
+-- ===========================================================================
+g_KeyStackIM = InstanceManager:new( "KeyEntry", "KeyColorImage", Controls.KeyStack );
 
-local m_KeyStackIM:table = InstanceManager:new( "KeyEntry", "KeyColorImage", Controls.KeyStack );
+-- ===========================================================================
+-- Members
+-- =======================================================e====================
 local m_ContinentColorList:table = {};
+
+local m_HexColoringReligion : number = UILens.CreateLensLayerHash("Hex_Coloring_Religion");
+local m_HexColoringAppeal : number = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level");
+local m_HexColoringGovernment : number = UILens.CreateLensLayerHash("Hex_Coloring_Government");
+local m_HexColoringOwningCiv : number = UILens.CreateLensLayerHash("Hex_Coloring_Owning_Civ");
+local m_HexColoringContinent : number = UILens.CreateLensLayerHash("Hex_Coloring_Continent");
+local m_HexColoringWaterAvail : number = UILens.CreateLensLayerHash("Hex_Coloring_Water_Availablity");
+local m_TouristTokens : number = UILens.CreateLensLayerHash("Tourist_Tokens");
+local m_EmpireDetails : number = UILens.CreateLensLayerHash("Empire_Details");
 
 --============================================================================
 function Close()
@@ -22,7 +36,7 @@ end
 
 --============================================================================
 function ShowAppealLensKey()
-    m_KeyStackIM: ResetInstances();
+    g_KeyStackIM: ResetInstances();
 
     -- Breathtaking
     AddKeyEntry("LOC_TOOLTIP_APPEAL_BREATHTAKING", UI.GetColorValue("COLOR_BREATHTAKING_APPEAL"));
@@ -45,7 +59,7 @@ end
 
 --============================================================================
 function ShowSettlerLensKey()
-    m_KeyStackIM: ResetInstances();
+    g_KeyStackIM: ResetInstances();
 
     -- Fresh Water
     local FreshWaterBonus:number = GlobalParameters.CITY_POPULATION_RIVER_LAKE - GlobalParameters.CITY_POPULATION_NO_WATER;
@@ -67,7 +81,7 @@ end
 
 --============================================================================
 function ShowReligionLensKey()
-    m_KeyStackIM:ResetInstances();
+    g_KeyStackIM:ResetInstances();
 
     -- Track which types we've added so we don't add duplicates
     local visibleTypes:table = {};
@@ -97,7 +111,7 @@ end
 
 --============================================================================
 function ShowGovernmentLensKey()
-    m_KeyStackIM:ResetInstances();
+    g_KeyStackIM:ResetInstances();
 
     -- Track which types we've added so we don't add duplicates
     local visibleTypes:table = {};
@@ -138,7 +152,7 @@ end
 
 --============================================================================
 function ShowPoliticalLensKey()
-    m_KeyStackIM:ResetInstances();
+    g_KeyStackIM:ResetInstances();
 
     local hasAddedCityStateEntry = false;
     local localPlayer = Players[Game.GetLocalPlayer()];
@@ -173,9 +187,9 @@ end
 --============================================================================
 function ShowModLensKey(lensName:string)
     -- This is printed even if the modal panel is hidden
-    print("Showing " .. lensName .. " modal panel")
+    -- print("Showing " .. lensName .. " modal panel")
 
-    m_KeyStackIM: ResetInstances();
+    g_KeyStackIM:ResetInstances();
 
     local info = g_ModLensModalPanel[lensName].Legend
     local lensTextKey = g_ModLensModalPanel[lensName].LensTextKey
@@ -195,7 +209,7 @@ end
 
 --============================================================================
 function ShowContinentLensKey()
-    m_KeyStackIM: ResetInstances();
+    g_KeyStackIM: ResetInstances();
 
     for ContinentID,ColorValue in pairs(m_ContinentColorList) do
         local visibleContinentPlots:table = Map.GetVisibleContinentPlots(ContinentID);
@@ -211,7 +225,7 @@ end
 
 -- ===========================================================================
 function AddKeyEntry(textString:string, colorValue:number, bonusIcon:string, bonusValue:string)
-    local keyEntryInstance:table = m_KeyStackIM:GetInstance();
+    local keyEntryInstance:table = g_KeyStackIM:GetInstance();
 
     -- Update key text
     keyEntryInstance.KeyLabel:SetText(Locale.Lookup(textString));
@@ -250,16 +264,15 @@ end
 
 -- ===========================================================================
 function OnLensLayerOn( layerNum:number )
-    if layerNum == LensLayers.HEX_COLORING_RELIGION then
+    if layerNum == m_HexColoringReligion then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_RELIGION_LENS")));
         ShowReligionLensKey();
-    elseif layerNum == LensLayers.HEX_COLORING_CONTINENT then
+    elseif layerNum == m_HexColoringContinent then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CONTINENT_LENS")));
         Controls.KeyPanel:SetHide(true);
         ShowContinentLensKey();
-    elseif layerNum == LensLayers.HEX_COLORING_APPEAL_LEVEL then
+    elseif layerNum == m_HexColoringAppeal then
         -- Check for mod lens
-        local lens = {}
         local lens = {}
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
         if lens ~= nil and lens[1] ~= "NONE" then
@@ -270,17 +283,20 @@ function OnLensLayerOn( layerNum:number )
                 ShowModLensKey(lens[1])
             end
         end
-    elseif layerNum == LensLayers.HEX_COLORING_GOVERNMENT then
+    elseif layerNum == m_HexColoringGovernment then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_GOVERNMENT_LENS")));
         ShowGovernmentLensKey();
-    elseif layerNum == LensLayers.HEX_COLORING_OWING_CIV then
+    elseif layerNum == m_HexColoringOwningCiv then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_OWNER_LENS")));
         ShowPoliticalLensKey();
-    elseif layerNum == LensLayers.HEX_COLORING_WATER_AVAILABLITY then
+    elseif layerNum == m_HexColoringWaterAvail then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_WATER_LENS")));
         ShowSettlerLensKey();
-    elseif layerNum == LensLayers.TOURIST_TOKENS then
+    elseif layerNum == m_TouristTokens then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_TOURISM_LENS")));
+        Controls.KeyPanel:SetHide(true);
+    elseif layerNum == m_EmpireDetails then
+        Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_EMPIRE_LENS")));
         Controls.KeyPanel:SetHide(true);
     end
 end
@@ -316,8 +332,5 @@ function InitializeModalLensPanel()
     Events.LensLayerOn.Add( OnLensLayerOn );
 
     LuaEvents.MinimapPanel_AddContinentColorPair.Add(OnAddContinentColorPair);
-
-    -- Mod Lens Support
-    LuaEvents.ModalLensPanel_AddLensEntry.Add( AddLensEntry )
 end
 InitializeModalLensPanel();

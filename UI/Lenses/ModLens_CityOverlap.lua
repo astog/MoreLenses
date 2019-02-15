@@ -4,7 +4,7 @@ local PANEL_OFFSET_Y:number = 32
 local PANEL_OFFSET_X:number = -5
 
 local LENS_NAME = "ML_CITYOVERLAP"
-local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
+local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- ===========================================================================
 --  Member Variables
@@ -83,7 +83,7 @@ local function SetCityOverlapLens()
     for i = 1, #plotEntries, 1 do
         local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i]);
         local color:number = UI.GetColorValue(colorLookup);
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, {plotEntries[i]}, color );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, {plotEntries[i]}, color );
     end
 end
 
@@ -111,12 +111,12 @@ local function SetRangeMouseLens(range)
 
     if (table.count(cityPlots) > 0) then
         local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1");
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, cityPlots, plotColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, cityPlots, plotColor );
     end
 
     if (table.count(normalPlot) > 0) then
         local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3");
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, normalPlot, plotColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, normalPlot, plotColor );
     end
 end
 

@@ -4,7 +4,7 @@ local PANEL_OFFSET_Y:number = 32
 local PANEL_OFFSET_X:number = -5
 
 local LENS_NAME = "ML_RESOURCE"
-local ML_LENS_LAYER = LensLayers.HEX_COLORING_APPEAL_LEVEL
+local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- ===========================================================================
 --  Member Variables
@@ -121,28 +121,23 @@ function SetResourceLens()
         end
     end
 
-    -- Dim other hexes
-    -- if table.count(ResourcePlots) > 0 then
-    --  UILens.SetLayerHexesArea( LensLayers.MAP_HEX_MASK, localPlayer, ResourcePlots );
-    -- end
-
     if table.count(ConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedLuxury, LuxConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedLuxury, LuxConnectedColor );
     end
     if table.count(ConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedStrategic, StratConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedStrategic, StratConnectedColor );
     end
     if table.count(ConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, ConnectedBonus, BonusConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedBonus, BonusConnectedColor );
     end
     if table.count(NotConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedLuxury, LuxNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedLuxury, LuxNConnectedColor );
     end
     if table.count(NotConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedStrategic, StratNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedStrategic, StratNConnectedColor );
     end
     if table.count(NotConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( LensLayers.HEX_COLORING_APPEAL_LEVEL, localPlayer, NotConnectedBonus, BonusNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedBonus, BonusNConnectedColor );
     end
 end
 
