@@ -426,7 +426,7 @@ local function Initialize()
     Controls.ShowLuxuryResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Luxury );
     Controls.ShowStrategicResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Strategic );
 
-    LuaEvents.ModLens_ReoffsetPanels.Add( OnReoffsetPanel );
+    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel );
     LuaEvents.ML_CloseLensPanels.Add( Close );
 end
 

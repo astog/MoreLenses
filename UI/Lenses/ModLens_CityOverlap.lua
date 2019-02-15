@@ -297,7 +297,7 @@ local function Initialize()
     Controls.OverlapLensMouseRange:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
     Controls.ShowLensOutsideBorder:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
 
-    LuaEvents.ModLens_ReoffsetPanels.Add( OnReoffsetPanel );
+    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel );
     LuaEvents.ML_CloseLensPanels.Add( Close );
 end
 
