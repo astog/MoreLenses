@@ -1225,7 +1225,7 @@ function ToggleModLens(buttonControl:table, lensName:string)
         UILens.SetActive("Appeal");
         RefreshInterfaceMode();
     else
-        m_shouldCloseLensMenu = false;
+        g_shouldCloseLensMenu = false;
         if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
             UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
         end
