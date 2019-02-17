@@ -9,6 +9,12 @@
     <AffectsSavedGames>0</AffectsSavedGames>
   </Properties>
 
+  <ActionCriteria>
+    <Criteria id="Expansion1">
+      <GameCoreInUse>Expansion1</GameCoreInUse>
+    </Criteria>
+  </ActionCriteria>
+
   <InGameActions>
      <AddUserInterfaces id="MORELENSES_LENSES_WPANEL">
       <Properties>
@@ -48,6 +54,15 @@
         <File>Base/Assets/UI/MinimapPanel.xml</File>
         <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
         <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
+      </Items>
+    </ImportFiles>
+
+    <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="Expansion1">
+      <Properties>
+        <LoadOrder>99</LoadOrder>
+      </Properties>
+      <Items>
+        <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
       </Items>
     </ImportFiles>
 
@@ -99,5 +114,6 @@
     <File>Lenses/ModLens_CityOverlap.lua</File>
     <File>Lenses/ModLens_Resource.xml</File>
     <File>Lenses/ModLens_Resource.lua</File>
+    <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
   </Files>
 </Mod>
