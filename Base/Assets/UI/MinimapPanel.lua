@@ -1014,26 +1014,11 @@ function OnInputHandler( pInputStruct:table )
         end
     end
 
-    HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
+    HandleMouseForModdedLens()
     --------------------------------------------------------------------------------------------------
 
     -- Skip all handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
-        if pInputStruct:GetKey() == Keys.VK_CONTROL then
-            if msg == KeyEvents.KeyDown then
-                m_CtrlDown = true
-
-                -- Reset cursor plot to recalculate HandleMouseForModdedLens
-                m_CurrentCursorPlotID = -1;
-                RecheckSettlerLens()
-            elseif msg == KeyEvents.KeyUp then
-                m_CtrlDown = false
-                RecheckSettlerLens()
-            end
-        end
-
-        HandleMouseForModdedLens(pInputStruct:GetX(), pInputStruct:GetY())
-
         -- Enable drag on LMB down
         if (msg == MouseEvents.LButtonDown or msg == MouseEvents.PointerDown) then
             local minix, miniy = GetMinimapMouseCoords( pInputStruct:GetX(), pInputStruct:GetY() );
@@ -1272,9 +1257,10 @@ function InitializeModLens()
     end
 end
 
-function HandleMouseForModdedLens( mousex:number, mousey:number )
-    -- Don't do anything if mouse is dragging
+function HandleMouseForModdedLens()
     if not m_isMouseDragging then
+        LuaEvents.ML_HandleMouse()
+
         -- Get plot under cursor
         local plotId = UI.GetCursorPlotID();
         if (not Map.IsPlot(plotId)) then
@@ -1303,13 +1289,10 @@ function HandleMouseForModdedLens( mousex:number, mousey:number )
                 local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
                 if unitType == "UNIT_SETTLER" then
                     RefreshSettlerLens();
-                -- else
-                --     print(unitType)
                 end
 
             -- Clear Settler lens, if not in modal screen
             elseif UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
-
                 ClearSettlerLens();
             end
         end

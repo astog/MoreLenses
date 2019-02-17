@@ -59,7 +59,7 @@
 
     <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="Expansion1">
       <Properties>
-        <LoadOrder>99</LoadOrder>
+        <LoadOrder>101</LoadOrder>
       </Properties>
       <Items>
         <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>

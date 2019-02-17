@@ -195,18 +195,18 @@ local function OnLensLayerOn(layerNum:number)
     end
 end
 
-local function OnInputHandler(pInputStruct:table)
+local function HandleMouse()
     -- Skip all if panel is hidden
     if m_isOpen then
         -- Get plot under cursor
         local plotId = UI.GetCursorPlotID();
         if (not Map.IsPlot(plotId)) then
-            return false
+            return
         end
 
         -- If the cursor plot has not changed don't refresh
         if (m_CurrentCursorPlotID == plotId) then
-            return false
+            return
         end
         m_CurrentCursorPlotID = plotId
 
@@ -219,7 +219,6 @@ local function OnInputHandler(pInputStruct:table)
             end
         end
     end
-    return false
 end
 
 local function ChangeContainer()
@@ -299,6 +298,7 @@ local function Initialize()
 
     LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel );
     LuaEvents.ML_CloseLensPanels.Add( Close );
+    LuaEvents.ML_HandleMouse.Add( HandleMouse );
 end
 
 Initialize()
