@@ -15,6 +15,12 @@
     </Criteria>
   </ActionCriteria>
 
+  <ActionCriteria>
+    <Criteria id="Expansion2">
+      <GameCoreInUse>Expansion2</GameCoreInUse>
+    </Criteria>
+  </ActionCriteria>
+
   <InGameActions>
      <AddUserInterfaces id="MORELENSES_LENSES_WPANEL">
       <Properties>
@@ -63,6 +69,15 @@
       </Properties>
       <Items>
         <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
+      </Items>
+    </ImportFiles>
+
+    <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="Expansion2">
+      <Properties>
+        <LoadOrder>102</LoadOrder>
+      </Properties>
+      <Items>
+        <File>DLC/Expansion2/UI/Replacements/MinimapPanel.xml</File>
       </Items>
     </ImportFiles>
 
@@ -115,5 +130,6 @@
     <File>Lenses/ModLens_Resource.xml</File>
     <File>Lenses/ModLens_Resource.lua</File>
     <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
+    <File>DLC/Expansion2/UI/Replacements/MinimapPanel.xml</File>
   </Files>
 </Mod>
