@@ -1,11 +1,10 @@
-include( "Civ6Common.lua" ); -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
-include( "SupportFunctions" ); -- Split
+include( "Civ6Common.lua" ) -- GetCivilizationUniqueTraits, GetLeaderUniqueTraits
+include( "SupportFunctions" ) -- Split
 
-CITY_WORK_RANGE = 3
+CITY_WORK_RANGE = GlobalParameters.CITY_MIN_RANGE
 
-function plotWithinWorkingRange(playerID, plotIndex)
-    local localPlayerCities = Players[playerID]:GetCities()
-    local pPlot = Map.GetPlotByIndex(plotIndex)
+function plotWithinWorkingRange(pPlayer:table, pPlot:table)
+    local localPlayerCities = pPlayer:GetCities()
     local plotX = pPlot:GetX()
     local plotY = pPlot:GetY()
 
@@ -17,83 +16,56 @@ function plotWithinWorkingRange(playerID, plotIndex)
     return false
 end
 
-function plotHasImprovement(plot)
-    return plot:GetImprovementType() ~= -1;
+function plotHasImprovement(pPlot:table)
+    return pPlot:GetImprovementType() ~= -1
 end
 
-function plotHasResource(plot)
-    return plot:GetResourceType() ~= -1;
+function plotHasResource(pPlot:table)
+    return pPlot:GetResourceType() ~= -1
 end
 
-function plotHasFeature(plot)
-    return plot:GetFeatureType() ~= -1;
+function plotHasFeature(pPlot:table)
+    return pPlot:GetFeatureType() ~= -1
 end
 
-function plotHasWonder(plot)
-    return plot:GetWonderType() ~= -1;
+function plotHasWonder(pPlot:table)
+    return pPlot:GetWonderType() ~= -1
 end
 
-function plotHasDistrict(plot)
-    return plot:GetDistrictType() ~= -1;
+function plotHasDistrict(pPlot:table)
+    return pPlot:GetDistrictType() ~= -1
 end
 
-function plotHasNaturalWonder(plot)
-    local featureInfo = GameInfo.Features[plot:GetFeatureType()];
+function plotHasNaturalWonder(pPlot:table)
+    local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
     if featureInfo ~= nil and featureInfo.NaturalWonder then
         return true
     end
     return false
 end
 
-function plotResourceImprovable(plot)
-    local plotIndex = plot:GetIndex()
-    local playerID = Game.GetLocalPlayer()
-
-    -- If the plot has a resource, and the player has discovered it, get the improvement specific to that
-    if playerHasDiscoveredResource(playerID, plotIndex) then
-        local resourceInfo = GameInfo.Resources[plot:GetResourceType()]
-        if resourceInfo ~= nil then
-            local improvementType;
-            for validResourceInfo in GameInfo.Improvement_ValidResources() do
-                if validResourceInfo ~= nil and validResourceInfo.ResourceType == resourceInfo.ResourceType then
-                    improvementType = validResourceInfo.ImprovementType;
-                    break
-                end
-            end
-
-            if improvementType ~= nil then
-                local improvementInfo = GameInfo.Improvements[improvementType];
-                -- print("Plot " .. plotIndex .. " possibly can have " .. improvementType)
-                return playerCanHave(playerID, improvementInfo);
-            end
-        end
-    end
-
-    return false
-end
-
 -- General function to check if the player has xmlEntry.PrereqTech and xmlEntry.PrereqTech
 -- Also handles unique traits, and bonuses received from city states
-function playerCanHave(playerID, xmlEntry)
-    if xmlEntry == nil then return false; end;
+function playerCanHave(pPlayer:table, xmlEntry:table)
+    if xmlEntry == nil then return false end
 
-    local pPlayer = Players[playerID]
+    local playerID = pPlayer:GetID()
     if xmlEntry.PrereqTech ~= nil then
-        local playerTech:table = pPlayer:GetTechs();
+        local playerTech:table = pPlayer:GetTechs()
         local tech = GameInfo.Technologies[xmlEntry.PrereqTech]
         if tech ~= nil and (not playerTech:HasTech(tech.Index)) then
             -- print("Player does not have " .. tech.TechnologyType)
-            return false;
+            return false
         end
     end
 
     -- Does the player have the prereq civic if one exists
     if xmlEntry.PrereqCivic ~= nil then
-        local playerCulture = pPlayer:GetCulture();
+        local playerCulture = pPlayer:GetCulture()
         local civic = GameInfo.Civics[xmlEntry.PrereqCivic]
         if civic ~= nil and (not playerCulture:HasCivic(civic.Index)) then
             -- print("Player does not have " .. civic.CivicType)
-            return false;
+            return false
         end
     end
 
@@ -102,12 +74,12 @@ function playerCanHave(playerID, xmlEntry)
         -- print(xmlEntry.TraitType)
         local civilizationType = PlayerConfigurations[playerID]:GetCivilizationTypeName()
         local leaderType = PlayerConfigurations[playerID]:GetLeaderTypeName()
-        local isSuzerain:boolean = false;
+        local isSuzerain:boolean = false
 
         -- Special handler for city state traits.
-        local spitResult = Split(xmlEntry.TraitType, "_");
+        local spitResult = Split(xmlEntry.TraitType, "_")
         if spitResult[1] == "MINOR" then
-            local traitLeaderType;
+            local traitLeaderType
             for traitInfo in GameInfo.LeaderTraits() do
                 if traitInfo.TraitType == xmlEntry.TraitType then
                     traitLeaderType = traitInfo.LeaderType
@@ -117,14 +89,14 @@ function playerCanHave(playerID, xmlEntry)
 
             if traitLeaderType ~= nil then
                 -- print("traitLeaderType " .. traitLeaderType)
-                local traitLeaderID;
+                local traitLeaderID
 
                 -- See if this city state is present in the game
                 for minorID in ipairs(PlayerManager.GetAliveMinorIDs()) do
                     local minorLeaderType = PlayerConfigurations[minorID]:GetLeaderTypeName()
                     if minorLeaderType == traitLeaderType then
-                        traitLeaderID = minorID;
-                        break;
+                        traitLeaderID = minorID
+                        break
                     end
                 end
 
@@ -134,11 +106,11 @@ function playerCanHave(playerID, xmlEntry)
                         -- print("Player is not the suzerain of " .. minorLeaderType)
                         return false
                     else
-                        return true;
+                        return true
                     end
                 else
                     -- print(traitLeaderType .. " is not in this game")
-                    return false;
+                    return false
                 end
             end
         end
@@ -162,27 +134,27 @@ function playerCanHave(playerID, xmlEntry)
         end
 
     end
-
-    return true;
+    return true
 end
 
-function playerHasModifier(playerID, modifierType)
+function playerHasModifier(pPlayer:table, modifierType:string)
     -- Get civ, and leader
-    local civTypeName = PlayerConfigurations[playerID]:GetCivilizationTypeName();
-    local leaderTypeName = PlayerConfigurations[playerID]:GetLeaderTypeName();
+    local playerID = pPlayer:GetID()
+    local civTypeName = PlayerConfigurations[playerID]:GetCivilizationTypeName()
+    local leaderTypeName = PlayerConfigurations[playerID]:GetLeaderTypeName()
 
-    local civUA = GetCivilizationUniqueTraits(civTypeName);
-    local leaderUA = GetLeaderUniqueTraits(leaderTypeName);
+    local civUA = GetCivilizationUniqueTraits(civTypeName)
+    local leaderUA = GetLeaderUniqueTraits(leaderTypeName)
 
     for _, item in ipairs(civUA) do
         local traitType = civUA[1].TraitType
         -- print("Trait type: " .. traitType)
 
         -- Find the modifier ID
-        local modifierID;
+        local modifierID
         for row in GameInfo.TraitModifiers() do
             if row.TraitType == traitType then
-                local modifierID = row.ModifierId;
+                local modifierID = row.ModifierId
 
                 -- Find the matching modifier type
                 if modifierID ~= nil then
@@ -190,7 +162,7 @@ function playerHasModifier(playerID, modifierType)
                     for row in GameInfo.Modifiers() do
                         if row.ModifierId == modifierID and row.ModifierType == modifierType then
                             -- print("Player has a modifier for district")
-                            return true;
+                            return true
                         end
                     end
                 end
@@ -203,10 +175,10 @@ function playerHasModifier(playerID, modifierType)
         -- print("Trait type: " .. traitType)
 
         -- Find the modifier ID
-        local modifierID;
+        local modifierID
         for row in GameInfo.TraitModifiers() do
             if row.TraitType == traitType then
-                local modifierID = row.ModifierId;
+                local modifierID = row.ModifierId
 
                 -- Find the matching modifier type
                 if modifierID ~= nil then
@@ -214,7 +186,7 @@ function playerHasModifier(playerID, modifierType)
                     for row in GameInfo.Modifiers() do
                         if row.ModifierId == modifierID and row.ModifierType == modifierType then
                             -- print("Player has a modifier for district")
-                            return true;
+                            return true
                         end
                     end
                 end
@@ -224,38 +196,36 @@ function playerHasModifier(playerID, modifierType)
 end
 
 -- Uses same logic as the icon manager (returns true, if the resource icon is being displayed on the map)
-function playerHasDiscoveredResource(playerID, plotIndex)
-    local eObserverID = Game.GetLocalObserver();
-    local pLocalPlayerVis = PlayerVisibilityManager.GetPlayerVisibility(eObserverID);
+function playerHasDiscoveredResource(pPlayer:table, pPlot:table)
+    if plotHasResource(pPlot) then
+        local eObserverID = Game.GetLocalObserver();
+        local pLocalPlayerVis = PlayerVisibilityManager.GetPlayerVisibility(eObserverID);
+        local xmlEntry = GameInfo.Resources[pPlot:GetResourceType()]
 
-    local pPlot = Map.GetPlotByIndex(plotIndex);
-    -- Have a Resource?
-    local eResource = pLocalPlayerVis:GetLayerValue(VisibilityLayerTypes.RESOURCES, plotIndex);
-    local bHideResource = ( pPlot ~= nil and ( pPlot:GetDistrictType() > 0 or pPlot:IsCity() ) );
-    if (eResource ~= nil and eResource ~= -1 and not bHideResource ) then
-        return true;
+        -- Have a Resource?
+        local eResource = pLocalPlayerVis:GetLayerValue(VisibilityLayerTypes.RESOURCES, pPlot:GetIndex());
+        local bHideResource = ( pPlot ~= nil and ( pPlot:GetDistrictType() > 0 or pPlot:IsCity() ) )
+        if (eResource ~= nil and eResource ~= -1 and not bHideResource ) then
+            print(pPlot:GetIndex() .. " has " .. xmlEntry.ResourceType)
+            return true
+        end
     end
-
-    return false;
+    return false
 end
 
 -- Tells if the district on this plot is complete or not
-function districtComplete(playerID, plotIndex)
-    local pPlayer = Players[playerID];
-    local pPlot = Map.GetPlotByIndex(plotIndex);
-    local districtID = pPlot:GetDistrictID();
-
+function districtComplete(pPlayer:table, pPlot:table)
+    local districtID = pPlot:GetDistrictID()
     if districtID ~= nil and districtID >= 0 then
-        local pDistrict = pPlayer:GetDistricts():FindID(districtID);
+        local pDistrict = pPlayer:GetDistricts():FindID(districtID)
         if pDistrict ~= nil then
             return pDistrict:IsComplete()
         end
     end
-
-    return false;
+    return false
 end
 
-function GetUnitType( playerID: number, unitID : number )
+function GetUnitTypeFromIDs( playerID: number, unitID : number )
     if( playerID == Game.GetLocalPlayer() ) then
         local pPlayer   :table = Players[playerID];
         local pUnit     :table = pPlayer:GetUnits():FindID(unitID);
@@ -263,10 +233,17 @@ function GetUnitType( playerID: number, unitID : number )
             return GameInfo.Units[pUnit:GetUnitType()].UnitType;
         end
     end
-    return nil;
 end
 
-function has_value (tab, val)
+function getUnitType(pUnit:table)
+    local info = GameInfo.Units[pUnit:GetUnitType()]
+    if info ~= nil then
+        return info.UnitType
+    end
+    return nil
+end
+
+function has_value(tab, val)
     for _, value in ipairs (tab) do
         if value == val then
             return true
@@ -275,7 +252,7 @@ function has_value (tab, val)
     return false
 end
 
-function has_rInfo (tab, val)
+function has_rInfo(tab, val)
     for _, value in ipairs (tab) do
         if value.ResourceType == val then
             return true
@@ -287,7 +264,7 @@ end
 function find_and_remove(tab, val)
     for i, item in ipairs(tab) do
         if item == val then
-            table.remove(tab, i);
+            table.remove(tab, i)
             return
         end
     end
@@ -295,7 +272,7 @@ end
 
 function ndup_insert(tab, val)
     if not has_value(tab, val) then
-        table.insert(tab, val);
+        table.insert(tab, val)
     end
 end
 

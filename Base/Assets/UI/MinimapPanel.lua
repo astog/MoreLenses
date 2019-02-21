@@ -663,8 +663,9 @@ function SetSettlerLens()
         return
     end
 
-    local pPlot = Map.GetPlotByIndex(plotId)
+    local pPlot:table = Map.GetPlotByIndex(plotId)
     local localPlayer:number = Game.GetLocalPlayer();
+    local pPlayer:table = Players[localPlayer]
     local localPlayerVis:table = PlayersVisibility[localPlayer];
     local localPlayerCities = Players[localPlayer]:GetCities()
 
@@ -688,7 +689,7 @@ function SetSettlerLens()
         if localPlayerVis:IsRevealed(plotX, plotY) then
 
             table.insert(tNonDimPlots, plotID)
-            if plotWithinWorkingRange(localPlayer, plotID) then
+            if plotWithinWorkingRange(pPlayer, pRangePlot) then
                 table.insert(tOverlapPlots, plotID)
 
             elseif pRangePlot:IsImpassable() then
@@ -698,7 +699,7 @@ function SetSettlerLens()
                 table.insert(tUnusablePlots, plotID)
 
             elseif plotHasResource(pRangePlot) and
-                    playerHasDiscoveredResource(localPlayer, plotID) then
+                    playerHasDiscoveredResource(pPlayer, pRangePlot) then
 
                 table.insert(tResourcePlots, plotID)
             else
@@ -743,7 +744,7 @@ end
 function RecheckSettlerLens()
     local selectedUnit = UI.GetHeadSelectedUnit()
     if (selectedUnit ~= nil) then
-        local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
+        local unitType = getUnitType(selectedUnit);
         if (unitType == "UNIT_SETTLER") then
             RefreshSettlerLens()
             return
@@ -1164,13 +1165,17 @@ function SetModLens()
 end
 
 function SetModLensHexes(colorPlot:table)
-    -- UILens.ClearLayerHexes(m_HexColoringAppeal);
-    local localPlayer = Game.GetLocalPlayer()
-    for color, plots in pairs(colorPlot) do
-        if table.count(plots) > 0 then
-            -- print("Showing " .. table.count(plots) .. " plots with color " .. color)
-            UILens.SetLayerHexesColoredArea( m_HexColoringAppeal, localPlayer, plots, color);
+    if colorPlot ~= nil and table.count(colorPlot) > 0 then
+        -- UILens.ClearLayerHexes(m_HexColoringAppeal);
+        local localPlayer = Game.GetLocalPlayer()
+        for color, plots in pairs(colorPlot) do
+            if table.count(plots) > 0 then
+                -- print("Showing " .. table.count(plots) .. " plots with color " .. color)
+                UILens.SetLayerHexesColoredArea( m_HexColoringAppeal, localPlayer, plots, color);
+            end
         end
+    else
+        print("ERROR: Invalid colorPlot table")
     end
 end
 
@@ -1275,7 +1280,6 @@ function HandleMouseForModdedLens()
         m_CurrentCursorPlotID = plotId
 
         local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-        local selectedCity = UI.GetHeadSelectedCity()
         local selectedUnit = UI.GetHeadSelectedUnit()
 
         -- Handler for alternate settler lens
@@ -1286,7 +1290,7 @@ function HandleMouseForModdedLens()
 
         if ctrlDown then
             if selectedUnit ~= nil then
-                local unitType = GetUnitType(selectedUnit:GetOwner(), selectedUnit:GetID());
+                local unitType = getUnitType(selectedUnit);
                 if unitType == "UNIT_SETTLER" then
                     RefreshSettlerLens();
                 end

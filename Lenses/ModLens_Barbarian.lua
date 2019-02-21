@@ -5,12 +5,12 @@ local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 -- Barbarian Lens Support
 -- ===========================================================================
 
-local function plotHasBarbCamp(plot)
-    local improvementInfo = GameInfo.Improvements[plot:GetImprovementType()];
+local function plotHasBarbCamp(pPlot:table)
+    local improvementInfo = GameInfo.Improvements[pPlot:GetImprovementType()]
     if improvementInfo ~= nil and improvementInfo.ImprovementType == "IMPROVEMENT_BARBARIAN_CAMP" then
-        return true;
+        return true
     end
-    return false;
+    return false
 end
 
 -- ===========================================================================
@@ -18,18 +18,24 @@ end
 -- ===========================================================================
 
 local function OnGetColorPlotTable()
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local mapWidth, mapHeight = Map.GetGridSize()
+    local localPlayer   :number = Game.GetLocalPlayer()
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
 
-    local BarbarianColor = UI.GetColorValue("COLOR_BARBARIAN_BARB_LENS");
-    local colorPlot:table = {};
+    local BarbarianColor = UI.GetColorValue("COLOR_BARBARIAN_BARB_LENS")
+    local IgnoreColor = UI.GetColorValue("COLOR_MORELENSES_GREY")
+    local colorPlot:table = {}
     colorPlot[BarbarianColor] = {}
+    colorPlot[IgnoreColor] = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and plotHasBarbCamp(pPlot) then
-            table.insert(colorPlot[BarbarianColor], i);
+        local pPlot:table = Map.GetPlotByIndex(i)
+        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
+            if plotHasBarbCamp(pPlot) then
+                table.insert(colorPlot[BarbarianColor], i)
+            else
+                table.insert(colorPlot[IgnoreColor], i)
+            end
         end
     end
 
@@ -44,9 +50,9 @@ end
 
 local function ClearBarbarianLens()
     if UILens.IsLayerOn(ML_LENS_LAYER) then
-        UILens.ToggleLayerOff(ML_LENS_LAYER);
+        UILens.ToggleLayerOff(ML_LENS_LAYER)
     end
-    LuaEvents.MinimapPanel_SetActiveModLens("NONE");
+    LuaEvents.MinimapPanel_SetActiveModLens("NONE")
 end
 
 local function OnInitialize()

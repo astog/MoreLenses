@@ -12,27 +12,31 @@ local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 -- ===========================================================================
 
 local function OnGetColorPlotTable()
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local mapWidth, mapHeight = Map.GetGridSize()
+    local localPlayer   :number = Game.GetLocalPlayer()
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
 
-    local NaturalWonderColor  :number = UI.GetColorValue("COLOR_NATURAL_WONDER_LENS");
-    local PlayerWonderColor   :number = UI.GetColorValue("COLOR_PLAYER_WONDER_LENS");
-    local colorPlot:table = {};
+    local NaturalWonderColor  :number = UI.GetColorValue("COLOR_NATURAL_WONDER_LENS")
+    local PlayerWonderColor   :number = UI.GetColorValue("COLOR_PLAYER_WONDER_LENS")
+    local IgnoreColor = UI.GetColorValue("COLOR_MORELENSES_GREY")
+    local colorPlot:table = {}
     colorPlot[NaturalWonderColor] = {}
     colorPlot[PlayerWonderColor] = {}
+    colorPlot[IgnoreColor] = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
+        local pPlot:table = Map.GetPlotByIndex(i)
         if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
             -- check for player wonder.
             if plotHasWonder(pPlot) then
-                table.insert(colorPlot[PlayerWonderColor], i);
+                table.insert(colorPlot[PlayerWonderColor], i)
             else
                 -- Check for natural wonder
-                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()];
+                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
                 if featureInfo ~= nil and featureInfo.NaturalWonder then
                     table.insert(colorPlot[NaturalWonderColor], i)
+                else
+                    table.insert(colorPlot[IgnoreColor], i)
                 end
             end
         end
@@ -49,9 +53,9 @@ end
 
 local function ClearWonderLens()
     if UILens.IsLayerOn(ML_LENS_LAYER) then
-        UILens.ToggleLayerOff(ML_LENS_LAYER);
+        UILens.ToggleLayerOff(ML_LENS_LAYER)
     end
-    LuaEvents.MinimapPanel_SetActiveModLens("NONE");
+    LuaEvents.MinimapPanel_SetActiveModLens("NONE")
 end
 
 local function OnInitialize()

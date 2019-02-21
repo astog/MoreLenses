@@ -28,11 +28,11 @@ end
 local function ClearCityOverlapLens()
     print("Clearing " .. LENS_NAME)
     if UILens.IsLayerOn(ML_LENS_LAYER) then
-        UILens.ToggleLayerOff(ML_LENS_LAYER);
+        UILens.ToggleLayerOff(ML_LENS_LAYER)
     else
         print("Nothing to clear")
     end
-    LuaEvents.MinimapPanel_SetActiveModLens("NONE");
+    LuaEvents.MinimapPanel_SetActiveModLens("NONE")
 end
 ]]
 
@@ -50,47 +50,47 @@ end
 -- ===========================================================================
 
 local function SetCityOverlapLens()
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local mapWidth, mapHeight = Map.GetGridSize()
+    local localPlayer   :number = Game.GetLocalPlayer()
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
 
-    local plotEntries       :table = {};
-    local numCityEntries    :table = {};
+    local plotEntries       :table = {}
+    local numCityEntries    :table = {}
     local localPlayerCities = Players[localPlayer]:GetCities()
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
+        local pPlot:table = Map.GetPlotByIndex(i)
 
         if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
             if pPlot:GetOwner() == localPlayer or Controls.ShowLensOutsideBorder:IsChecked() then
-                local numCities = 0;
+                local numCities = 0
                 for _, pCity in localPlayerCities:Members() do
                     if Map.GetPlotDistance(pPlot:GetX(), pPlot:GetY(), pCity:GetX(), pCity:GetY()) <= m_cityOverlapRange then
-                        numCities = numCities + 1;
+                        numCities = numCities + 1
                     end
                 end
 
                 if numCities > 0 then
-                    numCities = clamp(numCities, 1, 8);
+                    numCities = clamp(numCities, 1, 8)
 
-                    table.insert(plotEntries, i);
-                    table.insert(numCityEntries, numCities);
+                    table.insert(plotEntries, i)
+                    table.insert(numCityEntries, numCities)
                 end
             end
         end
     end
 
     for i = 1, #plotEntries, 1 do
-        local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i]);
-        local color:number = UI.GetColorValue(colorLookup);
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, {plotEntries[i]}, color );
+        local colorLookup:string = "COLOR_GRADIENT8_" .. tostring(numCityEntries[i])
+        local color:number = UI.GetColorValue(colorLookup)
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, {plotEntries[i]}, color )
     end
 end
 
 local function SetRangeMouseLens(range)
-    local plotId = UI.GetCursorPlotID();
+    local plotId = UI.GetCursorPlotID()
     if (not Map.IsPlot(plotId)) then
-        return;
+        return
     end
 
     local pPlot = Map.GetPlotByIndex(plotId)
@@ -102,21 +102,21 @@ local function SetRangeMouseLens(range)
     for pAdjacencyPlot in PlotAreaSpiralIterator(pPlot, m_cityOverlapRange, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
         if localPlayerVis:IsRevealed(pAdjacencyPlot:GetX(), pAdjacencyPlot:GetY()) then
             if (pAdjacencyPlot:GetOwner() == localPlayer and pAdjacencyPlot:IsCity()) then
-                table.insert(cityPlots, pAdjacencyPlot:GetIndex());
+                table.insert(cityPlots, pAdjacencyPlot:GetIndex())
             else
-                table.insert(normalPlot, pAdjacencyPlot:GetIndex());
+                table.insert(normalPlot, pAdjacencyPlot:GetIndex())
             end
         end
     end
 
     if (table.count(cityPlots) > 0) then
-        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1");
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, cityPlots, plotColor );
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_1")
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, cityPlots, plotColor )
     end
 
     if (table.count(normalPlot) > 0) then
-        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3");
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, normalPlot, plotColor );
+        local plotColor:number = UI.GetColorValue("COLOR_GRADIENT8_3")
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, normalPlot, plotColor )
     end
 end
 
@@ -135,17 +135,17 @@ local function RefreshCityOverlapLens()
 end
 
 local function IncreseOverlapRange()
-    m_cityOverlapRange = m_cityOverlapRange + 1;
-    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange);
-    RefreshCityOverlapLens();
+    m_cityOverlapRange = m_cityOverlapRange + 1
+    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange)
+    RefreshCityOverlapLens()
 end
 
 local function DecreaseOverlapRange()
     if (m_cityOverlapRange > 0) then
-        m_cityOverlapRange = m_cityOverlapRange - 1;
+        m_cityOverlapRange = m_cityOverlapRange - 1
     end
-    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange);
-    RefreshCityOverlapLens();
+    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange)
+    RefreshCityOverlapLens()
 end
 
 local function Open()
@@ -154,10 +154,10 @@ local function Open()
 
     -- Reset settings
     m_cityOverlapRange = 6
-    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange);
-    Controls.OverlapLensMouseRange:SetCheck(false);
-    Controls.OverlapLensMouseNone:SetCheck(true);
-    Controls.ShowLensOutsideBorder:SetCheck(true);
+    Controls.OverlapRangeLabel:SetText(m_cityOverlapRange)
+    Controls.OverlapLensMouseRange:SetCheck(false)
+    Controls.OverlapLensMouseNone:SetCheck(true)
+    Controls.ShowLensOutsideBorder:SetCheck(true)
 end
 
 local function Close()
@@ -188,7 +188,7 @@ end
 local function OnLensLayerOn(layerNum:number)
     if layerNum == ML_LENS_LAYER then
         local lens = {}
-        LuaEvents.MinimapPanel_GetActiveModLens(lens);
+        LuaEvents.MinimapPanel_GetActiveModLens(lens)
         if lens[1] == LENS_NAME then
             RefreshCityOverlapLens()
         end
@@ -199,7 +199,7 @@ local function HandleMouse()
     -- Skip all if panel is hidden
     if m_isOpen then
         -- Get plot under cursor
-        local plotId = UI.GetCursorPlotID();
+        local plotId = UI.GetCursorPlotID()
         if (not Map.IsPlot(plotId)) then
             return
         end
@@ -278,27 +278,27 @@ local function Initialize()
 
     ContextPtr:SetInitHandler( OnInit )
     ContextPtr:SetShutdown( OnShutdown )
-    ContextPtr:SetInputHandler( OnInputHandler, true );
+    ContextPtr:SetInputHandler( OnInputHandler, true )
 
     Events.LoadScreenClose.Add(
         function()
             ChangeContainer()
-            LuaEvents.MinimapPanel_AddLensEntry(LENS_NAME, CityOverlapLensEntry);
-            LuaEvents.ModalLensPanel_AddLensEntry(LENS_NAME, CityOverlapLensModalPanelEntry);
+            LuaEvents.MinimapPanel_AddLensEntry(LENS_NAME, CityOverlapLensEntry)
+            LuaEvents.ModalLensPanel_AddLensEntry(LENS_NAME, CityOverlapLensModalPanelEntry)
         end
     )
-    Events.LensLayerOn.Add( OnLensLayerOn );
+    Events.LensLayerOn.Add( OnLensLayerOn )
 
     -- City Overlap Lens Setting
-    Controls.OverlapRangeUp:RegisterCallback( Mouse.eLClick, IncreseOverlapRange );
-    Controls.OverlapRangeDown:RegisterCallback( Mouse.eLClick, DecreaseOverlapRange );
-    Controls.OverlapLensMouseNone:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
-    Controls.OverlapLensMouseRange:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
-    Controls.ShowLensOutsideBorder:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens );
+    Controls.OverlapRangeUp:RegisterCallback( Mouse.eLClick, IncreseOverlapRange )
+    Controls.OverlapRangeDown:RegisterCallback( Mouse.eLClick, DecreaseOverlapRange )
+    Controls.OverlapLensMouseNone:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens )
+    Controls.OverlapLensMouseRange:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens )
+    Controls.ShowLensOutsideBorder:RegisterCallback( Mouse.eLClick, RefreshCityOverlapLens )
 
-    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel );
-    LuaEvents.ML_CloseLensPanels.Add( Close );
-    LuaEvents.ML_HandleMouse.Add( HandleMouse );
+    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel )
+    LuaEvents.ML_CloseLensPanels.Add( Close )
+    LuaEvents.ML_HandleMouse.Add( HandleMouse )
 end
 
 Initialize()

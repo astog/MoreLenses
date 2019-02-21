@@ -11,8 +11,8 @@ local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 -- ===========================================================================
 
 local m_isOpen:boolean = false
-local m_resourcesToHide:table = {};
-local m_resourceCategoryToHide:table = {};
+local m_resourcesToHide:table = {}
+local m_resourceCategoryToHide:table = {}
 
 -- ===========================================================================
 --  City Overlap Support functions
@@ -27,11 +27,11 @@ end
 local function ClearResourceLens()
     print("Clearing " .. LENS_NAME)
     if UILens.IsLayerOn(ML_LENS_LAYER) then
-        UILens.ToggleLayerOff(ML_LENS_LAYER);
+        UILens.ToggleLayerOff(ML_LENS_LAYER)
     else
         print("Nothing to clear")
     end
-    LuaEvents.MinimapPanel_SetActiveModLens("NONE");
+    LuaEvents.MinimapPanel_SetActiveModLens("NONE")
 end
 
 function RefreshResourceLens()
@@ -56,16 +56,18 @@ end
 -- ===========================================================================
 function SetResourceLens()
     -- print("Show Resource lens")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local mapWidth, mapHeight = Map.GetGridSize()
+    local localPlayer:number = Game.GetLocalPlayer()
+    local pPlayer:table = Players[localPlayer]
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
 
-    local LuxConnectedColor   :number = UI.GetColorValue("COLOR_LUXCONNECTED_RES_LENS");
-    local StratConnectedColor :number = UI.GetColorValue("COLOR_STRATCONNECTED_RES_LENS");
-    local BonusConnectedColor :number = UI.GetColorValue("COLOR_BONUSCONNECTED_RES_LENS");
-    local LuxNConnectedColor  :number = UI.GetColorValue("COLOR_LUXNCONNECTED_RES_LENS");
-    local StratNConnectedColor  :number = UI.GetColorValue("COLOR_STRATNCONNECTED_RES_LENS");
-    local BonusNConnectedColor  :number = UI.GetColorValue("COLOR_BONUSNCONNECTED_RES_LENS");
+    local LuxConnectedColor   :number = UI.GetColorValue("COLOR_LUXCONNECTED_RES_LENS")
+    local StratConnectedColor :number = UI.GetColorValue("COLOR_STRATCONNECTED_RES_LENS")
+    local BonusConnectedColor :number = UI.GetColorValue("COLOR_BONUSCONNECTED_RES_LENS")
+    local LuxNConnectedColor  :number = UI.GetColorValue("COLOR_LUXNCONNECTED_RES_LENS")
+    local StratNConnectedColor  :number = UI.GetColorValue("COLOR_STRATNCONNECTED_RES_LENS")
+    local BonusNConnectedColor  :number = UI.GetColorValue("COLOR_BONUSNCONNECTED_RES_LENS")
+    local IgnoreColor         :number = UI.GetColorValue("COLOR_MORELENSES_GREY")
 
     -- Resources to exclude in the "Resource Lens"
     local ResourceExclusionList:table = {
@@ -73,79 +75,93 @@ function SetResourceLens()
         "RESOURCE_SHIPWRECK"
     }
 
-    local ConnectedLuxury       = {};
-    local ConnectedStrategic    = {};
-    local ConnectedBonus        = {};
-    local NotConnectedLuxury    = {};
-    local NotConnectedStrategic = {};
-    local NotConnectedBonus     = {};
-    local ResourcePlots         = {};
+    local ConnectedLuxury       = {}
+    local ConnectedStrategic    = {}
+    local ConnectedBonus        = {}
+    local NotConnectedLuxury    = {}
+    local NotConnectedStrategic = {}
+    local NotConnectedBonus     = {}
+    local IgnorePlots           = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
+        local pPlot:table = Map.GetPlotByIndex(i)
 
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(localPlayer, i) then
-            local resourceType = pPlot:GetResourceType()
-            if resourceType ~= nil and resourceType >= 0 then
-                local resourceInfo = GameInfo.Resources[resourceType];
-                if resourceInfo ~= nil then
-
-                    -- Check if resource is not in exclusion list
-                    if not has_value(ResourceExclusionList, resourceInfo.ResourceType) and (not has_value(m_resourcesToHide, resourceInfo.ResourceType)) then
-                        table.insert(ResourcePlots, i);
-                        if resourceInfo.ResourceClassType == "RESOURCECLASS_BONUS" and
-                                not has_value(m_resourceCategoryToHide, "Bonus") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedBonus, i)
+        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
+            if playerHasDiscoveredResource(pPlayer, pPlot) then
+                local resourceType = pPlot:GetResourceType()
+                if resourceType ~= nil and resourceType >= 0 then
+                    local resourceInfo = GameInfo.Resources[resourceType]
+                    if resourceInfo ~= nil then
+                        -- Check if resource is not in exclusion list
+                        if not has_value(ResourceExclusionList, resourceInfo.ResourceType) and (not has_value(m_resourcesToHide, resourceInfo.ResourceType)) then
+                            if resourceInfo.ResourceClassType == "RESOURCECLASS_BONUS" and
+                                    not has_value(m_resourceCategoryToHide, "Bonus") then
+                                if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
+                                    table.insert(ConnectedBonus, i)
+                                else
+                                    table.insert(NotConnectedBonus, i)
+                                end
+                            elseif resourceInfo.ResourceClassType == "RESOURCECLASS_LUXURY" and
+                                    not has_value(m_resourceCategoryToHide, "Luxury") then
+                                if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
+                                    table.insert(ConnectedLuxury, i)
+                                else
+                                    table.insert(NotConnectedLuxury, i)
+                                end
+                            elseif resourceInfo.ResourceClassType == "RESOURCECLASS_STRATEGIC" and
+                                    not has_value(m_resourceCategoryToHide, "Strategic") then
+                                if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
+                                    table.insert(ConnectedStrategic, i)
+                                else
+                                    table.insert(NotConnectedStrategic, i)
+                                end
                             else
-                                table.insert(NotConnectedBonus, i)
+                                table.insert(IgnorePlots, i)
                             end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_LUXURY" and
-                                not has_value(m_resourceCategoryToHide, "Luxury") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedLuxury, i)
-                            else
-                                table.insert(NotConnectedLuxury, i)
-                            end
-                        elseif resourceInfo.ResourceClassType == "RESOURCECLASS_STRATEGIC" and
-                                not has_value(m_resourceCategoryToHide, "Strategic") then
-                            if plotHasImprovement(pPlot) and not pPlot:IsImprovementPillaged() then
-                                table.insert(ConnectedStrategic, i)
-                            else
-                                table.insert(NotConnectedStrategic, i)
-                            end
+                        else
+                            table.insert(IgnorePlots, i)
                         end
+                    else
+                        table.insert(IgnorePlots, i)
                     end
+                else
+                    table.insert(IgnorePlots, i)
                 end
+            else
+                table.insert(IgnorePlots, i)
             end
         end
     end
 
     if table.count(ConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedLuxury, LuxConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedLuxury, LuxConnectedColor )
     end
     if table.count(ConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedStrategic, StratConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedStrategic, StratConnectedColor )
     end
     if table.count(ConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedBonus, BonusConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, ConnectedBonus, BonusConnectedColor )
     end
     if table.count(NotConnectedLuxury) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedLuxury, LuxNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedLuxury, LuxNConnectedColor )
     end
     if table.count(NotConnectedStrategic) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedStrategic, StratNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedStrategic, StratNConnectedColor )
     end
     if table.count(NotConnectedBonus) > 0 then
-        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedBonus, BonusNConnectedColor );
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, NotConnectedBonus, BonusNConnectedColor )
+    end
+    if table.count(IgnorePlots) > 0 then
+        UILens.SetLayerHexesColoredArea( ML_LENS_LAYER, localPlayer, IgnorePlots, IgnoreColor )
     end
 end
 
 function RefreshResourcePicker()
     print("Show Resource Picker")
-    local mapWidth, mapHeight = Map.GetGridSize();
-    local localPlayer   :number = Game.GetLocalPlayer();
-    local localPlayerVis:table = PlayersVisibility[localPlayer];
+    local mapWidth, mapHeight = Map.GetGridSize()
+    local localPlayer:number = Game.GetLocalPlayer()
+    local pPlayer:table = Players[localPlayer]
+    local localPlayerVis:table = PlayersVisibility[localPlayer]
 
     -- Resources to exclude in the "Resource Lens"
     local ResourceExclusionList:table = {
@@ -158,12 +174,11 @@ function RefreshResourcePicker()
     local StrategicResources:table = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i);
-
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(localPlayer, i) then
+        local pPlot:table = Map.GetPlotByIndex(i)
+        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) and playerHasDiscoveredResource(pPlayer, pPlot) then
             local resourceType = pPlot:GetResourceType()
             if resourceType ~= nil and resourceType >= 0 then
-                local resourceInfo = GameInfo.Resources[resourceType];
+                local resourceInfo = GameInfo.Resources[resourceType]
                 if resourceInfo ~= nil then
                     -- Check if resource is not in exclusion list
                     if not has_value(ResourceExclusionList, resourceInfo.ResourceType) then
@@ -186,24 +201,24 @@ function RefreshResourcePicker()
         end
     end
 
-    Controls.BonusResourcePickStack:DestroyAllChildren();
-    Controls.LuxuryResourcePickStack:DestroyAllChildren();
-    Controls.StrategicResourcePickStack:DestroyAllChildren();
+    Controls.BonusResourcePickStack:DestroyAllChildren()
+    Controls.LuxuryResourcePickStack:DestroyAllChildren()
+    Controls.StrategicResourcePickStack:DestroyAllChildren()
 
     -- Bonus Resources
     if table.count(BonusResources) > 0 and
             not has_value(m_resourceCategoryToHide, "Bonus") then
         for i, resourceInfo in ipairs(BonusResources) do
             -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.BonusResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
+            local resourcePickInstance:table = {}
+            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.BonusResourcePickStack )
+            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name))
 
             if has_value(m_resourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
+                resourcePickInstance.ResourceCheckbox:SetCheck(false)
             end
 
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
+            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType) end)
         end
     end
 
@@ -212,15 +227,15 @@ function RefreshResourcePicker()
             not has_value(m_resourceCategoryToHide, "Luxury") then
         for i, resourceInfo in ipairs(LuxuryResources) do
             -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.LuxuryResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
+            local resourcePickInstance:table = {}
+            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.LuxuryResourcePickStack )
+            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name))
 
             if has_value(m_resourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
+                resourcePickInstance.ResourceCheckbox:SetCheck(false)
             end
 
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
+            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType) end)
         end
     end
 
@@ -229,23 +244,23 @@ function RefreshResourcePicker()
             not has_value(m_resourceCategoryToHide, "Strategic") then
         for i, resourceInfo in ipairs(StrategicResources) do
             -- print(Locale.Lookup(resourceInfo.Name))
-            local resourcePickInstance:table = {};
-            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.StrategicResourcePickStack );
-            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name));
+            local resourcePickInstance:table = {}
+            ContextPtr:BuildInstanceForControl( "ResourcePickEntry", resourcePickInstance, Controls.StrategicResourcePickStack )
+            resourcePickInstance.ResourceLabel:SetText("[ICON_" .. resourceInfo.ResourceType .. "]" .. Locale.Lookup(resourceInfo.Name))
 
             if has_value(m_resourcesToHide, resourceInfo.ResourceType) then
-                resourcePickInstance.ResourceCheckbox:SetCheck(false);
+                resourcePickInstance.ResourceCheckbox:SetCheck(false)
             end
 
-            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType); end);
+            resourcePickInstance.ResourceCheckbox:RegisterCallback(Mouse.eLClick, function() HandleResourceCheckbox(resourcePickInstance, resourceInfo.ResourceType) end)
         end
     end
 
     -- Cleanup
-    Controls.BonusResourcePickStack:CalculateSize();
-    Controls.LuxuryResourcePickStack:CalculateSize();
-    Controls.StrategicResourcePickStack:CalculateSize();
-    Controls.ResourcePickList:CalculateSize();
+    Controls.BonusResourcePickStack:CalculateSize()
+    Controls.LuxuryResourcePickStack:CalculateSize()
+    Controls.StrategicResourcePickStack:CalculateSize()
+    Controls.ResourcePickList:CalculateSize()
 end
 
 function ToggleResourceLens_Bonus()
@@ -254,12 +269,12 @@ function ToggleResourceLens_Bonus()
         ndup_insert(m_resourceCategoryToHide, "Bonus")
     else
         print("Show Bonus Resource")
-        find_and_remove(m_resourceCategoryToHide, "Bonus");
+        find_and_remove(m_resourceCategoryToHide, "Bonus")
     end
 
     -- Assuming resource lens is already applied
-    RefreshResourcePicker();
-    RefreshResourceLens();
+    RefreshResourcePicker()
+    RefreshResourceLens()
 end
 
 function ToggleResourceLens_Luxury()
@@ -268,12 +283,12 @@ function ToggleResourceLens_Luxury()
         ndup_insert(m_resourceCategoryToHide, "Luxury")
     else
         print("Show Luxury Resource")
-        find_and_remove(m_resourceCategoryToHide, "Luxury");
+        find_and_remove(m_resourceCategoryToHide, "Luxury")
     end
 
     -- Assuming resource lens is already applied
-    RefreshResourcePicker();
-    RefreshResourceLens();
+    RefreshResourcePicker()
+    RefreshResourceLens()
 end
 
 function ToggleResourceLens_Strategic()
@@ -282,12 +297,12 @@ function ToggleResourceLens_Strategic()
         ndup_insert(m_resourceCategoryToHide, "Strategic")
     else
         print("Show Strategic Resource")
-        find_and_remove(m_resourceCategoryToHide, "Strategic");
+        find_and_remove(m_resourceCategoryToHide, "Strategic")
     end
 
     -- Assuming resource lens is already applied
-    RefreshResourcePicker();
-    RefreshResourceLens();
+    RefreshResourcePicker()
+    RefreshResourceLens()
 end
 
 function HandleResourceCheckbox(pControl, resourceType)
@@ -307,7 +322,7 @@ function HandleResourceCheckbox(pControl, resourceType)
     end
 
     -- Assuming resource lens is already applied
-    RefreshResourceLens();
+    RefreshResourceLens()
 end
 
 -- ===========================================================================
@@ -348,7 +363,7 @@ end
 local function OnLensLayerOn(layerNum:number)
     if layerNum == ML_LENS_LAYER then
         local lens = {}
-        LuaEvents.MinimapPanel_GetActiveModLens(lens);
+        LuaEvents.MinimapPanel_GetActiveModLens(lens)
         if lens[1] == LENS_NAME then
             SetResourceLens()
         end
@@ -410,24 +425,24 @@ local function Initialize()
 
     ContextPtr:SetInitHandler( OnInit )
     ContextPtr:SetShutdown( OnShutdown )
-    ContextPtr:SetInputHandler( OnInputHandler, true );
+    ContextPtr:SetInputHandler( OnInputHandler, true )
 
     Events.LoadScreenClose.Add(
         function()
             ChangeContainer()
-            LuaEvents.MinimapPanel_AddLensEntry(LENS_NAME, ResourceLensEntry);
-            LuaEvents.ModalLensPanel_AddLensEntry(LENS_NAME, ResourceLensModalPanelEntry);
+            LuaEvents.MinimapPanel_AddLensEntry(LENS_NAME, ResourceLensEntry)
+            LuaEvents.ModalLensPanel_AddLensEntry(LENS_NAME, ResourceLensModalPanelEntry)
         end
     )
-    Events.LensLayerOn.Add( OnLensLayerOn );
+    Events.LensLayerOn.Add( OnLensLayerOn )
 
     -- Resource Lens Setting
-    Controls.ShowBonusResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Bonus );
-    Controls.ShowLuxuryResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Luxury );
-    Controls.ShowStrategicResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Strategic );
+    Controls.ShowBonusResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Bonus )
+    Controls.ShowLuxuryResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Luxury )
+    Controls.ShowStrategicResource:RegisterCallback( Mouse.eLClick, ToggleResourceLens_Strategic )
 
-    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel );
-    LuaEvents.ML_CloseLensPanels.Add( Close );
+    LuaEvents.ML_ReoffsetPanels.Add( OnReoffsetPanel )
+    LuaEvents.ML_CloseLensPanels.Add( Close )
 end
 
 Initialize()
