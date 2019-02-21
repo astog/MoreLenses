@@ -41,14 +41,23 @@
         <Context>InGame</Context>
       </Properties>
       <Items>
-        <File>Lenses/LensSupport.lua</File>
         <File>Lenses/ModLens_Builder.lua</File>
         <File>Lenses/ModLens_Scout.lua</File>
         <File>Lenses/ModLens_Archaeologist.lua</File>
         <File>Lenses/ModLens_Barbarian.lua</File>
-        <File>Lenses/ModLens_AdjacencyYield.lua</File>
         <File>Lenses/ModLens_Naturalist.lua</File>
         <File>Lenses/ModLens_Wonder.lua</File>
+      </Items>
+    </ImportFiles>
+
+    <ImportFiles id="MORELENSES_LENSES_BUILDER_CONIFG">
+      <Properties>
+        <LoadOrder>9</LoadOrder>
+        <Context>InGame</Context>
+      </Properties>
+      <Items>
+        <File>Lenses/LensSupport.lua</File>
+        <File>Lenses/ModLens_Builder_Config_Default.lua</File>
       </Items>
     </ImportFiles>
 
@@ -120,10 +129,10 @@
     <File>MoreLenses_Colors.sql</File>
     <File>Lenses/LensSupport.lua</File>
     <File>Lenses/ModLens_Builder.lua</File>
+    <File>Lenses/ModLens_Builder_Config_Default.lua</File>
     <File>Lenses/ModLens_Scout.lua</File>
     <File>Lenses/ModLens_Archaeologist.lua</File>
     <File>Lenses/ModLens_Barbarian.lua</File>
-    <File>Lenses/ModLens_AdjacencyYield.lua</File>
     <File>Lenses/ModLens_Naturalist.lua</File>
     <File>Lenses/ModLens_Wonder.lua</File>
     <File>Lenses/ModLens_CityOverlap.xml</File>
