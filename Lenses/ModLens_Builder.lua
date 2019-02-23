@@ -8,10 +8,12 @@ local m_FeatureColor        = UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS")
 local m_HillColor           = UI.GetColorValue("COLOR_HILL_BUILDER_LENS")
 local m_GenericColor        = UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS")
 
+local m_FallbackColor = m_NothingColor
+
 g_ModLenses_Builder_Config = {
     [m_NothingColor] = {},
-    [m_ResouceColor] = {},
     [m_DamagedColor] = {},
+    [m_ResouceColor] = {},
     [m_RecommendedColor] = {},
     [m_HillColor] = {},
     [m_FeatureColor] = {},
@@ -20,8 +22,8 @@ g_ModLenses_Builder_Config = {
 
 g_ModLenses_Builder_Priority = {
     m_NothingColor,
-    m_ResouceColor,
     m_DamagedColor,
+    m_ResouceColor,
     m_RecommendedColor,
     m_HillColor,
     m_FeatureColor,
@@ -43,11 +45,11 @@ local AUTO_APPLY_BUILDER_LENS:boolean = true
 
 local function OnGetColorPlotTable()
     local mapWidth, mapHeight = Map.GetGridSize()
-    local localPlayer   :number = Game.GetLocalPlayer()
+    local localPlayer:number = Game.GetLocalPlayer()
     local localPlayerVis:table = PlayersVisibility[localPlayer]
 
     local colorPlot:table = {}
-    colorPlot[m_GenericColor] = {}
+    colorPlot[m_FallbackColor] = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
         local pPlot:table = Map.GetPlotByIndex(i)
@@ -64,7 +66,6 @@ local function OnGetColorPlotTable()
                                     colorPlot[ruleColor] = {}
                                 end
 
-                                print(i .. " " .. ruleColor)
                                 table.insert(colorPlot[ruleColor], i)
                                 bPlotColored = true
                                 break
@@ -79,7 +80,7 @@ local function OnGetColorPlotTable()
             end
 
             if not bPlotColored and pPlot:GetOwner() == localPlayer then
-                table.insert(colorPlot[m_GenericColor], i)
+                table.insert(colorPlot[m_FallbackColor], i)
             end
         end
     end

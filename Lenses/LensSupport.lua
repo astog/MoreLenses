@@ -206,7 +206,7 @@ function playerHasDiscoveredResource(pPlayer:table, pPlot:table)
         local eResource = pLocalPlayerVis:GetLayerValue(VisibilityLayerTypes.RESOURCES, pPlot:GetIndex());
         local bHideResource = ( pPlot ~= nil and ( pPlot:GetDistrictType() > 0 or pPlot:IsCity() ) )
         if (eResource ~= nil and eResource ~= -1 and not bHideResource ) then
-            print(pPlot:GetIndex() .. " has " .. xmlEntry.ResourceType)
+            -- print(pPlot:GetIndex() .. " has " .. xmlEntry.ResourceType)
             return true
         end
     end

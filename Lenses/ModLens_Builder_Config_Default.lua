@@ -67,83 +67,154 @@ local function playerCanImproveFeature(pPlayer:table, pPlot:table)
             if validFeatureInfo ~= nil and validFeatureInfo.FeatureType == featureInfo.FeatureType then
                 improvementType = validFeatureInfo.ImprovementType
                 improvementInfo = GameInfo.Improvements[improvementType]
-                if improvementInfo ~= nil and playerCanHave(pPlayer, improvementInfo) then
-                        return true
+                if improvementInfo ~= nil and BuilderCanConstruct(improvementInfo) and playerCanHave(pPlayer, improvementInfo) then
+                    print("can have " .. improvementType)
+                    return true
                 end
             end
         end
     end
+    return false
 end
 
+
+local function plotCountAdjSeaResource(pPlayer:table, pPlot:table)
+    local cnt = 0
+    for pAdjPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+        if pAdjPlot:IsWater() and plotHasResource(pAdjPlot) and playerHasDiscoveredResource(pPlayer, pAdjPlot) then
+            cnt = cnt + 1
+        end
+    end
+    return cnt
+end
+
+local function plotHasAdjBonusOrLuxury(pPlayer:table, pPlot:table)
+    for pAdjPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+        if plotHasResource(pAdjPlot) and playerHasDiscoveredResource(pPlayer, pAdjPlot) then
+            -- Check if the resource is luxury or strategic
+            resInfo = GameInfo.Resources[pAdjPlot:GetResourceType()]
+            if resInfo ~= nil and (resInfo.ResourceClassType == "RESOURCECLASS_BONUS" or
+                    resInfo.ResourceClassType == "RESOURCECLASS_LUXURY") then
+
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function plotCountAdjTerrain(pPlayer:table, pPlot:table)
+    local playerVis:table = PlayersVisibility[pPlayer:GetID()]
+    local cnt:number = 0
+    for pAdjPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+        if playerVis.IsRevealed(pAdjPlot:GetX(), pAdjPlot:GetY()) and not pAdjPlot:IsWater() then
+            cnt = cnt + 1
+        end
+    end
+    return cnt
+end
 
 -- Incomplete handler to check if that plot has a buildable improvement
 -- FIXME: Does not check requirements properly so some improvements pass through, example: fishery
 local function plotCanHaveImprovement(pPlayer:table, pPlot:table)
-    for improvementInfo in GameInfo.Improvements() do
-        if improvementInfo ~= nil and improvementInfo.Buildable then
+    for imprRow in GameInfo.Improvements() do
+        if imprRow ~= nil and imprRow.Buildable then
 
             -- Is it an improvement buildable by a builder
             -- Does the player the prereq techs and civis
-            if BuilderCanConstruct(improvementInfo) and playerCanHave(pPlayer, improvementInfo) then
-                local improvementValid:boolean = false
+            -- Does the land/coast/sea requirement match
+            if BuilderCanConstruct(imprRow) and playerCanHave(pPlayer, imprRow) then
+                if (imprRow.Coast and pPlot:IsCoastalLand()) or
+                        (imprRow.Domain == "DOMAIN_LAND" and (not pPlot:IsWater())) or
+                        (imprRow.Domain == "DOMAIN_SEA" and pPlot:IsWater()) then
 
-                -- Check for valid feature
-                for validFeatureInfo in GameInfo.Improvement_ValidFeatures() do
-                    if validFeatureInfo ~= nil and validFeatureInfo.ImprovementType == improvementInfo.ImprovementType then
-                        -- Does this plot have this feature?
-                        local featureInfo = GameInfo.Features[validFeatureInfo.FeatureType]
-                        if featureInfo ~= nil and pPlot:GetFeatureType() == featureInfo.Index then
-                            if playerCanHave(pPlayer, featureInfo) and playerCanHave(pPlayer, validFeatureInfo) then
-                                print("(feature) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                improvementValid = true
+                    local improvementValid:boolean = false
+
+                    -- Check for valid feature
+                    for row in GameInfo.Improvement_ValidFeatures() do
+                        if row ~= nil and row.ImprovementType == imprRow.ImprovementType then
+                            -- Does this plot have this feature?
+                            local featureInfo = GameInfo.Features[row.FeatureType]
+                            if featureInfo ~= nil and pPlot:GetFeatureType() == featureInfo.Index then
+                                if playerCanHave(pPlayer, featureInfo) and playerCanHave(pPlayer, row) then
+                                    -- print("(feature) Plot " .. pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
+                                    improvementValid = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+
+                    -- Check for valid terrain
+                    if not improvementValid then
+                        for row in GameInfo.Improvement_ValidTerrains() do
+                            if row ~= nil and row.ImprovementType == imprRow.ImprovementType then
+                                -- Does this plot have this terrain?
+                                local terrainInfo = GameInfo.Terrains[row.TerrainType]
+                                if terrainInfo ~= nil and pPlot:GetTerrainType() == terrainInfo.Index then
+                                    if playerCanHave(pPlayer, terrainInfo) and playerCanHave(pPlayer, row)  then
+                                        -- print("(terrain) Plot " .. pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
+                                        improvementValid = true
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+
+                    -- Check for valid resource
+                    if not improvementValid then
+                        for row in GameInfo.Improvement_ValidResources() do
+                            if row ~= nil and row.ImprovementType == imprRow.ImprovementType then
+                                -- Does this plot have this terrain?
+                                local resourceInfo = GameInfo.Resources[row.ResourceType]
+                                if resourceInfo ~= nil and pPlot:GetResourceType() == resourceInfo.Index then
+                                    if playerCanHave(pPlayer, resourceInfo) and playerCanHave(pPlayer, row)  then
+                                        -- print("(resource) Plot " .. pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
+                                        improvementValid = true
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+
+                    -- Adjacent river (example Chateau)
+                    if improvementValid and imprRow.RequiresRiver and not pPlot:IsRiver() then
+                        -- print("failed adjacent river")
+                        imporvementValid = false
+                    end
+
+                    -- Adjacent Bonus or luxury (example mekewap)
+                    if improvementValid and imprRow.RequiresAdjacentBonusOrLuxury and
+                            not plotHasAdjBonusOrLuxury(pPlayer, pPlot) then
+                        improvementValid = false
+                        -- print("failed adjacent bonus or luxury")
+                    end
+
+                    -- Adjacent terrain requirement (example polder)
+                    if imporvementValid and imprRow.ValidAdjacentTerrainAmount ~= nil and imprRow.ValidAdjacentTerrainAmount > 0 then
+                        cnt = plotCountAdjTerrain(pPlayer, pPlot)
+                        if cnt < imprRow.ValidAdjacentTerrainAmount then
+                            improvementValid = false
+                            -- print("failed adjacent terrain")
+                        end
+                    end
+
+                    -- Same adjacent
+                    if improvementValid and not imprRow.SameAdjacentValid then
+                        for pAdjPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+                            if pAdjPlot:GetOwner() == pPlayer:GetID() and imprRow.Index == pAdjPlot:GetImprovementType() then
+                                -- print("failed same adjacent")
+                                improvementValid = false
                                 break
                             end
                         end
                     end
-                end
 
-                -- Check for valid terrain
-                if not improvementValid then
-                    for validTerrainInfo in GameInfo.Improvement_ValidTerrains() do
-                        if validTerrainInfo ~= nil and validTerrainInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local terrainInfo = GameInfo.Terrains[validTerrainInfo.TerrainType]
-                            if terrainInfo ~= nil and pPlot:GetTerrainType() == terrainInfo.Index then
-                                if playerCanHave(pPlayer, terrainInfo) and playerCanHave(pPlayer, validTerrainInfo)  then
-                                    print("(terrain) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true
-                                    break
-                                end
-                            end
-                        end
+                    if improvementValid then
+                        return true
                     end
-                end
-
-                -- Check for valid resource
-                if not improvementValid then
-                    for validResourceInfo in GameInfo.Improvement_ValidResources() do
-                        if validResourceInfo ~= nil and validResourceInfo.ImprovementType == improvementInfo.ImprovementType then
-                            -- Does this plot have this terrain?
-                            local resourceInfo = GameInfo.Resources[validResourceInfo.ResourceType]
-                            if resourceInfo ~= nil and pPlot:GetResourceType() == resourceInfo.Index then
-                                if playerCanHave(pPlayer, resourceInfo) and playerCanHave(pPlayer, validResourceInfo)  then
-                                    print("(resource) Plot " .. pPlot:GetIndex() .. " can have " .. improvementInfo.ImprovementType)
-                                    improvementValid = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Special check for coastal requirement
-                if improvementInfo.Coast and (not pPlot:IsCoastalLand()) then
-                    print(plotIndex .. " plot is not coastal")
-                    improvementValid = false
-                end
-
-                if improvementValid then
-                    return true
                 end
             end
         end
@@ -267,6 +338,19 @@ table.insert(g_ModLenses_Builder_Config[m_NothingColor],
     end)
 
 
+-- DAMAGED / PILLAGED
+--------------------------------------
+table.insert(g_ModLenses_Builder_Config[m_DamagedColor],
+    function(pPlot)
+        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) then
+            if plotHasImprovement(pPlot) and pPlot:IsImprovementPillaged() then
+                return m_DamagedColor
+            end
+        end
+        return -1
+    end)
+
+
 -- RESOURCE
 --------------------------------------
 table.insert(g_ModLenses_Builder_Config[m_ResourceColor],
@@ -284,19 +368,18 @@ table.insert(g_ModLenses_Builder_Config[m_ResourceColor],
                 else
                     return m_NothingColor
                 end
-            end
-        end
-        return -1
-    end)
-
-
--- DAMAGED / PILLAGED
---------------------------------------
-table.insert(g_ModLenses_Builder_Config[m_DamagedColor],
-    function(pPlot)
-        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) then
-            if plotHasImprovement(pPlot) and pPlot:IsImprovementPillaged() then
-                return m_DamagedColor
+            else
+                -- Check for outside of working range here since we want to ignore any plot that are outside of working range,
+                -- except extractable features and resources, since we can gain yields / resources
+                -- But if they are withing the working range, then we want to give priority to recommended, hills and then feature
+                if not plotWithinWorkingRange(pPlayer, pPlot) then
+                    if plotHasFeature(pPlot) and not plotHasImprovement(pPlot) and
+                            playerCanRemoveFeature(pPlayer, pPlot) then
+                        return m_FeatureColor
+                    else
+                        return m_NothingColor
+                    end
+                end
             end
         end
         return -1
@@ -347,9 +430,13 @@ table.insert(g_ModLenses_Builder_Config[m_RecommendedColor],
 table.insert(g_ModLenses_Builder_Config[m_RecommendedColor],
     function(pPlot)
         if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) and not plotHasImprovement(pPlot) then
-            local terrainInfo = GameInfo.Terrains[pPlot:GetTerrainType()]
+            -- If the plot has a feature, and we cannot extract it then ignore it
+            if plotHasFeature(pPlot) and not playerCanRemoveFeature(pPlayer, pPlot) then
+                return -1
+            end
+
             local mineInfo = GameInfo.Improvements["IMPROVEMENT_MINE"]
-            if terrainInfo.Hills and playerCanHave(pPlayer, mineInfo) then
+            if pPlot:IsHills() and playerCanHave(pPlayer, mineInfo) then
                 return m_HillColor
             end
         end
@@ -361,8 +448,10 @@ table.insert(g_ModLenses_Builder_Config[m_RecommendedColor],
 --------------------------------------
 table.insert(g_ModLenses_Builder_Config[m_FeatureColor],
     function(pPlot)
-        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) and plotHasFeature(pPlot) then
-            if playerCanRemoveFeature(pPlayer, pPlot) or playerCanImproveFeature(pPlayer, pPlot) then
+        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) and plotHasFeature(pPlot) and not plotHasImprovement(pPlot) then
+            if playerCanRemoveFeature(pPlayer, pPlot) then
+                return m_FeatureColor
+            elseif playerCanImproveFeature(pPlayer, pPlot) then
                 return m_FeatureColor
             else
                 return m_NothingColor
@@ -376,7 +465,7 @@ table.insert(g_ModLenses_Builder_Config[m_FeatureColor],
 --------------------------------------
 table.insert(g_ModLenses_Builder_Config[m_GenericColor],
     function(pPlot)
-        if pPlot:GetOwner() == localPlayer then
+        if pPlot:GetOwner() == localPlayer and not plotHasImprovement(pPlot) then
 
             -- Mountains, natural wonders, etec
             if plotHasDistrict(pPlot) then
