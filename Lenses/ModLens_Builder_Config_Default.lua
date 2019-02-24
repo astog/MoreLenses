@@ -124,7 +124,7 @@ local function playerCanImproveFeature(pPlayer:table, pPlot:table)
                 improvementType = validFeatureInfo.ImprovementType
                 improvementInfo = GameInfo.Improvements[improvementType]
                 if improvementInfo ~= nil and BuilderCanConstruct(improvementInfo) and playerCanHave(pPlayer, improvementInfo) then
-                    print("can have " .. improvementType)
+                    -- print("can have " .. improvementType)
                     return true
                 end
             end
@@ -277,23 +277,23 @@ local function plotCanHaveImprovement(pPlayer:table, pPlot:table)
                         if pGovernor ~= nil then
                             if imprRow.ImprovementType == "IMPROVEMENT_FISHERY" then
                                 if not pGovernor:HasPromotion(builderAquacultureHash) then
-                                    print("Aquaculture promotion not present")
+                                    -- print("Aquaculture promotion not present")
                                     improvementValid = false
                                 end
                             elseif imprRow.ImprovementType == "IMPROVEMENT_CITY_PARK" then
                                 if not pGovernor:HasPromotion(builderParksRecHash) then
-                                    print("Parks and Recreation promotion not present")
+                                    -- print("Parks and Recreation promotion not present")
                                     improvementValid = false
                                 end
                             end
                         else
-                            print("Builder Governor not present")
+                            -- print("Builder Governor not present")
                             improvementValid = false
                         end
                     end
 
                     if improvementValid then
-                        print(pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
+                        -- print(pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
                         return true
                     end
                 end
@@ -488,16 +488,22 @@ table.insert(g_ModLenses_Builder_Config[m_RecommendedColor],
                     return m_RecommendedColor
                 end
 
-                -- 2. Farms on floodplains or volcanic soil
+                -- 2. Floodplains
                 local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
-                if featureInfo.FeatureType == "FEATURE_VOLCANIC_SOIL" or featureInfo.FeatureType == "FEATURE_FLOODPLAINS_GRASSLAND"
-                        or featureInfo.FeatureType == "FEATURE_FLOODPLAINS_PLAINS" and playerCanHave(pPlayer, farmImprovInfo) then
+                local spitResult = Split(featureInfo.FeatureType, "_")
+                if #spitResult > 1 and spitResult[2] == "FLOODPLAINS" and playerCanHave(pPlayer, farmImprovInfo) then
+                    return m_RecommendedColor
+                end
 
+                local canHaveImpr:boolean = plotCanHaveImprovement(pPlayer, pPlot)
+
+                -- 3. Volconic soil
+                if featureInfo.FeatureType == "FEATURE_VOLCANIC_SOIL" and canHaveImpr then
                     return m_RecommendedColor
                 end
 
                 -- 3. Tile next to buffing wonder
-                if plotNextToBuffingWonder(pPlot) and plotCanHaveImprovement(pPlayer, pPlot) then
+                if plotNextToBuffingWonder(pPlot) and canHaveImpr then
                     return m_RecommendedColor
                 end
             end
