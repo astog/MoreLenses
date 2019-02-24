@@ -490,8 +490,9 @@ table.insert(g_ModLenses_Builder_Config[m_RecommendedColor],
 
                 -- 2. Farms on floodplains or volcanic soil
                 local farmImprovInfo = GameInfo.Improvements["IMPROVEMENT_FARM"]
-                local spitResult = Split(featureInfo.FeatureType, "_")
-                if (featureInfo.FeatureType == "FEATURE_VOLCANIC_SOIL" or spitResult[2] == "FLOODPLAINS") and playerCanHave(pPlayer, farmImprovInfo) then
+                if featureInfo.FeatureType == "FEATURE_VOLCANIC_SOIL" or featureInfo.FeatureType == "FEATURE_FLOODPLAINS_GRASSLAND"
+                        or featureInfo.FeatureType == "FEATURE_FLOODPLAINS_PLAINS" and playerCanHave(pPlayer, farmImprovInfo) then
+
                     return m_RecommendedColor
                 end
 
