@@ -4,6 +4,62 @@ include("LensSupport")
 -- Builder Lens Support
 -- ===========================================================================
 
+local builderGovernorIndex = nil
+local builderAquacultureHash = nil
+local builderParksRecHash = nil
+
+if GameInfo.Governors ~= nil then
+    for row in GameInfo.Governors() do
+        if row.GovernorType == "GOVERNOR_THE_BUILDER" then
+            builderGovernorIndex = row.Index
+            print("Governor Builder Index = " .. builderGovernorIndex)
+            break
+        end
+    end
+
+    for row in GameInfo.GovernorPromotions() do
+        if row.GovernorPromotionType == "GOVERNOR_PROMOTION_AQUACULTURE" then
+            builderAquacultureHash = row.Hash
+            print("Governor Builder Aquaculture hash = " .. builderAquacultureHash)
+            break
+        end
+    end
+
+    for row in GameInfo.GovernorPromotions() do
+        if row.GovernorPromotionType == "GOVERNOR_PROMOTION_PARKS_RECREATION" then
+            builderParksRecHash = row.Hash
+            print("Governor Builder Parks Rec hash = " .. builderParksRecHash)
+            break
+        end
+    end
+end
+
+-- From GovernorSupport.lua
+function GetAppointedGovernor(playerID:number, governorTypeIndex:number)
+    -- Make sure we're looking for a valid governor
+    if playerID < 0 or governorTypeIndex < 0 then
+        return nil;
+    end
+
+    -- Get the player governor list
+    local pGovernorDef = GameInfo.Governors[governorTypeIndex];
+    local pPlayer:table = Players[playerID];
+    local pPlayerGovernors:table = pPlayer:GetGovernors();
+    local bHasGovernors, tGovernorList = pPlayerGovernors:GetGovernorList();
+
+    -- Find and return the governor from the governor list
+    if pPlayerGovernors:HasGovernor(pGovernorDef.Hash) then
+        for i,governor in ipairs(tGovernorList) do
+            if governor:GetType() == governorTypeIndex then
+                return governor;
+            end
+        end
+    end
+
+    -- Return nil if this player has not appointed that governor
+    return nil;
+end
+
 local function isAncientClassicalWonder(wonderTypeID:number)
     for row in GameInfo.Buildings() do
         if row.Index == wonderTypeID then
@@ -212,7 +268,32 @@ local function plotCanHaveImprovement(pPlayer:table, pPlot:table)
                         end
                     end
 
+                    -- special handling for city park and fishery
+                    -- check if the builder governor has the required promotion
+                    if improvementValid and GameInfo.Governors ~= nil and
+                            (imprRow.ImprovementType == "IMPROVEMENT_FISHERY" or imprRow.ImprovementType == "IMPROVEMENT_CITY_PARK") then
+
+                        local pGovernor = GetAppointedGovernor(pPlayer:GetID(), builderGovernorIndex)
+                        if pGovernor ~= nil then
+                            if imprRow.ImprovementType == "IMPROVEMENT_FISHERY" then
+                                if not pGovernor:HasPromotion(builderAquacultureHash) then
+                                    print("Aquaculture promotion not present")
+                                    improvementValid = false
+                                end
+                            elseif imprRow.ImprovementType == "IMPROVEMENT_CITY_PARK" then
+                                if not pGovernor:HasPromotion(builderParksRecHash) then
+                                    print("Parks and Recreation promotion not present")
+                                    improvementValid = false
+                                end
+                            end
+                        else
+                            print("Builder Governor not present")
+                            improvementValid = false
+                        end
+                    end
+
                     if improvementValid then
+                        print(pPlot:GetIndex() .. " can have " .. imprRow.ImprovementType)
                         return true
                     end
                 end
