@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- KOREAN -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="ko_KR">
+      <Text>단위 렌즈를 토글하다</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="ko_KR">
       <Text>건설자</Text>

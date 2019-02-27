@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- POLISH -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="pl_PL">
+      <Text>Przełącz soczewkę jednostki</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="pl_PL">
       <Text>Budowniczowie</Text>

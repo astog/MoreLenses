@@ -88,13 +88,14 @@ local function OnGetColorPlotTable()
     return colorPlot
 end
 
+
 -- Called when a builder is selected
-local function ShowBuilderLens()
+function ShowBuilderLens()
     LuaEvents.MinimapPanel_SetActiveModLens(LENS_NAME)
     UILens.ToggleLayerOn(ML_LENS_LAYER)
 end
 
-local function ClearBuilderLens()
+function ClearBuilderLens()
     -- print("Clearing builder lens")
     if UILens.IsLayerOn(ML_LENS_LAYER) then
         UILens.ToggleLayerOff(ML_LENS_LAYER);
@@ -112,7 +113,7 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
                 end
             -- Deselection
             else
-                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
+                if unitType == "UNIT_BUILDER" then
                     ClearBuilderLens();
                 end
             end
@@ -124,7 +125,7 @@ local function OnUnitChargesChanged( playerID: number, unitID : number, newCharg
     local localPlayer = Game.GetLocalPlayer()
     if playerID == localPlayer then
         local unitType = GetUnitTypeFromIDs(playerID, unitID)
-        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
+        if unitType and unitType == "UNIT_BUILDER" then
             if newCharges == 0 then
                 ClearBuilderLens();
             end
@@ -137,7 +138,7 @@ local function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPl
     local localPlayer = Game.GetLocalPlayer()
     if owningPlayer == localPlayer then
         local unitType = GetUnitTypeFromIDs(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
+        if unitType and unitType == "UNIT_BUILDER" then
             ClearBuilderLens();
         end
     end
@@ -148,7 +149,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME and AUTO_APPLY_BUILDER_LENS then
+        if lens[1] == LENS_NAME then
             ClearBuilderLens();
         end
     end

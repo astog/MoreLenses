@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- ITALIAN -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="it_IT">
+      <Text>Cambia lente unità</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="it_IT">
       <Text>Costruttore</Text>

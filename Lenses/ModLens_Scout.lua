@@ -43,12 +43,12 @@ local function OnGetColorPlotTable()
 end
 
 -- Called when a scout is selected
-local function ShowScoutLens()
+function ShowScoutLens()
     LuaEvents.MinimapPanel_SetActiveModLens(LENS_NAME)
     UILens.ToggleLayerOn(ML_LENS_LAYER)
 end
 
-local function ClearScoutLens()
+function ClearScoutLens()
     if UILens.IsLayerOn(ML_LENS_LAYER) then
         UILens.ToggleLayerOff(ML_LENS_LAYER)
     end
@@ -56,8 +56,10 @@ local function ClearScoutLens()
 end
 
 local function RefreshScoutLens()
-    ClearScoutLens()
-    ShowScoutLens()
+    if UILens.IsLayerOn(ML_LENS_LAYER) then
+        ClearScoutLens()
+        ShowScoutLens()
+    end
 end
 
 local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
@@ -72,7 +74,7 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
                     end
                 -- Deselection
                 else
-                    if promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
+                    if promotionClass == "PROMOTION_CLASS_RECON" then
                         ClearScoutLens()
                     end
                 end
@@ -86,7 +88,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     if playerID == localPlayer then
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
-        if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
+        if lens[1] == LENS_NAME then
             ClearScoutLens()
         end
     end
@@ -97,7 +99,7 @@ local function OnUnitMoveComplete( playerID:number, unitID:number )
         local unitType = GetUnitTypeFromIDs(playerID, unitID)
         local promotionClass = GameInfo.Units[unitType].PromotionClass
         if unitType then
-            if promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
+            if promotionClass == "PROMOTION_CLASS_RECON" then
                 RefreshScoutLens()
             end
         end
@@ -108,7 +110,7 @@ local function OnGoodyHutReward( playerID:number )
     if playerID == Game.GetLocalPlayer() then
         local lens = {}
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
-        if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
+        if lens[1] == LENS_NAME then
             RefreshScoutLens()
         end
     end

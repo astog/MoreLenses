@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- SPANISH -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="es_ES">
+      <Text>Lente de unidad de palanca</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="es_ES">
       <Text>Constructor</Text>

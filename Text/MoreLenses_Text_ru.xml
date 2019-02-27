@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- RUSSIAN -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="ru_RU">
+      <Text>линза переключателя</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="ru_RU">
       <Text>Строитель</Text>

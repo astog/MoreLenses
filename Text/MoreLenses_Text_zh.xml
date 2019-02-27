@@ -3,6 +3,11 @@
   <LocalizedText>
     <!-- SIMPLIFY-CHINESE -->
 
+    <!-- Toggle Unit Lense Hotkey -->
+    <Replace Tag="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Language="zh_Hans_CN">
+      <Text>切换单元镜头</Text>
+    </Replace>
+
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="zh_Hans_CN">
       <Text>建造者</Text>

@@ -21,8 +21,40 @@
       <GameCoreInUse>Expansion2</GameCoreInUse>
     </Criteria>
   </ActionCriteria>
-
+  
+  <FrontEndActions>
+    <UpdateDatabase id="MORELENSES_TOGGLE_UNIT_LENSE">
+      <File>Lenses/ModLens_ToggleUnitLense.xml</File>
+    </UpdateDatabase>
+    <UpdateText id="MORELENSES_TEXT">
+      <Items>
+        <File>Text/MoreLenses_Text.xml</File>
+        <File>Text/MoreLenses_Text_de.xml</File>
+        <File>Text/MoreLenses_Text_fr.xml</File>
+        <File>Text/MoreLenses_Text_it.xml</File>
+        <File>Text/MoreLenses_Text_ko.xml</File>
+        <File>Text/MoreLenses_Text_pl.xml</File>
+        <File>Text/MoreLenses_Text_ru.xml</File>
+        <File>Text/MoreLenses_Text_zh.xml</File>
+        <File>Text/MoreLenses_Text_es.xml</File>
+      </Items>
+    </UpdateText>
+   </FrontEndActions>
+   
   <InGameActions>
+     <UpdateText id="MORELENSES_TEXT">
+      <Items>
+        <File>Text/MoreLenses_Text.xml</File>
+        <File>Text/MoreLenses_Text_de.xml</File>
+        <File>Text/MoreLenses_Text_fr.xml</File>
+        <File>Text/MoreLenses_Text_it.xml</File>
+        <File>Text/MoreLenses_Text_ko.xml</File>
+        <File>Text/MoreLenses_Text_pl.xml</File>
+        <File>Text/MoreLenses_Text_ru.xml</File>
+        <File>Text/MoreLenses_Text_zh.xml</File>
+        <File>Text/MoreLenses_Text_es.xml</File>
+      </Items>
+     </UpdateText>
      <AddUserInterfaces id="MORELENSES_LENSES_WPANEL">
       <Properties>
         <Context>InGame</Context>
@@ -30,8 +62,9 @@
       </Properties>
       <Items>
         <File>Lenses/ModLens_CityOverlap.xml</File>
-        <!-- ModLens_CityOverlap.lua implied -->
+        <!-- ModLens_CityOverlap.lua and ModLens_ToggleUnitLense.lua implied -->
         <File>Lenses/ModLens_Resource.xml</File>
+        <File>Lenses/ModLens_ToggleUnitLense.xml</File>
       </Items>
     </AddUserInterfaces>
 
@@ -70,6 +103,7 @@
         <File>Base/Assets/UI/MinimapPanel.xml</File>
         <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
         <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
+        <File>Base/Assets/UI/WorldView/SelectedUnit.lua</File>
       </Items>
     </ImportFiles>
 
@@ -96,20 +130,6 @@
         <File>MoreLenses_Colors.sql</File>
       </Items>
     </UpdateDatabase>
-
-    <LocalizedText id="MORELENSES_TEXT">
-      <Items>
-        <File>Text/MoreLenses_Text.xml</File>
-        <File>Text/MoreLenses_Text_de.xml</File>
-        <File>Text/MoreLenses_Text_fr.xml</File>
-        <File>Text/MoreLenses_Text_it.xml</File>
-        <File>Text/MoreLenses_Text_ko.xml</File>
-        <File>Text/MoreLenses_Text_pl.xml</File>
-        <File>Text/MoreLenses_Text_ru.xml</File>
-        <File>Text/MoreLenses_Text_zh.xml</File>
-        <File>Text/MoreLenses_Text_es.xml</File>
-      </Items>
-    </LocalizedText>
   </InGameActions>
 
   <Files>
@@ -126,6 +146,7 @@
     <File>Base/Assets/UI/MinimapPanel.xml</File>
     <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
     <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
+    <File>Base/Assets/UI/WorldView/SelectedUnit.lua</File>
     <File>MoreLenses_Colors.sql</File>
     <File>Lenses/LensSupport.lua</File>
     <File>Lenses/ModLens_Builder.lua</File>
@@ -135,6 +156,8 @@
     <File>Lenses/ModLens_Barbarian.lua</File>
     <File>Lenses/ModLens_Naturalist.lua</File>
     <File>Lenses/ModLens_Wonder.lua</File>
+    <File>Lenses/ModLens_ToggleUnitLense.xml</File>
+    <File>Lenses/ModLens_ToggleUnitLense.lua</File>
     <File>Lenses/ModLens_CityOverlap.xml</File>
     <File>Lenses/ModLens_CityOverlap.lua</File>
     <File>Lenses/ModLens_Resource.xml</File>

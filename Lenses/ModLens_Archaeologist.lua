@@ -64,12 +64,12 @@ local function OnGetColorPlotTable()
 end
 
 -- Called when an archaeologist is selected
-local function ShowArchaeologistLens()
+function ShowArchaeologistLens()
     LuaEvents.MinimapPanel_SetActiveModLens(LENS_NAME)
     UILens.ToggleLayerOn(ML_LENS_LAYER)
 end
 
-local function ClearArchaeologistLens()
+function ClearArchaeologistLens()
     if UILens.IsLayerOn(ML_LENS_LAYER) then
         UILens.ToggleLayerOff(ML_LENS_LAYER)
     end
@@ -86,7 +86,7 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
                 end
             -- Deselection
             else
-                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
+                if unitType == "UNIT_ARCHAEOLOGIST" then
                     ClearArchaeologistLens()
                 end
             end
@@ -99,7 +99,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME and AUTO_APPLY_ARCHEOLOGIST_LENS then
+        if lens[1] == LENS_NAME then
             ClearArchaeologistLens()
         end
     end
@@ -110,7 +110,7 @@ function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPlayer )
     local localPlayer = Game.GetLocalPlayer()
     if owningPlayer == localPlayer then
         local unitType = GetUnitTypeFromIDs(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
+        if unitType and unitType == "UNIT_ARCHAEOLOGIST" then
             ClearArchaeologistLens()
         end
     end

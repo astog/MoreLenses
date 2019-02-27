@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameInfo>
+	<InputActions>	
+		<Row ActionId="ModLens_ToggleUnitLense" Name="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" Description="LOC_OPTIONS_HOTKEY_LENSES_ML_TUL" CategoryId="LENSES" ContextId="World" />
+	</InputActions>
+	
+	<InputActionDefaultGestures>
+		<Row ActionId="ModLens_ToggleUnitLense" Index="0" GestureType="KBMouse" GestureData="LOC_OPTIONS_KEY_TAB"/>
+	</InputActionDefaultGestures>
+</GameInfo>
