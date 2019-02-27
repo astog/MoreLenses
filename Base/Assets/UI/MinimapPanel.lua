@@ -12,7 +12,7 @@ local m_LensButtonIM:table = InstanceManager:new("LensButtonInstance", "LensButt
 local m_CurrentModdedLensOn:string = nil
 
 -- Settler Lens Variables
-local m_SetterLensAlternateInverse:boolean = false;
+local m_AltSettlerLensOn:boolean = false;
 
 -- Non-standard lenses
 local m_AttackRange : number = UILens.CreateLensLayerHash("Attack_Range");
@@ -642,14 +642,11 @@ end
 -- Astog
 --------------------------------------------------------------------------------------------------
 function SetWaterHexes()
-    local ctrlDown = m_CtrlDown
-    if m_SetterLensAlternateInverse then
-        ctrlDown = not ctrlDown
-    end
-
-    if (not ctrlDown) or UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+    if (not m_CtrlDown) then
+        print("default")
         SetDefaultWaterHexes()
-    else -- A settler is selected, show alternate highlighting
+    else
+        print("alt")
         SetSettlerLens()
     end
 end
@@ -708,8 +705,6 @@ function SetSettlerLens()
         end
     end
 
-    -- Alt_HighlightPlots(tNonDimPlots)
-
     if #tOverlapPlots > 0 then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tOverlapPlots, iOverlapColor );
     end
@@ -728,16 +723,8 @@ function SetSettlerLens()
 end
 
 function RefreshSettlerLens()
-    ClearSettlerLens()
-    UILens.ToggleLayerOn( m_HexColoringWaterAvail );
-end
-
-function ClearSettlerLens()
-    -- Alt_ClearHighlightedPlots()
-
-    if UILens.IsLayerOn( m_HexColoringWaterAvail ) then
-        UILens.ToggleLayerOff( m_HexColoringWaterAvail );
-    end
+    UILens.ClearLayerHexes(m_HexColoringWaterAvail)
+    SetWaterHexes()
 end
 
 -- Checks to see if settler lens should be reapplied
@@ -751,7 +738,9 @@ function RecheckSettlerLens()
         end
     end
 
-    ClearSettlerLens()
+    if UILens.IsLayerOn( m_HexColoringWaterAvail ) then
+        UILens.ToggleLayerOff( m_HexColoringWaterAvail );
+    end
 end
 --------------------------------------------------------------------------------------------------
 
@@ -1004,14 +993,15 @@ function OnInputHandler( pInputStruct:table )
     --------------------------------------------------------------------------------------------------
     if pInputStruct:GetKey() == Keys.VK_CONTROL then
         if msg == KeyEvents.KeyDown then
-            m_CtrlDown = true
-
-            -- Reset cursor plot to recalculate HandleMouseForModdedLens
-            m_CurrentCursorPlotID = -1;
-            RecheckSettlerLens()
+            if not m_AltSettlerLensOn and UILens.IsLayerOn(m_HexColoringWaterAvail) then
+                print("ctrl down")
+                m_CurrentCursorPlotID = -1;
+                m_CtrlDown = true
+                m_AltSettlerLensOn = true
+            end
         elseif msg == KeyEvents.KeyUp then
+            m_CurrentCursorPlotID = -1;
             m_CtrlDown = false
-            RecheckSettlerLens()
         end
     end
 
@@ -1266,38 +1256,32 @@ function HandleMouseForModdedLens()
     if not m_isMouseDragging then
         LuaEvents.ML_HandleMouse()
 
-        -- Get plot under cursor
-        local plotId = UI.GetCursorPlotID();
-        if (not Map.IsPlot(plotId)) then
-            return;
-        end
+        -- If the alternate settler lens is on, check for plot change, or clear it
+        if m_AltSettlerLensOn then
+            -- Get plot under cursor
+            local plotId = UI.GetCursorPlotID();
+            if (not Map.IsPlot(plotId)) then
+                return;
+            end
 
-        -- If the cursor plot has not changed don't refresh
-        if (m_CurrentCursorPlotID == plotId) then
-            return
-        end
+            -- If the cursor plot has not changed don't refresh
+            if (m_CurrentCursorPlotID == plotId) then
+                return
+            end
 
-        m_CurrentCursorPlotID = plotId
+            m_CurrentCursorPlotID = plotId
 
-        local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
-        local selectedUnit = UI.GetHeadSelectedUnit()
+            local pPlot = Map.GetPlotByIndex(m_CurrentCursorPlotID)
+            local selectedUnit = UI.GetHeadSelectedUnit()
 
-        -- Handler for alternate settler lens
-        local ctrlDown = m_CtrlDown
-        if m_SetterLensAlternateInverse then
-            ctrlDown = not ctrlDown
-        end
-
-        if ctrlDown then
-            if selectedUnit ~= nil then
-                local unitType = getUnitType(selectedUnit);
-                if unitType == "UNIT_SETTLER" then
-                    RefreshSettlerLens();
-                end
-
-            -- Clear Settler lens, if not in modal screen
-            elseif UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS then
-                ClearSettlerLens();
+            if m_CtrlDown then
+                RefreshSettlerLens()
+            elseif UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+                RefreshSettlerLens()
+                m_AltSettlerLensOn = false
+            else
+                RecheckSettlerLens()
+                m_AltSettlerLensOn = false
             end
         end
     end

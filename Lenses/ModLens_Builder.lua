@@ -38,6 +38,8 @@ local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- Should the builder lens auto apply, when a builder is selected.
 local AUTO_APPLY_BUILDER_LENS:boolean = true
+-- Disables the nothing color being highlted by the builder
+local DISABLE_NOTHING_PLOT_COLOR:boolean = false
 
 -- ===========================================================================
 -- Exported functions
@@ -83,6 +85,10 @@ local function OnGetColorPlotTable()
                 table.insert(colorPlot[m_FallbackColor], i)
             end
         end
+    end
+
+    if DISABLE_NOTHING_PLOT_COLOR then
+        colorPlot[m_NothingColor] = nil
     end
 
     return colorPlot

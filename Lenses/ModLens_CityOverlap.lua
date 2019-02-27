@@ -6,12 +6,14 @@ local PANEL_OFFSET_X:number = -5
 local LENS_NAME = "ML_CITYOVERLAP"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
+local DEFAULT_OVERLAP_RANGE:number = 6
+
 -- ===========================================================================
 --  Member Variables
 -- ===========================================================================
 
 local m_isOpen:boolean = false
-local m_cityOverlapRange:number = 6
+local m_cityOverlapRange:number = DEFAULT_OVERLAP_RANGE
 local m_currentCursorPlotID:number = -1
 
 -- ===========================================================================
@@ -153,7 +155,7 @@ local function Open()
     m_isOpen = true
 
     -- Reset settings
-    m_cityOverlapRange = 6
+    m_cityOverlapRange = DEFAULT_OVERLAP_RANGE
     Controls.OverlapRangeLabel:SetText(m_cityOverlapRange)
     Controls.OverlapLensMouseRange:SetCheck(false)
     Controls.OverlapLensMouseNone:SetCheck(true)
