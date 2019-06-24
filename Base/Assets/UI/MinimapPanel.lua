@@ -61,6 +61,7 @@ local m_ToggleTourismLensId     = Input.GetActionId("LensTourism");
 local m_ToggleEmpireLensId      = Input.GetActionId("LensEmpire");
 local m_Toggle2DViewId          = Input.GetActionId("Toggle2DView");
 
+local m_OpenMapSearchId         = Input.GetActionId("OpenMapSearch");
 
 local m_isMouseDragEnabled      :boolean = true; -- Can the camera be moved by dragging on the minimap?
 local m_isMouseDragging         :boolean = false; -- Was LMB clicked inside the minimap, and has not been released yet?
@@ -172,9 +173,18 @@ end
 
 -- ===========================================================================
 function RefreshMinimapOptions()
-    Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
+    if GameCapabilities.HasCapability("CAPABILITY_DISPLAY_MINIMAP_YIELDS") then
+        Controls.ToggleYieldsButton:SetCheck(UserConfiguration.ShowMapYield());
+    else
+        Controls.ToggleYieldsButton:SetHide(true);
+    end
+
+    if GameCapabilities.HasCapability("CAPABILITY_DISPLAY_MINIMAP_RESOURCES") then
+        Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
+    else
+        Controls.ToggleResourcesButton:SetHide(true);
+    end
     Controls.ToggleGridButton:SetCheck(UserConfiguration.ShowMapGrid());
-    Controls.ToggleResourcesButton:SetCheck(UserConfiguration.ShowMapResources());
 end
 
 -- ===========================================================================
@@ -236,7 +246,8 @@ function CloseLensList()
     LuaEvents.ML_CloseLensPanels()
     --------------------------------------------------------------------------------------------------
 
-    if UI.GetInterfaceMode() == InterfaceModeTypes.VIEW_MODAL_LENS then
+    local uiCurrInterfaceMode:number = UI.GetInterfaceMode();
+    if uiCurrInterfaceMode == InterfaceModeTypes.VIEW_MODAL_LENS then
         UI.SetInterfaceMode(InterfaceModeTypes.SELECTION);
     end
 end
@@ -767,34 +778,35 @@ end
 
 -- ===========================================================================
 function SetGovernmentHexes()
-    local localPlayer : number = Game.GetLocalPlayer();
+    local localPlayer : number = Game.GetLocalPlayer(); 
     local localPlayerVis:table = PlayersVisibility[localPlayer];
     if (localPlayerVis ~= nil) then
         local players = Game.GetPlayers();
         for i, player in ipairs(players) do
-            local cities = players[i]:GetCities();
-            local culture = player:GetCulture();
-            local governmentId :number = culture:GetCurrentGovernment();
-            local GovernmentColor;
+            local pCities           :table = players[i]:GetCities();
+            local pCulture          :table = player:GetCulture();
+            local governmentId      :number = pCulture:GetCurrentGovernment();
+            local governmentColor   :number; 
 
-            if culture:IsInAnarchy() then
-                GovernmentColor = UI.GetColorValue("COLOR_CLEAR");
+            if pCulture:IsInAnarchy() then
+                governmentColor = UI.GetColorValue("COLOR_CLEAR");
             else
                 if(governmentId < 0) then
-                    GovernmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
+                    governmentColor = UI.GetColorValue("COLOR_GOVERNMENT_CITYSTATE");
                 else
-                    GovernmentColor = UI.GetColorValue("COLOR_" ..  GameInfo.Governments[governmentId].GovernmentType);
+                    local GovType:string = GameInfo.Governments[governmentId].GovernmentType;
+                    governmentColor = UI.GetColorValue("COLOR_"..GovType);
                 end
             end
 
-            for _, pCity in cities:Members() do
+            for _, pCity in pCities:Members() do
                 local plots:table = Map.GetCityPlots():GetPurchasedPlots(pCity);
-
+            
                 if(table.count(plots) > 0) then
-                    UILens.SetLayerHexesColoredArea( m_HexColoringGovernment, localPlayer, plots, GovernmentColor );
+                    UILens.SetLayerHexesColoredArea( m_HexColoringGovernment, localPlayer, plots, governmentColor );
                 end
             end
-        end
+        end 
     end
 end
 
@@ -925,6 +937,17 @@ function OnInputActionTriggered( actionId )
         UI.PlaySound("Play_UI_Click");
         Toggle2DView();
     end
+    if m_OpenMapSearchId ~= nil and (actionId == m_OpenMapSearchId) then
+        UI.PlaySound("Play_UI_Click");
+
+        if Controls.MapSearchPanel:IsHidden() then
+            Controls.MapSearchPanel:SetHide(false);
+            RealizeFlyouts(Controls.MapSearchPanel);
+        end
+
+        -- Take focus
+        LuaEvents.MapSearch_PanelOpened();
+    end
 end
 
 -- ===========================================================================
@@ -1028,19 +1051,6 @@ function OnInputHandler( pInputStruct:table )
 
     HandleMouseForModdedLens()
     --------------------------------------------------------------------------------------------------
-
-    -- Catch ctrl+f
-    if pInputStruct:GetKey() == Keys.F and pInputStruct:IsControlDown() then
-        -- Open the search panel if it is not already open
-        if Controls.MapSearchPanel:IsHidden() then
-            Controls.MapSearchPanel:SetHide(false);
-            RealizeFlyouts(Controls.MapSearchPanel);
-        end
-
-        -- Take focus
-        LuaEvents.MapSearch_PanelOpened();
-        return true;
-    end
 
     -- Skip all handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
@@ -1353,8 +1363,10 @@ function LateInitialize()
     if GameConfiguration.IsWorldBuilderEditor() then
         Controls.MapPinListButton:SetDisabled(true);
         Controls.MapPinListButton:SetHide(true);
-        Controls.FullscreenMapButton:SetDisabled(true);
-        Controls.FullscreenMapButton:SetHide(true);
+        Controls.FullscreenMapButton:SetDisabled(false);
+        Controls.FullscreenMapButton:SetHide(false);
+        Controls.FullscreenMapButton:RegisterCallback( Mouse.eLClick, ShowFullscreenMap );
+        Controls.FullscreenMapButton:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end);
         Controls.MapSearchButton:SetDisabled(true);
         Controls.MapSearchButton:SetHide(true);
         Controls.ToggleResourcesButton:SetHide(true);
@@ -1447,6 +1459,11 @@ function Initialize()
     LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
     LuaEvents.MinimapPanel_CloseAllLenses.Add( CloseAllLenses );
+    LuaEvents.CityPanelOverview_Opened.Add( function()
+        if not Controls.LensPanel:IsHidden() then
+            OnToggleLensList();
+        end
+    end );
 
     -- Astog
     --------------------------------------------------------------------------------------------------
