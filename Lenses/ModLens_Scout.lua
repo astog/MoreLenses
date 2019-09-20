@@ -82,9 +82,8 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
 end
 
 local function OnUnitRemovedFromMap( playerID: number, unitID : number )
-    local localPlayer = Game.GetLocalPlayer()
     local lens = {}
-    if playerID == localPlayer then
+    if playerID == Game.GetLocalPlayer() then
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
         if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
             ClearScoutLens()
@@ -94,10 +93,13 @@ end
 
 local function OnUnitMoveComplete( playerID:number, unitID:number )
     if playerID == Game.GetLocalPlayer() then
-        local unitType = GetUnitTypeFromIDs(playerID, unitID)
-        local promotionClass = GameInfo.Units[unitType].PromotionClass
-        if unitType then
-            if promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
+        local pPlayer = Game.Players[playerID]
+        local pUnit = pPlayer:GetUnits():FindID(unitID)
+        -- Ensure the unit is selected. Scout could be exploring automated
+        if UI.IsUnitSelected(pUnit) then
+            local unitType = GetUnitTypeFromIDs(playerID, unitID)
+            local promotionClass = GameInfo.Units[unitType].PromotionClass
+            if unitType and promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
                 RefreshScoutLens()
             end
         end
