@@ -93,11 +93,11 @@ end
 
 local function OnUnitMoveComplete( playerID:number, unitID:number )
     if playerID == Game.GetLocalPlayer() then
-        local pPlayer = Game.Players[playerID]
+        local pPlayer = Players[playerID]
         local pUnit = pPlayer:GetUnits():FindID(unitID)
         -- Ensure the unit is selected. Scout could be exploring automated
         if UI.IsUnitSelected(pUnit) then
-            local unitType = GetUnitTypeFromIDs(playerID, unitID)
+            local unitType = getUnitType(pUnit)
             local promotionClass = GameInfo.Units[unitType].PromotionClass
             if unitType and promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
                 RefreshScoutLens()
