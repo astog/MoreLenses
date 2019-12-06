@@ -27,6 +27,8 @@ local m_HexColoringContinent : number = UILens.CreateLensLayerHash("Hex_Coloring
 local m_HexColoringWaterAvail : number = UILens.CreateLensLayerHash("Hex_Coloring_Water_Availablity");
 local m_TouristTokens : number = UILens.CreateLensLayerHash("Tourist_Tokens");
 local m_EmpireDetails : number = UILens.CreateLensLayerHash("Empire_Details");
+local m_CulturalIdentityLens : number = UILens.CreateLensLayerHash("Cultural_Identity_Lens");
+local m_PowerLens : number = UILens.CreateLensLayerHash("Power_Lens");
 
 --============================================================================
 function Close()
@@ -185,6 +187,20 @@ function ShowPoliticalLensKey()
 end
 
 --============================================================================
+-- Change function name to avoid conflict
+function MOD_ShowPowerLensKey()
+    g_KeyStackIM:ResetInstances();
+
+    AddKeyEntry("LOC_POWER_LENS_KEY_POWER_SOURCE", UI.GetColorValue("COLOR_STANDARD_GREEN_MD"), nil, nil, true);
+    AddKeyEntry("LOC_POWER_LENS_KEY_FULLY_POWERED", UI.GetColorValue("COLOR_STANDARD_GREEN_MD"));
+    AddKeyEntry("LOC_POWER_LENS_KEY_UNDERPOWERED", UI.GetColorValue("COLOR_STANDARD_RED_MD"));
+    AddKeyEntry("LOC_POWER_LENS_KEY_POWER_RANGE", UI.GetColorValue("COLOR_YELLOW"), nil, nil, true);
+
+    Controls.KeyPanel:SetHide(false);
+    Controls.KeyScrollPanel:CalculateSize();
+end
+
+--============================================================================
 function ShowModLensKey(lensName:string)
     -- This is printed even if the modal panel is hidden
     -- print("Showing " .. lensName .. " modal panel")
@@ -301,6 +317,12 @@ function OnLensLayerOn( layerNum:number )
     elseif layerNum == m_EmpireDetails then
         Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_EMPIRE_LENS")));
         Controls.KeyPanel:SetHide(true);
+    elseif layerNum == m_CulturalIdentityLens then
+        Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_CULTURAL_IDENTITY_LENS")));
+        Controls.KeyPanel:SetHide(true);
+    elseif layerNum == m_PowerLens then
+        Controls.LensText:SetText(Locale.ToUpper(Locale.Lookup("LOC_HUD_POWER_LENS")));
+        MOD_ShowPowerLensKey();
     end
 end
 
