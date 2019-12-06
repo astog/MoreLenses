@@ -59,6 +59,9 @@
     <Row Tag="LOC_PANEL_CITYOVERLAP_RANGE">
       <Text>Range Mouse</Text>
     </Row>
+    <Row Tag="LOC_LABEL_CITYOVERLAP_RANGE">
+      <Text>RANGE</Text>
+    </Row>
     <Row Tag="LOC_TOOLTIP_CITYOVERLAP_RANGE">
       <Text>Shows tiles and highlights cities within range (set below) from the tile under the mouse.</Text>
     </Row>
