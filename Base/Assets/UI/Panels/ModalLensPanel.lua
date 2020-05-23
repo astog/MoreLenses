@@ -192,7 +192,7 @@ function ShowModLensKey(lensName:string)
     -- print("Showing " .. lensName .. " modal panel")
 
     if g_ModLensModalPanel[lensName] ~= nil then
-        g_KeyStackIM:ResetInstances();
+        ResetKeyStackIM();
         local info = g_ModLensModalPanel[lensName].Legend
         local lensTextKey = g_ModLensModalPanel[lensName].LensTextKey
         for _, hexColorAndKey in ipairs(info) do
@@ -337,6 +337,11 @@ function OnInit(isReload:boolean)
 end
 
 -- ===========================================================================
+function AddLensEntry(lensKey:string, lensEntry:table)
+    g_ModLensModalPanel[lensKey] = lensEntry
+end
+
+-- ===========================================================================
 function LateInitialize()
     if (Game.GetLocalPlayer() == -1) then
         return;
@@ -346,6 +351,9 @@ function LateInitialize()
 
     Events.InterfaceModeChanged.Add( OnInterfaceModeChanged );
     Events.LensLayerOn.Add( OnLensLayerOn );
+
+    -- Mod Lens Support
+    LuaEvents.ModalLensPanel_AddLensEntry.Add( AddLensEntry )
 
     LuaEvents.MinimapPanel_AddContinentColorPair.Add(OnAddContinentColorPair);
 end
