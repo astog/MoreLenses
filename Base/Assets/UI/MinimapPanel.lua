@@ -1,5 +1,6 @@
 -- Copyright 2016-2018, Firaxis Games
 include( "InstanceManager" );
+include("GameCapabilities");
 
 -- ===========================================================================
 --  MODDED LENS (by Astog)
@@ -456,6 +457,13 @@ function OnCollapseToggle()
         Controls.CompassArm:SetPercent(.5);
     end
     m_isCollapsed = not m_isCollapsed;
+    LuaEvents.WorldTracker_OnSetMinimapCollapsed(m_isCollapsed);
+    LuaEvents.ChatPanel_OnChatPanelRefresh();
+end
+
+-- ===========================================================================
+function SetMinimapForChat()
+    LuaEvents.WorldTracker_SetMinimapSize(Controls.MinimapContainer:GetSizeY() + 110);      -- sets the state of the minimap in WorldTracker to be used for chat resizing
 end
 
 -- ===========================================================================
@@ -552,8 +560,9 @@ function OnLensLayerOff( layerNum:number )
             layerNum == m_HexColoringGovernment     or
             layerNum == m_HexColoringOwningCiv)     then
         UI.PlaySound("UI_Lens_Overlay_Off");
-
-    -- Clear Modded Lens (Appeal lens included)
+    -- Astog
+    --------------------------------------------------------------------------------------------------
+    -- Clear Modded Lens Seperately (Appeal lens included)
     elseif layerNum == m_HexColoringAppeal then
         UILens.ClearLayerHexes( m_MapHexMask );
         if UI.GetInterfaceMode() ~= InterfaceModeTypes.VIEW_MODAL_LENS or (UI.GetHeadSelectedUnit() == nil) then
@@ -629,7 +638,6 @@ function SetOwningCivHexes()
 end
 
 -- ===========================================================================
-
 function SetDefaultWaterHexes()
     local FullWaterPlots:table = {};
     local CoastalWaterPlots:table = {};
@@ -644,6 +652,11 @@ function SetDefaultWaterHexes()
     local AverageColor      :number = UI.GetColorValue("COLOR_AVERAGE_APPEAL");
     local DisgustingColor   :number = UI.GetColorValue("COLOR_DISGUSTING_APPEAL");
     local localPlayer       :number = Game.GetLocalPlayer();
+
+    if HasTrait("TRAIT_CIVILIZATION_MAYAB", Game.GetLocalPlayer())then
+        BreathtakingColor = AverageColor;
+        CharmingColor = AverageColor;
+    end
 
     if(table.count(FullWaterPlots) > 0) then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, FullWaterPlots, BreathtakingColor );
@@ -1158,11 +1171,9 @@ function GetMinimapMouseCoords( mousex:number, mousey:number )
 
     return minix, miniy;
 end
-
 function IsMouseInMinimap( minix:number, miniy:number )
     return minix >= 0 and minix <= 1 and miniy >= 0 and miniy <= 1;
 end
-
 function TranslateMinimapToWorld( minix:number, miniy:number )
     local mapMinX, mapMinY, mapMaxX, mapMaxY = UI.GetMinimapWorldRect();
 
@@ -1178,11 +1189,10 @@ function TranslateMinimapToWorld( minix:number, miniy:number )
 end
 
 function OnInputHandler( pInputStruct:table )
-    local msg = pInputStruct:GetMessageType();
-
     -- Astog
     --------------------------------------------------------------------------------------------------
     if pInputStruct:GetKey() == Keys.VK_CONTROL then
+        local msg = pInputStruct:GetMessageType();
         if msg == KeyEvents.KeyDown then
             if not m_AltSettlerLensOn and UILens.IsLayerOn(m_HexColoringWaterAvail) then
                 m_CurrentCursorPlotID = -1;
@@ -1200,6 +1210,7 @@ function OnInputHandler( pInputStruct:table )
 
     -- Skip all handling when dragging is disabled or the minimap is collapsed
     if m_isMouseDragEnabled and not m_isCollapsed then
+        local msg = pInputStruct:GetMessageType( );
 
         -- Enable drag on LMB down
         if (msg == MouseEvents.LButtonDown or msg == MouseEvents.PointerDown) then
@@ -1311,9 +1322,27 @@ function OnTutorial_SwitchToWorldView()
 end
 
 function OnShutdown()
-    LuaEvents.Tutorial_SwitchToWorldView.Remove( OnTutorial_SwitchToWorldView );
-    LuaEvents.Tutorial_DisableMapDrag.Remove( OnTutorial_DisableMapDrag );
+
+    -- Game Events
+    Events.CityAddedToMap.Remove( OnCityAddedToMap );
+    Events.InputActionTriggered.Remove( OnInputActionTriggered );
+    Events.InterfaceModeChanged.Remove( OnInterfaceModeChanged );
+    Events.LensLayerOn.Remove( OnLensLayerOn );
+    Events.LensLayerOff.Remove( OnLensLayerOff );
+    Events.LocalPlayerChanged.Remove( OnLocalPlayerChanged );
+    Events.UserOptionsActivated.Remove( OnUserOptionsActivated );
+
+    LuaEvents.MinimapPanel_CloseAllLenses.Remove( CloseAllLenses );
+    LuaEvents.MinimapPanel_RefreshMinimapOptions.Remove( RefreshMinimapOptions );
+    LuaEvents.MinimapPanel_ToggleGrid.Remove( ToggleGrid );
     LuaEvents.NotificationPanel_ShowContinentLens.Remove(OnToggleContinentLensExternal);
+    LuaEvents.Tutorial_DisableMapDrag.Remove( OnTutorial_DisableMapDrag )
+    LuaEvents.Tutorial_SwitchToWorldView.Remove( OnTutorial_SwitchToWorldView );
+    LuaEvents.CityPanelOverview_Opened.Remove( function()
+        if not Controls.LensPanel:IsHidden() then
+            OnToggleLensList();
+        end
+    end );
 
     m_LensButtonIM:ResetInstances();
     m_MapOptionIM:ResetInstances();
@@ -1329,7 +1358,7 @@ function OnCityAddedToMap(playerID, cityID, x, y)
 end
 
 -- ===========================================================================
-function LateInitialize()
+function LateInitialize( isReload:boolean )
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     g_ContinentsCache = Map.GetContinentsInUse();
 
@@ -1352,7 +1381,7 @@ function LateInitialize()
     Controls.ContinentLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_CONTINENT"));
     Controls.EmpireLensButton:SetHide(not GameCapabilities.HasCapability("CAPABILITY_LENS_EMPIRE"));
     Controls.LensToggleStack:CalculateSize();
-    -- Astog: We want to disable lens panel resizing size it is too large to show without scroll panel
+    -- Astog: We want to disable lens panel resizing size. It is too large to show without scroll panel
     -- Controls.LensPanel:SetSizeY(Controls.LensToggleStack:GetSizeY() + LENS_PANEL_OFFSET);
 
     if GameCapabilities.HasCapability("CAPABILITY_SEARCH_GAME_MAP") then
@@ -1429,6 +1458,7 @@ function LateInitialize()
     Controls.WaterLensButton:RegisterCallback( Mouse.eLClick, ToggleWaterLens );
 
     -- Game Events
+    Events.CityAddedToMap.Add( OnCityAddedToMap );
     Events.InputActionTriggered.Add( OnInputActionTriggered );
     Events.InterfaceModeChanged.Add( OnInterfaceModeChanged );
     Events.LensLayerOn.Add( OnLensLayerOn );
@@ -1436,13 +1466,11 @@ function LateInitialize()
     Events.LocalPlayerChanged.Add( OnLocalPlayerChanged );
     Events.UserOptionsActivated.Add( OnUserOptionsActivated );
 
-    Events.CityAddedToMap.Add( OnCityAddedToMap );
-
 end
 
 -- ===========================================================================
 function OnInit( isReload:boolean )
-    LateInitialize();
+    LateInitialize( isReload );
 end
 
 function CloseAllLenses()
@@ -1477,12 +1505,12 @@ function Initialize()
         Controls.SwitcherImage:SetTextureOffsetVal(0,24);
     end
 
+    LuaEvents.MinimapPanel_CloseAllLenses.Add( CloseAllLenses );
+    LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
+    LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
     LuaEvents.NotificationPanel_ShowContinentLens.Add(OnToggleContinentLensExternal);
     LuaEvents.Tutorial_DisableMapDrag.Add( OnTutorial_DisableMapDrag );
     LuaEvents.Tutorial_SwitchToWorldView.Add( OnTutorial_SwitchToWorldView );
-    LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
-    LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
-    LuaEvents.MinimapPanel_CloseAllLenses.Add( CloseAllLenses );
     LuaEvents.CityPanelOverview_Opened.Add( function()
         if not Controls.LensPanel:IsHidden() then
             OnToggleLensList();
