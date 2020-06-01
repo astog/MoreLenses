@@ -75,9 +75,20 @@ local function OnGetColorPlotTable()
                         local iUnitOwner = pUnit:GetOwner()
                         local pUnitOwner = Players[iUnitOwner]
                         if pDiplomacy:IsAtWarWith(iUnitOwner) or pUnitOwner:IsBarbarian() then
+                            -- Since units movements points refresh at start of turn, you can have units with 0 movements left
+                            -- when the below function is called. Making the dangerous plots incorrect, since the next turn the dangerous
+                            -- unit can capture our builder
+                            --[[
                             local kMovePlots = UnitManager.GetReachableMovement(pUnit)
                             for _, iPlot in ipairs(kMovePlots) do
                                 dangerousPlotsHash[iPlot] = true
+                            end
+                            ]]
+                            -- So next best is to highlight the unit's plot and all adjacent plots to the radius of unit's max movement points
+                            for pAdjPlot in PlotAreaSpiralIterator(pPlot, pUnit:GetMaxMoves(), SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+                                if pAdjPlot:GetOwner() == localPlayer then
+                                    dangerousPlotsHash[pAdjPlot:GetIndex()] = true
+                                end
                             end
                         end
                     end
@@ -133,7 +144,6 @@ local function OnGetColorPlotTable()
     -- From hash build our colorPlot entry
     colorPlot[m_BuilderLens_PD] = {}
     for iPlot, _ in pairs(dangerousPlotsHash) do
-        print("Coloring " .. iPlot)
         table.insert(colorPlot[m_BuilderLens_PD], iPlot)
     end
 
