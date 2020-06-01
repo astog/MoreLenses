@@ -3,8 +3,8 @@
   <Properties>
     <Name>More Lenses</Name>
     <Stability>Beta</Stability>
-    <Teaser>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Teaser>
-    <Description>Adds many new lenses to the game for builder, archaeologists, city overlap, etc.</Description>
+    <Teaser>Adds many new lenses to the game for builder, resource, city overlap, etc.</Teaser>
+    <Description>Adds many new lenses to the game for builder, resource, city overlap, etc.</Description>
     <Authors>astog</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>
@@ -29,9 +29,10 @@
         <LoadOrder>11</LoadOrder>
       </Properties>
       <Items>
-        <File>Lenses/ModLens_CityOverlap.xml</File>
+        <File>Lenses/CityOverlap/ModLens_CityOverlap.xml</File>
         <!-- ModLens_CityOverlap.lua implied -->
-        <File>Lenses/ModLens_Resource.xml</File>
+        <File>Lenses/Resource/ModLens_Resource.xml</File>
+        <!-- ModLens_Resource.lua implied -->
       </Items>
     </AddUserInterfaces>
 
@@ -41,12 +42,12 @@
         <Context>InGame</Context>
       </Properties>
       <Items>
-        <File>Lenses/ModLens_Builder.lua</File>
-        <File>Lenses/ModLens_Scout.lua</File>
-        <File>Lenses/ModLens_Archaeologist.lua</File>
-        <File>Lenses/ModLens_Barbarian.lua</File>
-        <File>Lenses/ModLens_Naturalist.lua</File>
-        <File>Lenses/ModLens_Wonder.lua</File>
+        <File>Lenses/Builder/ModLens_Builder.lua</File>
+        <File>Lenses/Scout/ModLens_Scout.lua</File>
+        <File>Lenses/Archaeologist/ModLens_Archaeologist.lua</File>
+        <File>Lenses/Barbarian/ModLens_Barbarian.lua</File>
+        <File>Lenses/Naturalist/ModLens_Naturalist.lua</File>
+        <File>Lenses/Wonder/ModLens_Wonder.lua</File>
       </Items>
     </ImportFiles>
 
@@ -57,7 +58,8 @@
       </Properties>
       <Items>
         <File>Lenses/LensSupport.lua</File>
-        <File>Lenses/ModLens_Builder_Config_Default.lua</File>
+        <File>Lenses/Builder/BuilderLens_Support.lua</File>
+        <File>Lenses/Builder/BuilderLens_Config_Default.lua</File>
       </Items>
     </ImportFiles>
 
@@ -113,6 +115,7 @@
   </InGameActions>
 
   <Files>
+    <!-- Text -->
     <File>Text/MoreLenses_Text.xml</File>
     <File>Text/MoreLenses_Text_de.xml</File>
     <File>Text/MoreLenses_Text_fr.xml</File>
@@ -122,24 +125,28 @@
     <File>Text/MoreLenses_Text_ru.xml</File>
     <File>Text/MoreLenses_Text_zh.xml</File>
     <File>Text/MoreLenses_Text_es.xml</File>
+    <!-- Base UI -->
     <File>Base/Assets/UI/MinimapPanel.lua</File>
     <File>Base/Assets/UI/MinimapPanel.xml</File>
     <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
     <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
-    <File>MoreLenses_Colors.sql</File>
-    <File>Lenses/LensSupport.lua</File>
-    <File>Lenses/ModLens_Builder.lua</File>
-    <File>Lenses/ModLens_Builder_Config_Default.lua</File>
-    <File>Lenses/ModLens_Scout.lua</File>
-    <File>Lenses/ModLens_Archaeologist.lua</File>
-    <File>Lenses/ModLens_Barbarian.lua</File>
-    <File>Lenses/ModLens_Naturalist.lua</File>
-    <File>Lenses/ModLens_Wonder.lua</File>
-    <File>Lenses/ModLens_CityOverlap.xml</File>
-    <File>Lenses/ModLens_CityOverlap.lua</File>
-    <File>Lenses/ModLens_Resource.xml</File>
-    <File>Lenses/ModLens_Resource.lua</File>
     <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
     <File>DLC/Expansion2/UI/Replacements/MinimapPanel.xml</File>
+    <!-- Database -->
+    <File>MoreLenses_Colors.sql</File>
+    <!-- Lenses -->
+    <File>Lenses/LensSupport.lua</File>
+    <File>Lenses/Builder/ModLens_Builder.lua</File>
+    <File>Lenses/Builder/BuilderLens_Support.lua</File>
+    <File>Lenses/Builder/BuilderLens_Config_Default.lua</File>
+    <File>Lenses/Scout/ModLens_Scout.lua</File>
+    <File>Lenses/Archaeologist/ModLens_Archaeologist.lua</File>
+    <File>Lenses/Barbarian/ModLens_Barbarian.lua</File>
+    <File>Lenses/Naturalist/ModLens_Naturalist.lua</File>
+    <File>Lenses/Wonder/ModLens_Wonder.lua</File>
+    <File>Lenses/CityOverlap/ModLens_CityOverlap.xml</File>
+    <File>Lenses/CityOverlap/ModLens_CityOverlap.lua</File>
+    <File>Lenses/Resource/ModLens_Resource.xml</File>
+    <File>Lenses/Resource/ModLens_Resource.lua</File>
   </Files>
 </Mod>
