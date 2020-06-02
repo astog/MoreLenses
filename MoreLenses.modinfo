@@ -110,6 +110,7 @@
         <File>Text/MoreLenses_Text_ru.xml</File>
         <File>Text/MoreLenses_Text_zh.xml</File>
         <File>Text/MoreLenses_Text_es.xml</File>
+        <File>Text/MoreLenses_Text_pt_br.xml</File>
       </Items>
     </LocalizedText>
   </InGameActions>
@@ -125,6 +126,7 @@
     <File>Text/MoreLenses_Text_ru.xml</File>
     <File>Text/MoreLenses_Text_zh.xml</File>
     <File>Text/MoreLenses_Text_es.xml</File>
+    <File>Text/MoreLenses_Text_pt_br.xml</File>
     <!-- Base UI -->
     <File>base/assets/ui/minimappanel.lua</File>
     <File>base/assets/ui/minimappanel.xml</File>
