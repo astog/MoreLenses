@@ -1,37 +1,43 @@
 include("LensSupport")
 
-local m_NothingColor        = UI.GetColorValue("COLOR_NOTHING_BUILDER_LENS")
-local m_ResouceColor        = UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS")
-local m_DamagedColor        = UI.GetColorValue("COLOR_DAMAGED_BUILDER_LENS")
-local m_RecommendedColor    = UI.GetColorValue("COLOR_RECOMMENDED_BUILDER_LENS")
-local m_FeatureColor        = UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS")
-local m_HillColor           = UI.GetColorValue("COLOR_HILL_BUILDER_LENS")
-local m_GenericColor        = UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS")
+local m_BuilderLens_PN = UI.GetColorValue("COLOR_BUILDER_LENS_PN")
+local m_BuilderLens_PD = UI.GetColorValue("COLOR_BUILDER_LENS_PD")
+local m_BuilderLens_P1 = UI.GetColorValue("COLOR_BUILDER_LENS_P1")
+local m_BuilderLens_P2 = UI.GetColorValue("COLOR_BUILDER_LENS_P2")
+local m_BuilderLens_P3 = UI.GetColorValue("COLOR_BUILDER_LENS_P3")
+local m_BuilderLens_P4 = UI.GetColorValue("COLOR_BUILDER_LENS_P4")
+local m_BuilderLens_P5 = UI.GetColorValue("COLOR_BUILDER_LENS_P5")
+local m_BuilderLens_P6 = UI.GetColorValue("COLOR_BUILDER_LENS_P6")
+local m_BuilderLens_P7 = UI.GetColorValue("COLOR_BUILDER_LENS_P7")
 
-local m_FallbackColor = m_NothingColor
+local m_FallbackColor = m_BuilderLens_PN
 
-g_ModLenses_Builder_Config = {
-    [m_NothingColor] = {},
-    [m_DamagedColor] = {},
-    [m_ResouceColor] = {},
-    [m_RecommendedColor] = {},
-    [m_HillColor] = {},
-    [m_FeatureColor] = {},
-    [m_GenericColor] = {},
+local m_ModLenses_Builder_Priority = {
+    m_BuilderLens_PN,
+    m_BuilderLens_PD,
+    m_BuilderLens_P1,
+    m_BuilderLens_P2,
+    m_BuilderLens_P3,
+    m_BuilderLens_P4,
+    m_BuilderLens_P5,
+    m_BuilderLens_P6,
+    m_BuilderLens_P7,
 }
 
-g_ModLenses_Builder_Priority = {
-    m_NothingColor,
-    m_DamagedColor,
-    m_ResouceColor,
-    m_RecommendedColor,
-    m_HillColor,
-    m_FeatureColor,
-    m_GenericColor,
+g_ModLenses_Builder_Config = {
+    [m_BuilderLens_PN] = {},
+    [m_BuilderLens_PD] = {},
+    [m_BuilderLens_P1] = {},
+    [m_BuilderLens_P2] = {},
+    [m_BuilderLens_P3] = {},
+    [m_BuilderLens_P4] = {},
+    [m_BuilderLens_P5] = {},
+    [m_BuilderLens_P6] = {},
+    [m_BuilderLens_P7] = {},
 }
 
 -- Import config files for builder lens
-include("ModLens_Builder_Config_", true)
+include("BuilderLens_Config_", true)
 
 local LENS_NAME = "ML_BUILDER"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
@@ -48,22 +54,66 @@ local DISABLE_NOTHING_PLOT_COLOR:boolean = false
 local function OnGetColorPlotTable()
     local mapWidth, mapHeight = Map.GetGridSize()
     local localPlayer:number = Game.GetLocalPlayer()
+    local pPlayer:table = Players[localPlayer]
     local localPlayerVis:table = PlayersVisibility[localPlayer]
+    local pDiplomacy:table = pPlayer:GetDiplomacy()
 
     local colorPlot:table = {}
+    local dangerousPlotsHash:table = {}
     colorPlot[m_FallbackColor] = {}
 
     for i = 0, (mapWidth * mapHeight) - 1, 1 do
         local pPlot:table = Map.GetPlotByIndex(i)
-        if localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
-            bPlotColored = false
-            for _, color in ipairs(g_ModLenses_Builder_Priority) do
+        if localPlayerVis:IsVisible(pPlot:GetX(), pPlot:GetY()) then
+            local pUnitList = Map.GetUnitsAt(pPlot:GetIndex());
+            if pUnitList ~= nil then
+                for pUnit in pUnitList:Units() do
+                    local unitInfo:table = GameInfo.Units[pUnit:GetUnitType()]
+                    -- Only consider military units
+                    if (unitInfo.MakeTradeRoute == nil or unitInfo.MakeTradeRoute == false) and (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) then
+                        -- Check if we are at with the owner of this unit, or it is a barbarian
+                        local iUnitOwner = pUnit:GetOwner()
+                        local pUnitOwner = Players[iUnitOwner]
+                        if pDiplomacy:IsAtWarWith(iUnitOwner) or pUnitOwner:IsBarbarian() then
+                            -- Since units movements points refresh at start of turn, you can have units with 0 movements left
+                            -- when the below function is called. Making the dangerous plots incorrect, since the next turn the dangerous
+                            -- unit can capture our builder
+                            --[[
+                            local kMovePlots = UnitManager.GetReachableMovement(pUnit)
+                            for _, iPlot in ipairs(kMovePlots) do
+                                dangerousPlotsHash[iPlot] = true
+                            end
+                            ]]
+                            -- So next best is to highlight the unit's plot and all adjacent plots to the radius of unit's max movement points
+                            for pAdjPlot in PlotAreaSpiralIterator(pPlot, pUnit:GetMaxMoves(), SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+                                if pAdjPlot:GetOwner() == localPlayer then
+                                    dangerousPlotsHash[pAdjPlot:GetIndex()] = true
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    for i = 0, (mapWidth * mapHeight) - 1, 1 do
+        local pPlot:table = Map.GetPlotByIndex(i)
+        if dangerousPlotsHash[i] == nil and localPlayerVis:IsRevealed(pPlot:GetX(), pPlot:GetY()) then
+            local bPlotColored:boolean = false
+            for _, color in ipairs(m_ModLenses_Builder_Priority) do
                 config = g_ModLenses_Builder_Config[color]
                 if config ~= nil and table.count(config) > 0 then
                     for _, rule in ipairs(config) do
                         if rule ~= nil then
                             ruleColor = rule(pPlot)
                             if ruleColor ~= nil and ruleColor ~= -1 then
+                                -- Catch special flag that says to completely ignore coloring
+                                if ruleColor == -2 then
+                                    bPlotColored = true
+                                    break
+                                end
+
                                 if colorPlot[ruleColor] == nil then
                                     colorPlot[ruleColor] = {}
                                 end
@@ -89,6 +139,12 @@ local function OnGetColorPlotTable()
 
     if DISABLE_NOTHING_PLOT_COLOR then
         colorPlot[m_NothingColor] = nil
+    end
+
+    -- From hash build our colorPlot entry
+    colorPlot[m_BuilderLens_PD] = {}
+    for iPlot, _ in pairs(dangerousPlotsHash) do
+        table.insert(colorPlot[m_BuilderLens_PD], iPlot)
     end
 
     return colorPlot
@@ -184,11 +240,14 @@ if g_ModLensModalPanel ~= nil then
     g_ModLensModalPanel[LENS_NAME] = {}
     g_ModLensModalPanel[LENS_NAME].LensTextKey = "LOC_HUD_BUILDER_LENS"
     g_ModLensModalPanel[LENS_NAME].Legend = {
-        {"LOC_TOOLTIP_BUILDER_LENS_IMP",        UI.GetColorValue("COLOR_RESOURCE_BUILDER_LENS")},
-        {"LOC_TOOLTIP_RECOMFEATURE_LENS_HILL",  UI.GetColorValue("COLOR_RECOMMENDED_BUILDER_LENS")},
-        {"LOC_TOOLTIP_BUILDER_LENS_HILL",       UI.GetColorValue("COLOR_HILL_BUILDER_LENS")},
-        {"LOC_TOOLTIP_BUILDER_LENS_FEATURE",    UI.GetColorValue("COLOR_FEATURE_BUILDER_LENS")},
-        {"LOC_TOOLTIP_BUILDER_LENS_GENERIC",    UI.GetColorValue("COLOR_GENERIC_BUILDER_LENS")},
-        {"LOC_TOOLTIP_BUILDER_LENS_NOTHING",    UI.GetColorValue("COLOR_NOTHING_BUILDER_LENS")}
+        {"m_BuilderLens_PN", m_BuilderLens_PN},
+        {"m_BuilderLens_PD", m_BuilderLens_PD},
+        {"m_BuilderLens_P1", m_BuilderLens_P1},
+        {"m_BuilderLens_P2", m_BuilderLens_P2},
+        {"m_BuilderLens_P3", m_BuilderLens_P3},
+        {"m_BuilderLens_P4", m_BuilderLens_P4},
+        {"m_BuilderLens_P5", m_BuilderLens_P5},
+        {"m_BuilderLens_P6", m_BuilderLens_P6},
+        {"m_BuilderLens_P7", m_BuilderLens_P7},
     }
 end
