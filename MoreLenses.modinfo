@@ -11,14 +11,14 @@
   </Properties>
 
   <ActionCriteria>
-    <Criteria id="Expansion1">
-      <GameCoreInUse>Expansion1</GameCoreInUse>
+    <Criteria id="expansion1">
+      <GameCoreInUse>expansion1</GameCoreInUse>
     </Criteria>
   </ActionCriteria>
 
   <ActionCriteria>
-    <Criteria id="Expansion2">
-      <GameCoreInUse>Expansion2</GameCoreInUse>
+    <Criteria id="expansion2">
+      <GameCoreInUse>expansion2</GameCoreInUse>
     </Criteria>
   </ActionCriteria>
 
@@ -51,7 +51,7 @@
       </Items>
     </ImportFiles>
 
-    <ImportFiles id="MORELENSES_LENSES_BUILDER_CONIFG">
+    <ImportFiles id="MORELENSES_LENSES_BuiLDER_CONIFG">
       <Properties>
         <LoadOrder>9</LoadOrder>
         <Context>InGame</Context>
@@ -68,28 +68,28 @@
         <LoadOrder>100</LoadOrder>
       </Properties>
       <Items>
-        <File>Base/Assets/UI/MinimapPanel.lua</File>
-        <File>Base/Assets/UI/MinimapPanel.xml</File>
-        <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
-        <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
+        <File>base/assets/ui/MinimapPanel.lua</File>
+        <File>base/assets/ui/MinimapPanel.xml</File>
+        <File>base/assets/ui/panels/ModalLensPanel.lua</File>
+        <File>base/assets/ui/panels/ModalLensPanel.xml</File>
       </Items>
     </ImportFiles>
 
-    <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="Expansion1">
+    <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="expansion1">
       <Properties>
         <LoadOrder>101</LoadOrder>
       </Properties>
       <Items>
-        <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
+        <File>dlc/expansion1/ui/replacements/MinimapPanel.xml</File>
       </Items>
     </ImportFiles>
 
-    <ImportFiles id="MORELENSES_EXPANSION1_FILES" criteria="Expansion2">
+    <ImportFiles id="MORELENSES_EXPANSION2_FILES" criteria="expansion2">
       <Properties>
         <LoadOrder>102</LoadOrder>
       </Properties>
       <Items>
-        <File>DLC/Expansion2/UI/Replacements/MinimapPanel.xml</File>
+        <File>dlc/expansion2/ui/replacements/MinimapPanel.xml</File>
       </Items>
     </ImportFiles>
 
@@ -129,13 +129,13 @@
     <File>Text/MoreLenses_Text_es.xml</File>
     <File>Text/MoreLenses_Text_pt_br.xml</File>
     <File>Text/MoreLenses_Text_jp.xml</File>
-    <!-- Base UI -->
-    <File>Base/Assets/UI/MinimapPanel.lua</File>
-    <File>Base/Assets/UI/MinimapPanel.xml</File>
-    <File>Base/Assets/UI/Panels/ModalLensPanel.lua</File>
-    <File>Base/Assets/UI/Panels/ModalLensPanel.xml</File>
-    <File>DLC/Expansion1/UI/Replacements/MinimapPanel.xml</File>
-    <File>DLC/Expansion2/UI/Replacements/MinimapPanel.xml</File>
+    <!-- base ui -->
+    <File>base/assets/ui/MinimapPanel.lua</File>
+    <File>base/assets/ui/MinimapPanel.xml</File>
+    <File>base/assets/ui/panels/ModalLensPanel.lua</File>
+    <File>base/assets/ui/panels/ModalLensPanel.xml</File>
+    <File>dlc/expansion1/ui/replacements/MinimapPanel.xml</File>
+    <File>dlc/expansion2/ui/replacements/MinimapPanel.xml</File>
     <!-- Database -->
     <File>MoreLenses_Colors.sql</File>
     <!-- Lenses -->

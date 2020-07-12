@@ -1,3 +1,5 @@
+include("LensSupport")
+
 function isAncientClassicalWonder(wonderTypeID:number)
     for row in GameInfo.Buildings() do
         if row.Index == wonderTypeID then
@@ -91,6 +93,22 @@ function plotCountAdjSeaResource(pPlayer:table, pPlot:table)
         end
     end
     return cnt
+end
+
+function plotHasAdjImprovement(pPlot:table, sImprvType:string)
+    for pAdjPlot in PlotRingIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE) do
+        if plotHasImprovement(pAdjPlot) then
+            if sImprvType == nil then
+                return true
+            else
+                local kImprvRow = GameInfo.Improvements[pAdjPlot:GetImprovementType()]
+                if kImprvRow ~= nil and kImprvRow.ImprovementType == sImprvType then
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end
 
 function plotHasAdjBonusOrLuxury(pPlayer:table, pPlot:table)

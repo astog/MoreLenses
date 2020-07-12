@@ -3,6 +3,7 @@ include("LensSupport")
 local m_BuilderLens_PN = UI.GetColorValue("COLOR_BUILDER_LENS_PN")
 local m_BuilderLens_PD = UI.GetColorValue("COLOR_BUILDER_LENS_PD")
 local m_BuilderLens_P1 = UI.GetColorValue("COLOR_BUILDER_LENS_P1")
+local m_BuilderLens_P1N = UI.GetColorValue("COLOR_BUILDER_LENS_P1N")
 local m_BuilderLens_P2 = UI.GetColorValue("COLOR_BUILDER_LENS_P2")
 local m_BuilderLens_P3 = UI.GetColorValue("COLOR_BUILDER_LENS_P3")
 local m_BuilderLens_P4 = UI.GetColorValue("COLOR_BUILDER_LENS_P4")
@@ -84,8 +85,8 @@ local function OnGetColorPlotTable()
                                 dangerousPlotsHash[iPlot] = true
                             end
                             ]]
-                            -- So next best is to highlight the unit's plot and all adjacent plots to the radius of unit's max movement points
-                            for pAdjPlot in PlotAreaSpiralIterator(pPlot, pUnit:GetMaxMoves(), SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+                            -- So next best is to highlight the unit's plot and all adjacent plots
+                            for pAdjPlot in PlotAreaSpiralIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
                                 if pAdjPlot:GetOwner() == localPlayer then
                                     dangerousPlotsHash[pAdjPlot:GetIndex()] = true
                                 end
@@ -239,15 +240,18 @@ end
 if g_ModLensModalPanel ~= nil then
     g_ModLensModalPanel[LENS_NAME] = {}
     g_ModLensModalPanel[LENS_NAME].LensTextKey = "LOC_HUD_BUILDER_LENS"
+
+    -- TODO: Make this automatic based on added rules
     g_ModLensModalPanel[LENS_NAME].Legend = {
-        {"m_BuilderLens_PN", m_BuilderLens_PN},
-        {"m_BuilderLens_PD", m_BuilderLens_PD},
-        {"m_BuilderLens_P1", m_BuilderLens_P1},
-        {"m_BuilderLens_P2", m_BuilderLens_P2},
-        {"m_BuilderLens_P3", m_BuilderLens_P3},
-        {"m_BuilderLens_P4", m_BuilderLens_P4},
-        {"m_BuilderLens_P5", m_BuilderLens_P5},
-        {"m_BuilderLens_P6", m_BuilderLens_P6},
-        {"m_BuilderLens_P7", m_BuilderLens_P7},
+        {"LOC_HUD_BUILDER_LENS_PN", m_BuilderLens_PN},
+        {"LOC_HUD_BUILDER_LENS_PD", m_BuilderLens_PD},
+        {"LOC_HUD_BUILDER_LENS_P1", m_BuilderLens_P1},
+        {"LOC_HUD_BUILDER_LENS_P1N", m_BuilderLens_P1N},
+        {"LOC_HUD_BUILDER_LENS_P2", m_BuilderLens_P2},
+        {"LOC_HUD_BUILDER_LENS_P3", m_BuilderLens_P3},
+        {"LOC_HUD_BUILDER_LENS_P4", m_BuilderLens_P4},
+        {"LOC_HUD_BUILDER_LENS_P5", m_BuilderLens_P5},
+        -- {"LOC_HUD_BUILDER_LENS_P6", m_BuilderLens_P6},
+        {"LOC_HUD_BUILDER_LENS_P7", m_BuilderLens_P7},
     }
 end

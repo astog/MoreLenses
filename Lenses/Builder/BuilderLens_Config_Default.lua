@@ -1,4 +1,3 @@
-include("LensSupport")
 include("BuilderLens_Support")
 
 -- ===========================================================================
@@ -91,20 +90,6 @@ table.insert(g_ModLenses_Builder_Config[m_BuilderLens_PN],
     end)
 
 
--- DAMAGED / PILLAGED
---------------------------------------
-table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P1],
-    function(pPlot)
-        local localPlayer = Game.GetLocalPlayer()
-        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) then
-            if plotHasImprovement(pPlot) and pPlot:IsImprovementPillaged() then
-                return m_BuilderLens_P1
-            end
-        end
-        return -1
-    end)
-
-
 -- RESOURCE
 --------------------------------------
 table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P1],
@@ -132,6 +117,62 @@ table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P1],
                 else
                     return m_BuilderLens_PN
                 end
+            end
+        end
+        return -1
+    end)
+
+
+-- GEOTHERMAL PLANTS (Only add if exists)
+--------------------------------------
+if GameInfo.Improvements["IMPROVEMENT_GEOTHERMAL_PLANT"] ~= nil then
+    table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P2],
+        function(pPlot)
+            local localPlayer = Game.GetLocalPlayer()
+            local pPlayer:table = Players[localPlayer]
+            if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) and not plotHasImprovement(pPlot)
+                    and plotHasFeature(pPlot) then
+
+                local featureInfo = GameInfo.Features[pPlot:GetFeatureType()]
+                if featureInfo.FeatureType == "FEATURE_GEOTHERMAL_FISSURE" then
+                    local plantImprovInfo = GameInfo.Improvements["IMPROVEMENT_GEOTHERMAL_PLANT"]
+                    if playerCanHave(pPlayer, plantImprovInfo) then
+                        return m_BuilderLens_P2
+                    end
+                end
+            end
+        end)
+end
+
+
+-- SKI RESORTS (Only add if exists)
+--------------------------------------
+if GameInfo.Improvements["IMPROVEMENT_SKI_RESORT"] ~= nil then
+    table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P2],
+        function(pPlot)
+            local localPlayer = Game.GetLocalPlayer()
+            local pPlayer:table = Players[localPlayer]
+            if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) and not plotHasImprovement(pPlot)
+                    and pPlot:IsMountain() then
+
+                local resortImprovInfo = GameInfo.Improvements["IMPROVEMENT_SKI_RESORT"]
+                if playerCanHave(pPlayer, resortImprovInfo)
+                        and not plotHasAdjImprovement(pPlot, "IMPROVEMENT_SKI_RESORT") then
+                    return m_BuilderLens_P2
+                end
+            end
+        end)
+end
+
+
+-- PILLAGED / UA
+--------------------------------------
+table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P2],
+    function(pPlot)
+        local localPlayer = Game.GetLocalPlayer()
+        if pPlot:GetOwner() == localPlayer and not plotHasDistrict(pPlot) then
+            if plotHasImprovement(pPlot) and pPlot:IsImprovementPillaged() then
+                return m_BuilderLens_P2
             end
         end
         return -1
