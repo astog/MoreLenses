@@ -145,6 +145,25 @@ if GameInfo.Improvements["IMPROVEMENT_GEOTHERMAL_PLANT"] ~= nil then
 end
 
 
+-- SEASIDE RESORTS
+--------------------------------------
+table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P2],
+    function(pPlot)
+        local localPlayer = Game.GetLocalPlayer()
+        local pPlayer:table = Players[localPlayer]
+        local resortImprovInfo = GameInfo.Improvements["IMPROVEMENT_BEACH_RESORT"]
+        local iAppeal = pPlot:GetAppeal()
+        if pPlot:GetOwner() == localPlayer and not pPlot:IsMountain() and not plotHasDistrict(pPlot)
+                and iAppeal >= resortImprovInfo.MinimumAppeal
+                and plotCanHaveImprovement(pPlayer, pPlot, resortImprovInfo) then
+
+            if playerCanHave(pPlayer, resortImprovInfo) then
+                return m_BuilderLens_P2
+            end
+        end
+    end)
+
+
 -- SKI RESORTS (Only add if exists)
 --------------------------------------
 if GameInfo.Improvements["IMPROVEMENT_SKI_RESORT"] ~= nil then
