@@ -113,7 +113,9 @@ VALUES                  (   'COLOR_ALT_SETTLER_UNUSABLE',       '1',        '0',
 INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
 VALUES                  (   'COLOR_ALT_SETTLER_OVERLAP',        '0.5',      '0',        '0',        '0.5');
 INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
-VALUES                  (   'COLOR_ALT_SETTLER_REGULAR',        '0',        '0.75',     '0',        '0.5');
+VALUES                  (   'COLOR_ALT_SETTLER_HILL',           '0',        '1',        '0',        '0.5');
+INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)
+VALUES                  (   'COLOR_ALT_SETTLER_REGULAR',        '0.75',     '0.75',     '0.75',     '0.5');
 
 -- Test Colors
 INSERT INTO Colors      (   Type,                               Red,        Green,      Blue,       Alpha)

@@ -706,11 +706,13 @@ function SetSettlerLens()
     local tUnusablePlots:table = {}
     local tOverlapPlots:table = {}
     local tResourcePlots:table = {}
+    local tHillPlots:table = {}
     local tRegularPlots:table = {}
 
     local iUnusableColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_UNUSABLE");
     local iOverlapColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_OVERLAP");
     local iResourceColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_RESOURCE");
+    local iHillColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_HILL");
     local iRegularColor:number = UI.GetColorValue("COLOR_ALT_SETTLER_REGULAR");
 
     for pRangePlot in PlotAreaSpiralIterator(pPlot, CITY_WORK_RANGE,
@@ -735,6 +737,8 @@ function SetSettlerLens()
                     playerHasDiscoveredResource(pPlayer, pRangePlot) then
 
                 table.insert(tResourcePlots, plotID)
+            elseif pRangePlot:IsHills() then
+                table.insert(tHillPlots, plotID)
             else
                 table.insert(tRegularPlots, plotID)
             end
@@ -744,15 +748,15 @@ function SetSettlerLens()
     if #tOverlapPlots > 0 then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tOverlapPlots, iOverlapColor );
     end
-
     if #tUnusablePlots > 0 then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tUnusablePlots, iUnusableColor );
     end
-
     if #tResourcePlots > 0 then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tResourcePlots, iResourceColor );
     end
-
+    if #tHillPlots  > 0 then
+        UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tHillPlots, iHillColor );
+    end
     if #tRegularPlots  > 0 then
         UILens.SetLayerHexesColoredArea( m_HexColoringWaterAvail, localPlayer, tRegularPlots, iRegularColor );
     end
