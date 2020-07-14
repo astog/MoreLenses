@@ -130,6 +130,10 @@ function RealizeFlyouts( pControl:table )
         if Controls[panelId] ~= nil then
             if Controls[panelId] ~= pControl and Controls[panelId]:IsHidden()==false then
                 Controls[panelId]:SetHide( true );
+
+                -- Astog: If the panel was LensPanel we want to hide all our modded lenses panels also
+                ---------------------
+                LuaEvents.ML_CloseLensPanels()
             end
             if Controls[panelId] ~= pControl then
                 if Controls[buttonId]:IsSelected() then
