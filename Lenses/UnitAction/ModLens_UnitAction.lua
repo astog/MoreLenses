@@ -1,8 +1,8 @@
-local LENS_NAME = "ML_SCOUT"
+local LENS_NAME = "ML_UNITACTION"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- Should the scout lens auto apply, when a scout/ranger is selected.
-local AUTO_APPLY_SCOUT_LENS:boolean = false
+local AUTO_APPLY_SCOUT_LENS:boolean = true
 
 -- ===========================================================================
 -- Scout Lens Support
