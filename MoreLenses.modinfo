@@ -29,10 +29,10 @@
         <LoadOrder>11</LoadOrder>
       </Properties>
       <Items>
-        <File>Lenses/CityOverlap/ModLens_CityOverlap.xml</File>
-        <!-- ModLens_CityOverlap.lua implied -->
-        <File>Lenses/Resource/ModLens_Resource.xml</File>
-        <!-- ModLens_Resource.lua implied -->
+        <File>Lenses/CityOverlap/modlens_cityoverlap.xml</File>
+        <!-- modlens_cityoverlap.lua implied -->
+        <File>Lenses/Resource/modlens_resource.xml</File>
+        <!-- modlens_resource.lua implied -->
       </Items>
     </AddUserInterfaces>
 
@@ -42,24 +42,24 @@
         <Context>InGame</Context>
       </Properties>
       <Items>
-        <File>Lenses/Builder/ModLens_Builder.lua</File>
-        <File>Lenses/Scout/ModLens_Scout.lua</File>
-        <File>Lenses/Archaeologist/ModLens_Archaeologist.lua</File>
-        <File>Lenses/Barbarian/ModLens_Barbarian.lua</File>
-        <File>Lenses/Naturalist/ModLens_Naturalist.lua</File>
-        <File>Lenses/Wonder/ModLens_Wonder.lua</File>
+        <File>Lenses/Builder/modlens_builder.lua</File>
+        <File>Lenses/Scout/modlens_scout.lua</File>
+        <File>Lenses/Archaeologist/modlens_archaeologist.lua</File>
+        <File>Lenses/Barbarian/modlens_barbarian.lua</File>
+        <File>Lenses/Naturalist/modlens_naturalist.lua</File>
+        <File>Lenses/Wonder/modlens_wonder.lua</File>
       </Items>
     </ImportFiles>
 
-    <ImportFiles id="MORELENSES_LENSES_BuiLDER_CONIFG">
+    <ImportFiles id="MORELENSES_LENSES_BUILDER_CONIFG">
       <Properties>
         <LoadOrder>9</LoadOrder>
         <Context>InGame</Context>
       </Properties>
       <Items>
-        <File>Lenses/LensSupport.lua</File>
-        <File>Lenses/Builder/BuilderLens_Support.lua</File>
-        <File>Lenses/Builder/BuilderLens_Config_Default.lua</File>
+        <File>Lenses/lenssupport.lua</File>
+        <File>Lenses/Builder/builderlens_support.lua</File>
+        <File>Lenses/Builder/builderlens_config_default.lua</File>
       </Items>
     </ImportFiles>
 
@@ -68,10 +68,10 @@
         <LoadOrder>100</LoadOrder>
       </Properties>
       <Items>
-        <File>base/assets/ui/MinimapPanel.lua</File>
-        <File>base/assets/ui/MinimapPanel.xml</File>
-        <File>base/assets/ui/panels/ModalLensPanel.lua</File>
-        <File>base/assets/ui/panels/ModalLensPanel.xml</File>
+        <File>Base/Assets/UI/minimappanel.lua</File>
+        <File>Base/Assets/UI/minimappanel.xml</File>
+        <File>Base/Assets/UI/Panels/modallenspanel.lua</File>
+        <File>Base/Assets/UI/Panels/modallenspanel.xml</File>
       </Items>
     </ImportFiles>
 
@@ -80,7 +80,7 @@
         <LoadOrder>101</LoadOrder>
       </Properties>
       <Items>
-        <File>dlc/expansion1/ui/replacements/MinimapPanel.xml</File>
+        <File>DLC/Expansion1/UI/Replacements/minimappanel.xml</File>
       </Items>
     </ImportFiles>
 
@@ -89,68 +89,68 @@
         <LoadOrder>102</LoadOrder>
       </Properties>
       <Items>
-        <File>dlc/expansion2/ui/replacements/MinimapPanel.xml</File>
+        <File>DLC/Expansion2/UI/Replacements/minimappanel.xml</File>
       </Items>
     </ImportFiles>
 
     <UpdateDatabase id="MORELENSES_DATABASE">
       <Items>
-        <File>MoreLenses_Colors.sql</File>
+        <File>morelenses_colors.sql</File>
       </Items>
     </UpdateDatabase>
 
     <LocalizedText id="MORELENSES_TEXT">
       <Items>
-        <File>Text/MoreLenses_Text.xml</File>
-        <File>Text/MoreLenses_Text_de.xml</File>
-        <File>Text/MoreLenses_Text_fr.xml</File>
-        <File>Text/MoreLenses_Text_it.xml</File>
-        <File>Text/MoreLenses_Text_ko.xml</File>
-        <File>Text/MoreLenses_Text_pl.xml</File>
-        <File>Text/MoreLenses_Text_ru.xml</File>
-        <File>Text/MoreLenses_Text_zh.xml</File>
-        <File>Text/MoreLenses_Text_es.xml</File>
-        <File>Text/MoreLenses_Text_pt_br.xml</File>
-        <File>Text/MoreLenses_Text_jp.xml</File>
+        <File>Text/morelenses_text.xml</File>
+        <File>Text/morelenses_text_de.xml</File>
+        <File>Text/morelenses_text_fr.xml</File>
+        <File>Text/morelenses_text_it.xml</File>
+        <File>Text/morelenses_text_ko.xml</File>
+        <File>Text/morelenses_text_pl.xml</File>
+        <File>Text/morelenses_text_ru.xml</File>
+        <File>Text/morelenses_text_zh.xml</File>
+        <File>Text/morelenses_text_es.xml</File>
+        <File>Text/morelenses_text_pt_br.xml</File>
+        <File>Text/morelenses_text_jp.xml</File>
       </Items>
     </LocalizedText>
   </InGameActions>
 
   <Files>
     <!-- Text -->
-    <File>Text/MoreLenses_Text.xml</File>
-    <File>Text/MoreLenses_Text_de.xml</File>
-    <File>Text/MoreLenses_Text_fr.xml</File>
-    <File>Text/MoreLenses_Text_it.xml</File>
-    <File>Text/MoreLenses_Text_ko.xml</File>
-    <File>Text/MoreLenses_Text_pl.xml</File>
-    <File>Text/MoreLenses_Text_ru.xml</File>
-    <File>Text/MoreLenses_Text_zh.xml</File>
-    <File>Text/MoreLenses_Text_es.xml</File>
-    <File>Text/MoreLenses_Text_pt_br.xml</File>
-    <File>Text/MoreLenses_Text_jp.xml</File>
-    <!-- base ui -->
-    <File>base/assets/ui/MinimapPanel.lua</File>
-    <File>base/assets/ui/MinimapPanel.xml</File>
-    <File>base/assets/ui/panels/ModalLensPanel.lua</File>
-    <File>base/assets/ui/panels/ModalLensPanel.xml</File>
-    <File>dlc/expansion1/ui/replacements/MinimapPanel.xml</File>
-    <File>dlc/expansion2/ui/replacements/MinimapPanel.xml</File>
-    <!-- Database -->
-    <File>MoreLenses_Colors.sql</File>
+    <File>Text/morelenses_text.xml</File>
+    <File>Text/morelenses_text_de.xml</File>
+    <File>Text/morelenses_text_fr.xml</File>
+    <File>Text/morelenses_text_it.xml</File>
+    <File>Text/morelenses_text_ko.xml</File>
+    <File>Text/morelenses_text_pl.xml</File>
+    <File>Text/morelenses_text_ru.xml</File>
+    <File>Text/morelenses_text_zh.xml</File>
+    <File>Text/morelenses_text_es.xml</File>
+    <File>Text/morelenses_text_pt_br.xml</File>
+    <File>Text/morelenses_text_jp.xml</File>
+    <!-- Base ui -->
+    <File>Base/Assets/UI/minimappanel.lua</File>
+    <File>Base/Assets/UI/minimappanel.xml</File>
+    <File>Base/Assets/UI/Panels/modallenspanel.lua</File>
+    <File>Base/Assets/UI/Panels/modallenspanel.xml</File>
+    <File>DLC/Expansion1/UI/Replacements/minimappanel.xml</File>
+    <File>DLC/Expansion2/UI/Replacements/minimappanel.xml</File>
+    <!-- DataBase -->
+    <File>morelenses_colors.sql</File>
     <!-- Lenses -->
-    <File>Lenses/LensSupport.lua</File>
-    <File>Lenses/Builder/ModLens_Builder.lua</File>
-    <File>Lenses/Builder/BuilderLens_Support.lua</File>
-    <File>Lenses/Builder/BuilderLens_Config_Default.lua</File>
-    <File>Lenses/Scout/ModLens_Scout.lua</File>
-    <File>Lenses/Archaeologist/ModLens_Archaeologist.lua</File>
-    <File>Lenses/Barbarian/ModLens_Barbarian.lua</File>
-    <File>Lenses/Naturalist/ModLens_Naturalist.lua</File>
-    <File>Lenses/Wonder/ModLens_Wonder.lua</File>
-    <File>Lenses/CityOverlap/ModLens_CityOverlap.xml</File>
-    <File>Lenses/CityOverlap/ModLens_CityOverlap.lua</File>
-    <File>Lenses/Resource/ModLens_Resource.xml</File>
-    <File>Lenses/Resource/ModLens_Resource.lua</File>
+    <File>Lenses/lenssupport.lua</File>
+    <File>Lenses/Builder/modlens_builder.lua</File>
+    <File>Lenses/Builder/builderlens_support.lua</File>
+    <File>Lenses/Builder/builderlens_config_default.lua</File>
+    <File>Lenses/Scout/modlens_scout.lua</File>
+    <File>Lenses/Archaeologist/modlens_archaeologist.lua</File>
+    <File>Lenses/Barbarian/modlens_barbarian.lua</File>
+    <File>Lenses/Naturalist/modlens_naturalist.lua</File>
+    <File>Lenses/Wonder/modlens_wonder.lua</File>
+    <File>Lenses/CityOverlap/modlens_cityoverlap.xml</File>
+    <File>Lenses/CityOverlap/modlens_cityoverlap.lua</File>
+    <File>Lenses/Resource/modlens_resource.xml</File>
+    <File>Lenses/Resource/modlens_resource.lua</File>
   </Files>
 </Mod>

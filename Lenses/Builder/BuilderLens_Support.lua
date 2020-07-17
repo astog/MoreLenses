@@ -1,4 +1,4 @@
-include("LensSupport")
+include("lenssupport")
 
 function isAncientClassicalWonder(wonderTypeID:number)
     for row in GameInfo.Buildings() do

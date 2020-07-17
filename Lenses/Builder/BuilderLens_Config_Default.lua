@@ -1,4 +1,4 @@
-include("BuilderLens_Support")
+include("builderlens_support")
 
 -- ===========================================================================
 -- Helpers
