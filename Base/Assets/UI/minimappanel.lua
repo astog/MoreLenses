@@ -6,8 +6,8 @@ include("GameCapabilities");
 --  MODDED LENS (by Astog)
 -- ===========================================================================
 
-g_ModLenses = {} -- Populated by modlens_*.lua scripts
-include( "modlens_", true )
+g_ModLenses = {} -- Populated by ModLens_*.lua scripts
+include( "ModLens_", true )
 
 local m_LensButtonIM:table = InstanceManager:new("LensButtonInstance", "LensButton", Controls.LensToggleStack)
 local m_CurrentModdedLensOn:string = nil

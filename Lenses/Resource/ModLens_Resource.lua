@@ -1,4 +1,4 @@
-include("lenssupport")
+include("LensSupport")
 
 local PANEL_OFFSET_Y:number = 32
 local PANEL_OFFSET_X:number = -5
