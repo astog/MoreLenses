@@ -1,5 +1,40 @@
 include("lenssupport")
 
+-- ===========================================================================
+-- Helpers
+-- ===========================================================================
+
+local builderGovernorIndex = nil
+local builderAquacultureHash = nil
+local builderParksRecHash = nil
+
+if GameInfo.Governors ~= nil then
+    for row in GameInfo.Governors() do
+        if row.GovernorType == "GOVERNOR_THE_BUILDER" then
+            builderGovernorIndex = row.Index
+            print("Governor Builder Index = " .. builderGovernorIndex)
+            break
+        end
+    end
+
+    for row in GameInfo.GovernorPromotions() do
+        if row.GovernorPromotionType == "GOVERNOR_PROMOTION_AQUACULTURE" then
+            builderAquacultureHash = row.Hash
+            print("Governor Builder Aquaculture hash = " .. builderAquacultureHash)
+            break
+        end
+    end
+
+    for row in GameInfo.GovernorPromotions() do
+        if row.GovernorPromotionType == "GOVERNOR_PROMOTION_PARKS_RECREATION" then
+            builderParksRecHash = row.Hash
+            print("Governor Builder Parks Rec hash = " .. builderParksRecHash)
+            break
+        end
+    end
+end
+
+
 function isAncientClassicalWonder(wonderTypeID:number)
     for row in GameInfo.Buildings() do
         if row.Index == wonderTypeID then
