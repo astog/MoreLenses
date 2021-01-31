@@ -1,4 +1,4 @@
-include("lenssupport")
+include("LensSupport")
 
 local LENS_NAME = "ML_WONDER"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")

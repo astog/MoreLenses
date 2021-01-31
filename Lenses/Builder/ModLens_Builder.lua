@@ -1,4 +1,4 @@
-include("lenssupport")
+include("LensSupport")
 
 local m_BuilderLens_PN = UI.GetColorValue("COLOR_BUILDER_LENS_PN")
 local m_BuilderLens_PD = UI.GetColorValue("COLOR_BUILDER_LENS_PD")
@@ -38,7 +38,7 @@ g_ModLenses_Builder_Config = {
 }
 
 -- Import config files for builder lens
-include("builderlens_config_", true)
+include("BuilderLens_Config_", true)
 
 local LENS_NAME = "ML_BUILDER"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
