@@ -561,6 +561,7 @@ function OnLensLayerOff( layerNum:number )
 
     if (layerNum == m_HexColoringReligion       or
             layerNum == g_HexColoringContinent      or
+			-- layerNum == m_HexColoringAppeal	or
             layerNum == m_HexColoringGovernment     or
             layerNum == m_HexColoringOwningCiv)     then
         UI.PlaySound("UI_Lens_Overlay_Off");
@@ -1366,6 +1367,11 @@ function OnCityAddedToMap(playerID, cityID, x, y)
 end
 
 -- ===========================================================================
+function OnStartObserverMode()
+	Controls.MapPinListButton:SetHide(true);
+end
+
+-- ===========================================================================
 function LateInitialize( isReload:boolean )
     m_MiniMap_xmloffsety = Controls.MiniMap:GetOffsetY();
     g_ContinentsCache = Map.GetContinentsInUse();
@@ -1513,6 +1519,7 @@ function Initialize()
         Controls.SwitcherImage:SetTextureOffsetVal(0,24);
     end
 
+	LuaEvents.EndGameMenu_StartObserverMode.Add(OnStartObserverMode);
     LuaEvents.MinimapPanel_CloseAllLenses.Add( CloseAllLenses );
     LuaEvents.MinimapPanel_RefreshMinimapOptions.Add( RefreshMinimapOptions );
     LuaEvents.MinimapPanel_ToggleGrid.Add( ToggleGrid );
