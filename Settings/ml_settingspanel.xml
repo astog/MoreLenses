@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Context>
+  <Container ID="SettingsPanel" Size="380,512" Anchor="C,C" ConsumeMouse="1">
+    <Grid Size="parent,parent" Texture="Controls_ContainerBlue" SliceStart="0,0" SliceCorner="3,3" SliceSize="9,9" SliceTextureSize="16,16">
+      <Container ID="Header" Size="parent,54" Anchor="C,T" Style="ShellHeaderContainer">
+        <Grid Style="ShellHeaderButtonGrid">
+          <Label Style="FontFlair24" FontStyle="glow" ColorSet="ShellHeader" Anchor="C,C" String="LOC_BTS_SETTINGS_PANEL_HEADER"/>
+        </Grid>
+      </Container>
+
+      <Grid ID="Content" Style="SubContainer4" Size="parent-10,670" Anchor="C,T" Color="7,28,50" Offset="0,55">
+        <Grid Style="SubContainerFill" Size="210,parent-6" Offset="3,3" Color="6,36,57,150">
+          <Grid Style="SubContainer3" Size="parent-6,parent-6" Anchor="C,C" Color="13,70,82,255">
+            <Stack ID="TabStack" StackGrowth="Down" Anchor="C,T" Padding="10">
+              <GridButton ID="GeneralTab" Style="ShellTabSmall" String="{LOC_CQUI_GENERAL:upper}" Size="200,32"/>
+              <GridButton ID="CityviewTab" Style="ShellTabSmall" String="{LOC_CQUI_CITYVIEW:upper}" Size="200,32"/>
+              <GridButton ID="UnitsTab" Style="ShellTabSmall" String="{LOC_CQUI_UNITS:upper}" Size="200,32"/>
+              <GridButton ID="PopupsTab" Style="ShellTabSmall" String="{LOC_CQUI_POPUPS:upper}" Size="200,32"/>
+              <GridButton ID="BindingsTab" Style="ShellTabSmall" String="{LOC_CQUI_BINDINGS:upper}" Size="200,32"/>
+              <GridButton ID="GossipTab" Style="ShellTabSmall" String="{LOC_CQUI_GOSSIP:upper}" Size="200,32"/>
+              <GridButton ID="LensesTab" Style="ShellTabSmall" String="{LOC_CQUI_LENSES:upper}" Size="200,32"/>
+              <GridButton ID="TraderScreenTab" Style="ShellTabSmall" String="{LOC_CQUI_TRADER_SCREEN:upper}" Size="200,32"/>
+              <GridButton ID="RecommendationsTab" Style="ShellTabSmall" String="{LOC_CQUI_RECOMMENDATIONS_SCREEN:upper}" Size="200,32"/>
+            </Stack>
+          </Grid>
+        </Grid>
+        <Container Anchor="R,T" Size="parent-215,parent-6">
+          <Container ID="LensesOptions" Size="parent,parent" Hidden="0">
+            <Stack Anchor="C,T" StackGrowth="Down" Padding="5" Offset="0,50">
+              <Stack Anchor="R,T" StackGrowth="Left" Padding="5">
+                <GridButton ID="AutoapplyArchaeologistLensCheckbox" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_CQUI_LENSES_AUTOAPPLYARCHAEOLOGISTLENS"/>
+              </Stack>
+              <Stack Anchor="R,T" StackGrowth="Left" Padding="5">
+                <GridButton ID="AutoapplyBuilderLensCheckbox" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_CQUI_LENSES_AUTOAPPLYBUILDERLENS"/>
+              </Stack>
+              <Stack Anchor="R,T" StackGrowth="Left" Padding="5">
+                <GridButton ID="AutoapplyScoutLensCheckbox" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_CQUI_LENSES_AUTOAPPLYSCOUTLENS"/>
+              </Stack>
+              <!--<Stack Anchor="R,T" StackGrowth="Left" Padding="5">
+                <GridButton ID="ShowNothingToDoInBuilderLens" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_CQUI_LENSES_SHOWNOTHINGTODO_BUILDER"/>
+              </Stack>
+              <Stack Anchor="R,T" StackGrowth="Left" Padding="5">
+                <GridButton ID="ShowGenericInBuilderLens" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_CQUI_LENSES_SHOWGENERIC_BUILDER"/>
+              </Stack>-->
+            </Stack>
+          </Container>
+        </Container>
+        <GridButton ID="ConfirmButton" Style="ButtonConfirm"  AnchorSide="I,O" Anchor="c,b" String="LOC_GENERIC_CONFIRM_BUTTON" Size="300,41"/>
+        <Label Anchor="c,b" AnchorSide="I,O" Style="FontNormal14" String="LOC_CQUI_SETTINGS_REMINDER" Offset="0,50" Color="102,122,145"/>
+      </Grid>
+
+      <Container ID="Header" Size="parent,60" Anchor="C,B" Offset="0,-5" Style="ShellHeaderContainer">
+        <GridButton ID="ConfirmButton" Style="ButtonConfirm" Anchor="C,C" Offset="0,-1" String="LOC_AUTONARRATE_BUTTON_DONE" Size="300,41"/>
+      </Container>
+    </Grid>
+  </Container>
+</Context>
