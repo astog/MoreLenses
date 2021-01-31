@@ -2,23 +2,26 @@ include("BuilderLens_Support")
 
 
 -- From GovernorSupport.lua
+-- modified to catch unappointed errors
 function GetAppointedGovernor(playerID:number, governorTypeIndex:number)
     -- Make sure we're looking for a valid governor
-    if playerID < 0 or governorTypeIndex < 0 then
+    if playerID == nil or playerID < 0 or governorTypeIndex == nil or governorTypeIndex < 0 then
         return nil;
     end
 
     -- Get the player governor list
     local pGovernorDef = GameInfo.Governors[governorTypeIndex];
-    local pPlayer:table = Players[playerID];
-    local pPlayerGovernors:table = pPlayer:GetGovernors();
-    local bHasGovernors, tGovernorList = pPlayerGovernors:GetGovernorList();
+    if pGovernorDef ~= nil then
+        local pPlayer:table = Players[playerID];
+        local pPlayerGovernors:table = pPlayer:GetGovernors();
+        local bHasGovernors, tGovernorList = pPlayerGovernors:GetGovernorList();
 
-    -- Find and return the governor from the governor list
-    if pPlayerGovernors:HasGovernor(pGovernorDef.Hash) then
-        for i,governor in ipairs(tGovernorList) do
-            if governor:GetType() == governorTypeIndex then
-                return governor;
+        -- Find and return the governor from the governor list
+        if pPlayerGovernors:HasGovernor(pGovernorDef.Hash) then
+            for i,governor in ipairs(tGovernorList) do
+                if governor:GetType() == governorTypeIndex then
+                    return governor;
+                end
             end
         end
     end
