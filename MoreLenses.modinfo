@@ -182,7 +182,7 @@
     <!-- Lenses -->
     <!-- NOTE: All original scripts are uppercase to avoid inconsistencies in the "wildcard" include function -->
     <File>Lenses/LensSupport.lua</File>
-    <File>Lenses/Builder/Modlens_Builder.lua</File>
+    <File>Lenses/Builder/ModLens_Builder.lua</File>
     <File>Lenses/Builder/BuilderLens_Support.lua</File>
     <File>Lenses/Builder/BuilderLens_Config_Default.lua</File>
     <File>Lenses/Scout/ModLens_Scout.lua</File>
