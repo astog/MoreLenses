@@ -196,9 +196,11 @@
     <File>Lenses/Resource/ModLens_Resource.lua</File>
 
     <!-- Settings -->
+    <!--
     <File>Settings/ML_SettingsPanel.xml</File>
     <File>Settings/ML_SettingsPanel.lua</File>
     <File>Settings/ML_SettingsSchema.sql</File>
     <File>Settings/ML_Settings.sql</File>
+    -->
   </Files>
 </Mod>

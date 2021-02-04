@@ -167,5 +167,22 @@
       <Text>Needs fixing to be used for a park</Text>
     </Row>
 
+    <!-- Settings Panel -->
+    <Row Tag="LOC_HUD_ML_SETTINGS_PANEL_TITLE">
+      <Text>More Lenses - Settings Panel</Text>
+    </Row>
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER">
+      <Text>Auto apply Buider lens</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER">
+      <Text>Enable this to automatically apply the Builder lens when selecting a builder.</Text>
+    </Row>
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT">
+      <Text>Auto apply Scout lens</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT">
+      <Text>Enable this to automatically apply the Scout lens when selecting a recon unit class.</Text>
+    </Row>
+
   </BaseGameText>
 </GameData>

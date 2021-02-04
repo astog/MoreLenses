@@ -88,7 +88,8 @@ local function Initialize()
     ContextPtr:SetShutdown( OnShutdown )
     ContextPtr:SetInputHandler( OnInputHandler, true )
 
-    -- PopulateCheckBox(Controls.ApproximateTraderPathCheckbox, "ML_AutoApplyBuilderLens")
+    PopulateCheckBox(Controls.AutoApplyBuilderLensCheckbox, "ML_AutoApplyBuilderLens")
+    PopulateCheckBox(Controls.AutoApplyScoutLensCheckbox, "ML_AutoApplyScoutLens")
 
     -- Call this once to ensure all files have updated settings
     LuaEvents.ML_SettingsUpdate();
