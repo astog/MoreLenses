@@ -125,9 +125,9 @@ table.insert(g_ModLenses_Builder_Config[m_BuilderLens_P2],
         local iAppeal = pPlot:GetAppeal()
         if pPlot:GetOwner() == localPlayer and not pPlot:IsMountain() and not plotHasDistrict(pPlot)
                 and iAppeal >= resortImprovInfo.MinimumAppeal
-                and plotCanHaveImprovement(pPlayer, pPlot, resortImprovInfo) then
+                and pPlot:GetImprovementType() ~= resortImprovInfo.Index then
 
-            if playerCanHave(pPlayer, resortImprovInfo) then
+            if plotCanHaveImprovement(pPlayer, pPlot, resortImprovInfo) then
                 return m_BuilderLens_P2
             end
         end
@@ -145,7 +145,7 @@ if GameInfo.Improvements["IMPROVEMENT_SKI_RESORT"] ~= nil then
                     and pPlot:IsMountain() then
 
                 local resortImprovInfo = GameInfo.Improvements["IMPROVEMENT_SKI_RESORT"]
-                if playerCanHave(pPlayer, resortImprovInfo)
+                if plotCanHaveImprovement(pPlayer, pPlot, resortImprovInfo)
                         and not plotHasAdjImprovement(pPlot, "IMPROVEMENT_SKI_RESORT") then
                     return m_BuilderLens_P2
                 end
