@@ -44,9 +44,11 @@ local LENS_NAME = "ML_BUILDER"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- Should the builder lens auto apply, when a builder is selected.
-local AUTO_APPLY_BUILDER_LENS:boolean = true
+local AUTO_APPLY_BUILDER_LENS:boolean = GameConfiguration.GetValue("ML_AutoApplyBuilderLens")
 -- Disables the nothing color being highlted by the builder
-local DISABLE_NOTHING_PLOT_COLOR:boolean = false
+local DISABLE_NOTHING_PLOT_HIGHLIGHT:boolean = GameConfiguration.GetValue("ML_BuilderLensDisableNothingHighlight")
+-- Disables the dangerous plots highlted by the builder (barbs/military units at war with)
+local DISABLE_DANGEROUS_PLOT_HIGHLIGHT:boolean = GameConfiguration.GetValue("ML_BuilderLensDisableDangerousHighlight")
 
 -- ===========================================================================
 -- Exported functions
@@ -63,32 +65,35 @@ local function OnGetColorPlotTable()
     local dangerousPlotsHash:table = {}
     colorPlot[m_FallbackColor] = {}
 
-    for i = 0, (mapWidth * mapHeight) - 1, 1 do
-        local pPlot:table = Map.GetPlotByIndex(i)
-        if localPlayerVis:IsVisible(pPlot:GetX(), pPlot:GetY()) then
-            local pUnitList = Map.GetUnitsAt(pPlot:GetIndex());
-            if pUnitList ~= nil then
-                for pUnit in pUnitList:Units() do
-                    local unitInfo:table = GameInfo.Units[pUnit:GetUnitType()]
-                    -- Only consider military units
-                    if (unitInfo.MakeTradeRoute == nil or unitInfo.MakeTradeRoute == false) and (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) then
-                        -- Check if we are at with the owner of this unit, or it is a barbarian
-                        local iUnitOwner = pUnit:GetOwner()
-                        local pUnitOwner = Players[iUnitOwner]
-                        if pDiplomacy:IsAtWarWith(iUnitOwner) or pUnitOwner:IsBarbarian() then
-                            -- Since units movements points refresh at start of turn, you can have units with 0 movements left
-                            -- when the below function is called. Making the dangerous plots incorrect, since the next turn the dangerous
-                            -- unit can capture our builder
-                            --[[
-                            local kMovePlots = UnitManager.GetReachableMovement(pUnit)
-                            for _, iPlot in ipairs(kMovePlots) do
-                                dangerousPlotsHash[iPlot] = true
-                            end
-                            ]]
-                            -- So next best is to highlight the unit's plot and all adjacent plots
-                            for pAdjPlot in PlotAreaSpiralIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
-                                if pAdjPlot:GetOwner() == localPlayer then
-                                    dangerousPlotsHash[pAdjPlot:GetIndex()] = true
+    if not DISABLE_DANGEROUS_PLOT_HIGHLIGHT then
+        -- Make hash of all dangerous plots
+        for i = 0, (mapWidth * mapHeight) - 1, 1 do
+            local pPlot:table = Map.GetPlotByIndex(i)
+            if localPlayerVis:IsVisible(pPlot:GetX(), pPlot:GetY()) then
+                local pUnitList = Map.GetUnitsAt(pPlot:GetIndex());
+                if pUnitList ~= nil then
+                    for pUnit in pUnitList:Units() do
+                        local unitInfo:table = GameInfo.Units[pUnit:GetUnitType()]
+                        -- Only consider military units
+                        if (unitInfo.MakeTradeRoute == nil or unitInfo.MakeTradeRoute == false) and (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) then
+                            -- Check if we are at with the owner of this unit, or it is a barbarian
+                            local iUnitOwner = pUnit:GetOwner()
+                            local pUnitOwner = Players[iUnitOwner]
+                            if pDiplomacy:IsAtWarWith(iUnitOwner) or pUnitOwner:IsBarbarian() then
+                                -- Since units movements points refresh at start of turn, you can have units with 0 movements left
+                                -- when the below function is called. Making the dangerous plots incorrect, since the next turn the dangerous
+                                -- unit can capture our builder
+                                --[[
+                                local kMovePlots = UnitManager.GetReachableMovement(pUnit)
+                                for _, iPlot in ipairs(kMovePlots) do
+                                    dangerousPlotsHash[iPlot] = true
+                                end
+                                ]]
+                                -- So next best is to highlight the unit's plot and all adjacent plots
+                                for pAdjPlot in PlotAreaSpiralIterator(pPlot, 1, SECTOR_NONE, DIRECTION_CLOCKWISE, DIRECTION_OUTWARDS, CENTRE_INCLUDE) do
+                                    if pAdjPlot:GetOwner() == localPlayer then
+                                        dangerousPlotsHash[pAdjPlot:GetIndex()] = true
+                                    end
                                 end
                             end
                         end
@@ -138,14 +143,16 @@ local function OnGetColorPlotTable()
         end
     end
 
-    if DISABLE_NOTHING_PLOT_COLOR then
-        colorPlot[m_NothingColor] = nil
+    if DISABLE_NOTHING_PLOT_HIGHLIGHT then
+        colorPlot[m_BuilderLens_PN] = nil
     end
 
-    -- From hash build our colorPlot entry
-    colorPlot[m_BuilderLens_PD] = {}
-    for iPlot, _ in pairs(dangerousPlotsHash) do
-        table.insert(colorPlot[m_BuilderLens_PD], iPlot)
+    if not DISABLE_DANGEROUS_PLOT_HIGHLIGHT then
+        -- From hash build our colorPlot entry
+        colorPlot[m_BuilderLens_PD] = {}
+        for iPlot, _ in pairs(dangerousPlotsHash) do
+            table.insert(colorPlot[m_BuilderLens_PD], iPlot)
+        end
     end
 
     return colorPlot
@@ -166,28 +173,25 @@ local function ClearBuilderLens()
 end
 
 local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
-    if playerID == Game.GetLocalPlayer() then
+    if AUTO_APPLY_BUILDER_LENS and playerID == Game.GetLocalPlayer() then
         local unitType = GetUnitTypeFromIDs(playerID, unitID);
-        if unitType then
-            if bSelected then
-                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
-                    ShowBuilderLens();
-                end
-            -- Deselection
-            else
-                if unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
-                    ClearBuilderLens();
-                end
+        if bSelected then
+            if unitType == "UNIT_BUILDER" then
+                ShowBuilderLens();
+            end
+        -- Deselection
+        else
+            if unitType == "UNIT_BUILDER" then
+                ClearBuilderLens();
             end
         end
     end
 end
 
 local function OnUnitChargesChanged( playerID: number, unitID : number, newCharges : number, oldCharges : number )
-    local localPlayer = Game.GetLocalPlayer()
-    if playerID == localPlayer then
+    if AUTO_APPLY_BUILDER_LENS and playerID == Game.GetLocalPlayer() then
         local unitType = GetUnitTypeFromIDs(playerID, unitID)
-        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
+        if unitType == "UNIT_BUILDER" then
             if newCharges == 0 then
                 ClearBuilderLens();
             end
@@ -197,24 +201,32 @@ end
 
 -- Multiplayer support for simultaneous turn captured builder
 local function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPlayer )
-    local localPlayer = Game.GetLocalPlayer()
-    if owningPlayer == localPlayer then
+    if AUTO_APPLY_BUILDER_LENS and owningPlayer == Game.GetLocalPlayer() then
         local unitType = GetUnitTypeFromIDs(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_BUILDER" and AUTO_APPLY_BUILDER_LENS then
+        if unitType == "UNIT_BUILDER" then
             ClearBuilderLens();
         end
     end
 end
 
 local function OnUnitRemovedFromMap( playerID: number, unitID : number )
-    local localPlayer = Game.GetLocalPlayer()
-    local lens = {}
-    LuaEvents.MinimapPanel_GetActiveModLens(lens)
-    if playerID == localPlayer then
-        if lens[1] == LENS_NAME and AUTO_APPLY_BUILDER_LENS then
+    if AUTO_APPLY_BUILDER_LENS and playerID == Game.GetLocalPlayer() then
+        local lens = {}
+        LuaEvents.MinimapPanel_GetActiveModLens(lens)
+        if lens[1] == LENS_NAME then
             ClearBuilderLens();
         end
     end
+end
+
+local function OnLensSettingsUpdate()
+    -- Refresh our local settings from updated GameConfig
+    AUTO_APPLY_BUILDER_LENS = GameConfiguration.GetValue("ML_AutoApplyBuilderLens")
+    DISABLE_NOTHING_PLOT_HIGHLIGHT = GameConfiguration.GetValue("ML_BuilderLensDisableNothingHighlight")
+    DISABLE_DANGEROUS_PLOT_HIGHLIGHT = GameConfiguration.GetValue("ML_BuilderLensDisableDangerousHighlight")
+    print(AUTO_APPLY_BUILDER_LENS)
+    print(DISABLE_NOTHING_PLOT_HIGHLIGHT)
+    print(DISABLE_DANGEROUS_PLOT_HIGHLIGHT)
 end
 
 local function OnInitialize()
@@ -222,6 +234,7 @@ local function OnInitialize()
     Events.UnitCaptured.Add( OnUnitCaptured );
     Events.UnitChargesChanged.Add( OnUnitChargesChanged );
     Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap );
+    LuaEvents.ML_SettingsUpdate.Add( OnLensSettingsUpdate )
 end
 
 local BuilderLensEntry = {

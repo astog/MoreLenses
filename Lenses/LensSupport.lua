@@ -233,6 +233,7 @@ function GetUnitTypeFromIDs( playerID: number, unitID : number )
             return GameInfo.Units[pUnit:GetUnitType()].UnitType;
         end
     end
+    return nil
 end
 
 function getUnitType(pUnit:table)

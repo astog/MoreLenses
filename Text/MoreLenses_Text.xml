@@ -171,17 +171,40 @@
     <Row Tag="LOC_HUD_ML_SETTINGS_PANEL_TITLE">
       <Text>More Lenses - Settings Panel</Text>
     </Row>
+
     <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER">
       <Text>Auto apply Buider lens</Text>
     </Row>
     <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER">
       <Text>Enable this to automatically apply the Builder lens when selecting a builder.</Text>
     </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING">
+      <Text>Builder lens: Disable nothing plot highlight</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING">
+      <Text>Disable highlighting of plots that have nothing to do. Enable this if the lens takes a long time to apply.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS">
+      <Text>Builder lens: Disable dangerous plot highlight.</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS">
+      <Text>Disable highlighting of plots that are adjacent an enemy. Enable this if the lens takes a long time to apply.</Text>
+    </Row>
+
     <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT">
       <Text>Auto apply Scout lens</Text>
     </Row>
     <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT">
       <Text>Enable this to automatically apply the Scout lens when selecting a recon unit class.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA">
+      <Text>Auto apply Scout lens - Extra</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA">
+      <Text>Enable this to automatically apply the Scout lens when selecting all military units.</Text>
     </Row>
 
   </BaseGameText>

@@ -1116,6 +1116,10 @@ function HandleMouseForModdedLens()
     end
 end
 
+function OnLensSettingMenuButton()
+    LuaEvents.ML_ShowSettingsMenu()
+end
+
 -- ===========================================================================
 --  Game Engine Event
 -- ===========================================================================
@@ -1277,43 +1281,43 @@ function OnInputHandler( pInputStruct:table )
 end
 
 function ShowMinimapTooltips(inputX:number, inputY:number)
-            local ePlayer : number = Game.GetLocalPlayer();
-            local pPlayerVis:table = PlayersVisibility[ePlayer];
+    local ePlayer : number = Game.GetLocalPlayer();
+    local pPlayerVis:table = PlayersVisibility[ePlayer];
 
-            local minix, miniy = GetMinimapMouseCoords( inputX, inputY );
-            if (pPlayerVis ~= nil and IsMouseInMinimap(minix, miniy)) then
-                local wx, wy = TranslateMinimapToWorld(minix, miniy);
-                local plotX, plotY = UI.GetPlotCoordFromWorld(wx, wy);
-                local pPlot = Map.GetPlot(plotX, plotY);
-                if (pPlot ~= nil) then
-                    local plotID = Map.GetPlotIndex(plotX, plotY);
-                    if pPlayerVis:IsRevealed(plotID) then
-                        local eOwner = pPlot:GetOwner();
-                        local pPlayerConfig = PlayerConfigurations[eOwner];
-                        if (pPlayerConfig ~= nil) then
-                            local szOwnerString = Locale.Lookup(pPlayerConfig:GetCivilizationShortDescription());
+    local minix, miniy = GetMinimapMouseCoords( inputX, inputY );
+    if (pPlayerVis ~= nil and IsMouseInMinimap(minix, miniy)) then
+        local wx, wy = TranslateMinimapToWorld(minix, miniy);
+        local plotX, plotY = UI.GetPlotCoordFromWorld(wx, wy);
+        local pPlot = Map.GetPlot(plotX, plotY);
+        if (pPlot ~= nil) then
+            local plotID = Map.GetPlotIndex(plotX, plotY);
+            if pPlayerVis:IsRevealed(plotID) then
+                local eOwner = pPlot:GetOwner();
+                local pPlayerConfig = PlayerConfigurations[eOwner];
+                if (pPlayerConfig ~= nil) then
+                    local szOwnerString = Locale.Lookup(pPlayerConfig:GetCivilizationShortDescription());
 
-                            if (szOwnerString == nil or string.len(szOwnerString) == 0) then
-                                szOwnerString = Locale.Lookup("LOC_TOOLTIP_PLAYER_ID", eOwner);
-                            end
-
-                            local pPlayer = Players[eOwner];
-                            if(GameConfiguration:IsAnyMultiplayer() and pPlayer:IsHuman()) then
-                                szOwnerString = szOwnerString .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ")";
-                            end
-
-                            local szOwner = Locale.Lookup("LOC_HUD_MINIMAP_OWNER_TOOLTIP", szOwnerString);
-                            Controls.MinimapImage:SetToolTipString(szOwner);
-                        else
-                            local pTooltipString = Locale.Lookup("LOC_MINIMAP_UNCLAIMED_TOOLTIP");
-                            Controls.MinimapImage:SetToolTipString(pTooltipString);
-                        end
-                    else
-                        local pTooltipString = Locale.Lookup("LOC_MINIMAP_FOG_OF_WAR_TOOLTIP");
-                        Controls.MinimapImage:SetToolTipString(pTooltipString);
+                    if (szOwnerString == nil or string.len(szOwnerString) == 0) then
+                        szOwnerString = Locale.Lookup("LOC_TOOLTIP_PLAYER_ID", eOwner);
                     end
+
+                    local pPlayer = Players[eOwner];
+                    if(GameConfiguration:IsAnyMultiplayer() and pPlayer:IsHuman()) then
+                        szOwnerString = szOwnerString .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ")";
+                    end
+
+                    local szOwner = Locale.Lookup("LOC_HUD_MINIMAP_OWNER_TOOLTIP", szOwnerString);
+                    Controls.MinimapImage:SetToolTipString(szOwner);
+                else
+                    local pTooltipString = Locale.Lookup("LOC_MINIMAP_UNCLAIMED_TOOLTIP");
+                    Controls.MinimapImage:SetToolTipString(pTooltipString);
                 end
+            else
+                local pTooltipString = Locale.Lookup("LOC_MINIMAP_FOG_OF_WAR_TOOLTIP");
+                Controls.MinimapImage:SetToolTipString(pTooltipString);
             end
+        end
+    end
 end
 
 
@@ -1536,6 +1540,7 @@ function Initialize()
     --------------------------------------------------------------------------------------------------
 
     -- Mod Lens Support
+    Controls.MLSettingsExpandButton:RegisterCallback(Mouse.eLClick, OnLensSettingMenuButton);
     LuaEvents.MinimapPanel_SetActiveModLens.Add( SetActiveModdedLens );
     LuaEvents.MinimapPanel_GetActiveModLens.Add( GetActiveModdedLens );
     LuaEvents.MinimapPanel_GetLensPanelOffsets.Add( GetLensPanelOffsets );

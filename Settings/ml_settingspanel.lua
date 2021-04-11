@@ -89,7 +89,10 @@ local function Initialize()
     ContextPtr:SetInputHandler( OnInputHandler, true )
 
     PopulateCheckBox(Controls.AutoApplyBuilderLensCheckbox, "ML_AutoApplyBuilderLens")
+    PopulateCheckBox(Controls.BuilderLensDisableNothing, "ML_BuilderLensDisableNothingHighlight")
+    PopulateCheckBox(Controls.BuilderLensDisableDangerous, "ML_BuilderLensDisableDangerousHighlight")
     PopulateCheckBox(Controls.AutoApplyScoutLensCheckbox, "ML_AutoApplyScoutLens")
+    PopulateCheckBox(Controls.AutoApplyScoutLensExtraCheckbox, "ML_AutoApplyScoutLensExtra")
 
     -- Call this once to ensure all files have updated settings
     LuaEvents.ML_SettingsUpdate();

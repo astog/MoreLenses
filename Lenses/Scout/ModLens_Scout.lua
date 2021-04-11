@@ -2,7 +2,8 @@ local LENS_NAME = "ML_SCOUT"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
 -- Should the scout lens auto apply, when a scout/ranger is selected.
-local AUTO_APPLY_SCOUT_LENS:boolean = true
+local AUTO_APPLY_SCOUT_LENS:boolean = GameConfiguration.GetValue("ML_AutoApplyScoutLens")
+local AUTO_APPLY_SCOUT_LENS_EXTRA:boolean = GameConfiguration.GetValue("ML_AutoApplyScoutLensExtra")
 
 -- ===========================================================================
 -- Scout Lens Support
@@ -61,20 +62,26 @@ local function RefreshScoutLens()
 end
 
 local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
-    if playerID == Game.GetLocalPlayer() then
-        local unitType = GetUnitTypeFromIDs(playerID, unitID)
-        if GameInfo.Units[unitType] ~= nil then
+    if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
+        local pPlayer = Players[playerID]
+        local pUnit = pPlayer:GetUnits():FindID(unitID)
+        local unitType = pUnit:GetUnitType()
+        if unitType ~= -1 and GameInfo.Units[unitType] ~= nil then
             local promotionClass = GameInfo.Units[unitType].PromotionClass
-            if unitType then
-                if bSelected then
-                    if promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
-                        ShowScoutLens()
-                    end
-                -- Deselection
-                else
-                    if promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
-                        ClearScoutLens()
-                    end
+            local unitDomain = GameInfo.Units[unitType].Domain
+            local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
+            if bSelected then
+                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+                    ShowScoutLens()
+                elseif promotionClass == "PROMOTION_CLASS_RECON" then
+                    ShowScoutLens()
+                end
+            -- Deselection
+            else
+                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+                    ClearScoutLens()
+                elseif promotionClass == "PROMOTION_CLASS_RECON" then
+                    ClearScoutLens()
                 end
             end
         end
@@ -82,38 +89,50 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
 end
 
 local function OnUnitRemovedFromMap( playerID: number, unitID : number )
-    local lens = {}
-    if playerID == Game.GetLocalPlayer() then
+    if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
+        local lens = {}
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
-        if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
+        if lens[1] == LENS_NAME then
             ClearScoutLens()
         end
     end
 end
 
 local function OnUnitMoveComplete( playerID:number, unitID:number )
-    if playerID == Game.GetLocalPlayer() then
+    if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
         local pPlayer = Players[playerID]
         local pUnit = pPlayer:GetUnits():FindID(unitID)
         -- Ensure the unit is selected. Scout could be exploring automated
         if UI.IsUnitSelected(pUnit) then
-            local unitType = getUnitType(pUnit)
-            local promotionClass = GameInfo.Units[unitType].PromotionClass
-            if unitType and promotionClass == "PROMOTION_CLASS_RECON" and AUTO_APPLY_SCOUT_LENS then
-                RefreshScoutLens()
+            local unitType = pUnit:GetUnitType()
+            if unitType ~= -1 and GameInfo.Units[unitType] ~= nil then
+                local promotionClass = GameInfo.Units[unitType].PromotionClass
+                local unitDomain = GameInfo.Units[unitType].Domain
+                local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
+                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+                    RefreshScoutLens()
+                elseif promotionClass == "PROMOTION_CLASS_RECON" then
+                    RefreshScoutLens()
+                end
             end
         end
     end
 end
 
 local function OnGoodyHutReward( playerID:number )
-    if playerID == Game.GetLocalPlayer() then
+    if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
         local lens = {}
         LuaEvents.MinimapPanel_GetActiveModLens(lens)
-        if lens[1] == LENS_NAME and AUTO_APPLY_SCOUT_LENS then
+        if lens[1] == LENS_NAME then
             RefreshScoutLens()
         end
     end
+end
+
+local function OnLensSettingsUpdate()
+    -- Refresh our local settings from updated GameConfig
+    AUTO_APPLY_SCOUT_LENS = GameConfiguration.GetValue("ML_AutoApplyScoutLens")
+    AUTO_APPLY_SCOUT_LENS_EXTRA = GameConfiguration.GetValue("ML_AutoApplyScoutLensExtra")
 end
 
 local function OnInitialize()
@@ -121,6 +140,7 @@ local function OnInitialize()
     Events.UnitRemovedFromMap.Add( OnUnitRemovedFromMap )
     Events.UnitMoveComplete.Add( OnUnitMoveComplete )
     Events.GoodyHutReward.Add( OnGoodyHutReward )
+    LuaEvents.ML_SettingsUpdate.Add( OnLensSettingsUpdate )
 end
 
 local ScoutLensEntry = {

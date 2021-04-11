@@ -4,14 +4,17 @@
     <Grid Size="parent,parent" Texture="Controls_ContainerBlue" SliceStart="0,0" SliceCorner="3,3" SliceSize="9,9" SliceTextureSize="16,16">
       <Container ID="Header" Size="parent,54" Anchor="C,T" Style="ShellHeaderContainer">
         <Grid Style="ShellHeaderButtonGrid">
-          <Label Style="FontFlair24" FontStyle="glow" ColorSet="ShellHeader" Anchor="C,C" String="LOC_BTS_SETTINGS_PANEL_HEADER"/>
+          <Label Style="FontFlair24" FontStyle="glow" ColorSet="ShellHeader" Anchor="C,C" String="LOC_HUD_ML_SETTINGS_PANEL_TITLE"/>
         </Grid>
       </Container>
 
       <Container ID="GeneralOptions" Size="parent,parent-54" Offset="0,20" Hidden="0" Anchor="C,T">
         <Stack Anchor="C,T" StackGrowth="Down" Padding="5" Offset="0,50">
-          <GridButton ID="AutoApplyBuilderLensCheckbox" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER"/>
-          <GridButton ID="AutoApplyScoutLensCheckbox" Anchor="L,C" Offset="0,0" Size="300,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT"/>
+          <GridButton ID="AutoApplyBuilderLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER"/>
+          <GridButton ID="BuilderLensDisableNothing" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING"/>
+          <GridButton ID="BuilderLensDisableDangerous" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS"/>
+          <GridButton ID="AutoApplyScoutLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT"/>
+          <GridButton ID="AutoApplyScoutLensExtraCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA"/>
         </Stack>
       </Container>
 
