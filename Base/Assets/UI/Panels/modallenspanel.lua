@@ -337,8 +337,13 @@ function OnInit(isReload:boolean)
 end
 
 -- ===========================================================================
-function AddLensEntry(lensKey:string, lensEntry:table)
+function AddLensEntry(lensKey:string, lensEntry:table, refreshPanel)
+    -- print("Adding lensEntry for key: " .. lensKey)
     g_ModLensModalPanel[lensKey] = lensEntry
+
+    if refreshPanel then
+        ShowModLensKey(lensKey)
+    end
 end
 
 -- ===========================================================================
