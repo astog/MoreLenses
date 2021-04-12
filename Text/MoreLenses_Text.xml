@@ -98,23 +98,26 @@
     <Row Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP">
       <Text>Highlights resources on the map</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY">
-      <Text>Luxury Resource</Text>
-    </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY">
-      <Text>Unconnected Luxury</Text>
-    </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC">
-      <Text>Strategic Resource</Text>
-    </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC">
-      <Text>Unconnected Strategic Resource</Text>
+    <Row Tag="LOC_HUD_RESOURCE_LENS_COUNT_TOOLTIP">
+      <Text>You own {1_Count} ({2_Count} improved) of the total {3_Count} discovered plots of {4_Resource}.</Text>
     </Row>
     <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS">
       <Text>Bonus Resource</Text>
     </Row>
     <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS">
       <Text>Unconnected Bonus Resource</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY">
+      <Text>Luxury Resource</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY">
+      <Text>Unconnected Luxury Resource</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC">
+      <Text>Strategic Resource</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC">
+      <Text>Unconnected Strategic Resource</Text>
     </Row>
 
     <!-- Wonder Lens -->
