@@ -309,10 +309,11 @@ local function LoadBonusResourcesToShow()
                 ndup_insert(m_bonusResourcesToShow, resourceType)
             end
         end
+        return true
     end
 
-    print("No previous bonusResourcesToShow data was available")
-    return true
+    -- print("No previous bonusResourcesToShow data was available")
+    return false
 end
 
 local function SaveLuxuryResourcesToShow()
@@ -338,7 +339,7 @@ local function LoadLuxuryResourcesToShow()
         return true
     end
 
-    print("No previous luxuryResourcesToShow data was available")
+    -- print("No previous luxuryResourcesToShow data was available")
     return false
 end
 
@@ -365,7 +366,7 @@ local function LoadStrategicResourcesToShow()
         return true
     end
 
-    print("No previous strategicResourcesToShow data was available")
+    -- print("No previous strategicResourcesToShow data was available")
     return false
 end
 
