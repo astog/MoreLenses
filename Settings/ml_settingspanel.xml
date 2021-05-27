@@ -1,26 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Context>
-  <Container ID="SettingsPanel" Size="380,512" Anchor="C,C" ConsumeMouse="1">
-    <Grid Size="parent,parent" Texture="Controls_ContainerBlue" SliceStart="0,0" SliceCorner="3,3" SliceSize="9,9" SliceTextureSize="16,16">
-      <Container ID="Header" Size="parent,54" Anchor="C,T" Style="ShellHeaderContainer">
-        <Grid Style="ShellHeaderButtonGrid">
-          <Label Style="FontFlair24" FontStyle="glow" ColorSet="ShellHeader" Anchor="C,C" String="LOC_HUD_ML_SETTINGS_PANEL_TITLE"/>
-        </Grid>
-      </Container>
+  <Container ID="SettingsPanel" Size="800,512" Anchor="C,C" ConsumeMouse="1">
+    <Grid Size="parent,auto" Texture="Controls_ContainerBlue" SliceStart="0,0" SliceCorner="3,3" SliceSize="9,9" SliceTextureSize="16,16">
+      <Stack Anchor="C,T" Size="parent,auto" StackGrowth="Down" Padding="5" Offset="0,0">
+        <Container ID="Header" Size="parent,54" Anchor="C,T" Style="ShellHeaderContainer">
+          <Grid Style="ShellHeaderButtonGrid">
+            <Label Style="FontFlair24" FontStyle="glow" ColorSet="ShellHeader" Anchor="C,C" String="LOC_HUD_ML_SETTINGS_PANEL_TITLE"/>
+          </Grid>
+        </Container>
 
-      <Container ID="GeneralOptions" Size="parent,parent-54" Offset="0,20" Hidden="0" Anchor="C,T">
-        <Stack Anchor="C,T" StackGrowth="Down" Padding="5" Offset="0,50">
-          <GridButton ID="AutoApplyBuilderLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER"/>
-          <GridButton ID="BuilderLensDisableNothing" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING"/>
-          <GridButton ID="BuilderLensDisableDangerous" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS"/>
-          <GridButton ID="AutoApplyScoutLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT"/>
-          <GridButton ID="AutoApplyScoutLensExtraCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA"/>
-        </Stack>
-      </Container>
+        <Container ID="GeneralOptions" Size="parent,parent-54" Hidden="0" Anchor="C,T">
+          <ScrollPanel ID="LensesOptionsScrollPanel" Anchor="C,T" Size="parent-20,parent-5" AutoScrollBar="1" Vertical="1">
+            <Stack Anchor="C,T" Size="parent,auto" StackGrowth="Down" Padding="5" Offset="0,0">
+              <Stack Anchor="C,T" StackGrowth="Down" Padding="5">
+                <GridButton ID="AutoApplyBuilderLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER"/>
+                <GridButton ID="BuilderLensDisableNothing" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING"/>
+                <GridButton ID="BuilderLensDisableDangerous" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS" ToolTip="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS"/>
+                <GridButton ID="AutoApplyScoutLensCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT"/>
+                <GridButton ID="AutoApplyScoutLensExtraCheckbox" Anchor="L,C" Offset="0,0" Size="340,24" Style="CheckBoxControl" String="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA" ToolTip="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA"/>
+              </Stack>
+              <!-- </Container> -->
+              <!-- Lenses Color Settings -->
+              <!-- <Stack Anchor="C,C" StackGrowth="Left"> -->
+              <Label Anchor="C,C" Style="ShellOptionText" Offset="0,0" String="LOC_ML_LENSES_RGB_COLOR_SETTINGS"/>
+              <!-- </Stack> -->
+              <Line Anchor="C,C" Start="0,0" End="500,0" Width="2" Color="84,77,66,255"/>
+              <!-- Categories each with 1 or more controls contained within -->
+              <Stack ID="LensRGBPickerLensGroupStack" Anchor="L,T" StackGrowth="Down" Size="parent,0" Padding="5">
+              </Stack>
+            </Stack>
+            <ScrollBar Style="Slider_Blue" Anchor="R,C" AnchorSide="O,I"/>
+          </ScrollPanel>
+        </Container>
 
-      <Container ID="Header" Size="parent,60" Anchor="C,B" Offset="0,-5" Style="ShellHeaderContainer">
-        <GridButton ID="ConfirmButton" Style="ButtonConfirm" Anchor="C,C" Offset="0,-1" String="LOC_AUTONARRATE_BUTTON_DONE" Size="300,41"/>
-      </Container>
+        <Container ID="Header" Size="parent,60" Anchor="C,B" Offset="0,-5" Style="ShellHeaderContainer">
+          <GridButton ID="ConfirmButton" Style="ButtonConfirm" Anchor="C,C" Offset="0,-1" String="LOC_AUTONARRATE_BUTTON_DONE" Size="300,41"/>
+        </Container>
+      </Stack>
     </Grid>
   </Container>
+  <!-- More Lenses Color Editing Controls -->
+  <!-- Each Category instance contains a label and rows for each lens -->
+  <!-- Each row (LensRGBPickerRowInstance) contains three elements (LensRGBPickerLabelEditBoxSliderInstance) to control the red, green, and blue values -->
+  <!-- Each LensRGBPickerLabelEditBoxSliderInstance has a slider control (0 to 255) and an edit box to allow typing of values -->
+  <Instance Name="LensRGBPickerLensGroupInstance">
+    <Stack ID="LensRGBPickerLensGroupInstanceRoot" Anchor="L,C" StackGrowth="Down" Padding="5" Size="parent-10,30">
+      <Label ID="LensGroupLabel" Anchor="C,T" Style="ShellOptionText" String=""/>
+      <Stack ID="LensRGBPickerRowInstanceStack" Anchor="L,C" StackGrowth="Down" Padding="2" Size="auto,30"></Stack>
+    </Stack>
+  </Instance>
+
+  <Instance Name="LensRGBPickerRowInstance">
+    <Stack ID="LensRGBPickerRowInstanceRoot" Anchor="C,C" StackGrowth="Left" Padding="5" Size="parent-10,30">
+      <GridButton ID="RestoreDefaultButton" Anchor="R,C" Style="ButtonControl" Size="50,22" FontSize="10" String="LOC_DEFAULT_BUTTON"/>
+      <Box ID="ColorPreviewBox" Anchor="R,C" Size="22,22" Color="0,0,0,128"/>
+      <Stack ID="LensRGBPickerLabelEditBoxSliderInstanceStack" Anchor="C,C" StackGrowth="Right" Padding="2" Size="auto,30"></Stack>
+      <Label ID="RowLabel" Anchor="L,C" Align="left" Style="FontNormal12" WrapWidth="192" ColorSet="ShellOptionText" String=""/>
+    </Stack>
+  </Instance>
+
+  <Instance Name="LensRGBPickerLabelEditBoxSliderInstance">
+    <Stack ID="LensRGBPickerLabelEditBoxSliderInstanceRoot" Anchor="C,C" StackGrowth="Right" Padding="5">
+      <Stack ID="LabelStack" Anchor="L,C" StackGrowth="Right" Padding="5">
+        <Label ID="LabelCtrl" Anchor="L,C" Style="WhiteSemiBold12" String=""/>
+        <Grid Anchor="R,C" Texture="EditTextArea" InnerPadding="6,6" Size="28,18">
+          <ColorBox Color="0,0,0,90" Anchor="C,C" Size="auto,auto" SizePadding="1,1">
+            <EditBox ID="EditBoxCtrl" Anchor="C,C" EditMode="1" MinSize="22,12" Style="WhiteSemiBold12" String="0" MaxLength="3"/>
+          </ColorBox>
+        </Grid>
+      </Stack>
+      <Slider ID="SliderCtrl" Anchor="L,C" Style="SliderControl" Size="100,13" Offset="0,0" SpaceForScroll="0" Steps="255"/>
+    </Stack>
+  </Instance>
 </Context>

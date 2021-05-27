@@ -50,10 +50,10 @@
     <Row Tag="LOC_HUD_ARCHAEOLOGIST_LENS_TOOLTIP">
       <Text>Highlights archaeologist dig sites.</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT">
+    <Row Tag="LOC_HUD_ARCHAEOLOGIST_LENS_ARTIFACT">
       <Text>Artifact</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK">
+    <Row Tag="LOC_HUD_ARCHAEOLOGIST_LENS_SHIPWRECK">
       <Text>Shipwreck</Text>
     </Row>
 
@@ -68,7 +68,7 @@
       <Text>Highlight outside border</Text>
     </Row>
     <Row Tag="LOC_PANEL_CITYOVERLAP_NMOUSE">
-        <Text>No Mouse</Text>
+      <Text>No Mouse</Text>
     </Row>
     <Row Tag="LOC_PANEL_CITYOVERLAP_RANGE">
       <Text>Range</Text>
@@ -87,7 +87,7 @@
     <Row Tag="LOC_HUD_BARBARIAN_LENS_TOOLTIP">
       <Text>Highlights barbarian encampments on the map</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT">
+    <Row Tag="LOC_HUD_BARBARIAN_LENS_ENCAMPMENT">
       <Text>Barbarian Encampment</Text>
     </Row>
 
@@ -101,22 +101,22 @@
     <Row Tag="LOC_HUD_RESOURCE_LENS_COUNT_TOOLTIP">
       <Text>You own {1_Count} ({2_Count} improved) of the total {3_Count} discovered plots of {4_Resource}.</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_BONUSCONNECTED">
       <Text>Bonus Resource</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_BONUSNCONNECTED">
       <Text>Unconnected Bonus Resource</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_LUXCONNECTED">
       <Text>Luxury Resource</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_LUXNCONNECTED">
       <Text>Unconnected Luxury Resource</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_STRATCONNECTED">
       <Text>Strategic Resource</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC">
+    <Row Tag="LOC_HUD_RESOURCE_LENS_STRATNCONNECTED">
       <Text>Unconnected Strategic Resource</Text>
     </Row>
 
@@ -127,10 +127,10 @@
     <Row Tag="LOC_HUD_WONDER_LENS_TOOLTIP">
       <Text>Highlights natural wonders and built wonders built by players</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_WONDER_LENS_NWONDER">
+    <Row Tag="LOC_HUD_WONDER_LENS_NATURAL">
       <Text>Natural Wonder</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_RESOURCE_LENS_PWONDER">
+    <Row Tag="LOC_HUD_WONDER_LENS_PLAYER">
       <Text>Player-made Wonder</Text>
     </Row>
 
@@ -149,7 +149,7 @@
     <Row Tag="LOC_HUD_SCOUT_LENS_TOOLTIP">
       <Text>Highlights goody huts on the map</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_SCOUT_LENS_GHUT">
+    <Row Tag="LOC_HUD_SCOUT_LENS_GHUT">
       <Text>Goody Hut</Text>
     </Row>
 
@@ -160,13 +160,13 @@
     <Row Tag="LOC_HUD_NATURALIST_LENS_TOOLTIP">
       <Text>Highlights places where National Parks can be built</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_NPARK">
+    <Row Tag="LOC_HUD_NATURALIST_LENS_PARK">
       <Text>Area is ready for National Park</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_OK">
+    <Row Tag="LOC_HUD_NATURALIST_LENS_OK">
       <Text>Tile could be used, if some other plot is fixed</Text>
     </Row>
-    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE">
+    <Row Tag="LOC_HUD_NATURALIST_LENS_FIXABLE">
       <Text>Needs fixing to be used for a park</Text>
     </Row>
 
@@ -210,5 +210,17 @@
       <Text>Enable this to automatically apply the Scout lens when selecting all military units.</Text>
     </Row>
 
+    <Row Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS">
+      <Text>RGB Color Settings for Custom Lenses</Text>
+    </Row>
+    <Row Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_RED">
+      <Text>Red</Text>
+    </Row>
+    <Row Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_GREEN">
+      <Text>Green</Text>
+    </Row>
+    <Row Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_BLUE">
+      <Text>Blue</Text>
+    </Row>
   </BaseGameText>
 </GameData>
