@@ -36,10 +36,10 @@
     <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os Sítios Arqueológicos.</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT" Language="pt_BR">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_ARTIFACT" Language="pt_BR">
       <Text>Local da Antiguidade</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="pt_BR">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="pt_BR">
       <Text>Naufrágio</Text>
     </Replace>
 
@@ -73,7 +73,7 @@
     <Replace Tag="LOC_HUD_BARBARIAN_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os postos avançados bárbaros no mapa</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT" Language="pt_BR">
+    <Replace Tag="LOC_HUD_BARBARIAN_LENS_ENCAMPMENT" Language="pt_BR">
       <Text>Posto Avançado Bárbaro</Text>
     </Replace>
 
@@ -84,22 +84,22 @@
     <Replace Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os recursos no mapa</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXCONNECTED" Language="pt_BR">
       <Text>Recurso de Luxo</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXNCONNECTED" Language="pt_BR">
       <Text>Recurso de Luxo sem Melhoria</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATCONNECTED" Language="pt_BR">
       <Text>Recurso Estratégico</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATNCONNECTED" Language="pt_BR">
       <Text>Recurso Estratégico sem Melhoria </Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSCONNECTED" Language="pt_BR">
       <Text>Recurso Bônus</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="pt_BR">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSNCONNECTED" Language="pt_BR">
       <Text>Recurso Bônus sem Melhoria</Text>
     </Replace>
 
@@ -110,10 +110,10 @@
     <Replace Tag="LOC_HUD_WONDER_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra as Maravilhas da Natureza e Maravilhas construídas por civilizações</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_WONDER_LENS_NWONDER" Language="pt_BR">
+    <Replace Tag="LOC_HUD_WONDER_LENS_NATURAL" Language="pt_BR">
       <Text>Maravilha da Natureza</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_PWONDER" Language="pt_BR">
+    <Replace Tag="LOC_HUD_WONDER_LENS_PLAYER" Language="pt_BR">
       <Text>Maravilha Construída</Text>
     </Replace>
 
@@ -132,7 +132,7 @@
     <Replace Tag="LOC_HUD_SCOUT_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra as Aldeias Tribais no mapa</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_SCOUT_LENS_GHUT" Language="pt_BR">
+    <Replace Tag="LOC_HUD_SCOUT_LENS_GHUT" Language="pt_BR">
       <Text>Aldeia Tribal</Text>
     </Replace>
 
@@ -143,15 +143,30 @@
     <Replace Tag="LOC_HUD_NATURALIST_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os locais onde Parques Nacionais podem ser contruídos</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_NPARK" Language="pt_BR">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_PARK" Language="pt_BR">
       <Text>Área propícia para Parque Nacional</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_OK" Language="pt_BR">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_OK" Language="pt_BR">
       <Text>Área propícia após melhora de painel ao redor</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE" Language="pt_BR">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_FIXABLE" Language="pt_BR">
       <Text>Precisa de melhoras para ser utilizado em um parque </Text>
     </Replace>
 
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS" Language="pt_BR">
+      <Text>Configurações de cores RGB para lentes personalizadas</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_BLUE" Language="pt_BR">
+      <Text>azul</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_EDITBOX_TOOLTIP" Language="pt_BR">
+      <Text>Digite um valor entre 0 e 255</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_GREEN" Language="pt_BR">
+      <Text>verde</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_RED" Language="pt_BR">
+      <Text>vermelho</Text>
+    </Replace>
   </LocalizedText>
 </GameData>

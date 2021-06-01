@@ -36,10 +36,10 @@
     <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示可被考古学家发掘的地块</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_ARTIFACT" Language="zh_Hans_CN">
       <Text>历史古迹</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="zh_Hans_CN">
       <Text>海难遗址</Text>
     </Replace>
 
@@ -76,7 +76,7 @@
     <Replace Tag="LOC_HUD_BARBARIAN_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示地图上的野蛮人营地</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_BARBARIAN_LENS_ENCAMPMENT" Language="zh_Hans_CN">
       <Text>蛮族哨站</Text>
     </Replace>
 
@@ -87,22 +87,22 @@
     <Replace Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示地图上的资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXCONNECTED" Language="zh_Hans_CN">
       <Text>已开发奢侈品资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXNCONNECTED" Language="zh_Hans_CN">
       <Text>奢侈品资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATCONNECTED" Language="zh_Hans_CN">
       <Text>已开发战略资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATNCONNECTED" Language="zh_Hans_CN">
       <Text>战略资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSCONNECTED" Language="zh_Hans_CN">
       <Text>已开发加成资源</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSNCONNECTED" Language="zh_Hans_CN">
       <Text>加成资源</Text>
     </Replace>
 
@@ -113,10 +113,10 @@
     <Replace Tag="LOC_HUD_WONDER_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示自然奇观和玩家建造的世界奇观</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_WONDER_LENS_NWONDER" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_WONDER_LENS_NATURAL" Language="zh_Hans_CN">
       <Text>自然奇观</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_PWONDER" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_WONDER_LENS_PLAYER" Language="zh_Hans_CN">
       <Text>世界奇观</Text>
     </Replace>
 
@@ -135,7 +135,7 @@
     <Replace Tag="LOC_HUD_SCOUT_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示地图上的部落村庄</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_SCOUT_LENS_GHUT" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_SCOUT_LENS_GHUT" Language="zh_Hans_CN">
       <Text>部落村庄</Text>
     </Replace>
 
@@ -146,15 +146,30 @@
     <Replace Tag="LOC_HUD_NATURALIST_LENS_TOOLTIP" Language="zh_Hans_CN">
       <Text>高亮显示可建造国家公园的地块</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_NPARK" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_PARK" Language="zh_Hans_CN">
       <Text>可立即建造国家公园</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_OK" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_OK" Language="zh_Hans_CN">
       <Text>修改其他地块后可建造国家公园</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE" Language="zh_Hans_CN">
+    <Replace Tag="LOC_HUD_NATURALIST_LENS_FIXABLE" Language="zh_Hans_CN">
       <Text>修改后可建造国家公园</Text>
     </Replace>
 
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS" Language="zh_Hans">
+      <Text>用于自定义镜头的 RGB 颜色设置</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_BLUE" Language="zh_Hans">
+      <Text>蓝</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_EDITBOX_TOOLTIP" Language="zh_Hans">
+      <Text>输入 0 和 255 之间的值</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_GREEN" Language="zh_Hans">
+      <Text>绿</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_RED" Language="zh_Hans">
+      <Text>红</Text>
+    </Replace>
   </LocalizedText>
 </GameData>
