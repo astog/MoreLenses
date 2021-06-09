@@ -33,10 +33,10 @@
     <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_TOOLTIP" Language="pl_PL">
       <Text>Podświetla archeologiczne ślady przeszłości.</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT" Language="pl_PL">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_ARTIFACT" Language="pl_PL">
       <Text>Artefakt</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="pl_PL">
+    <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS_SHIPWRECK" Language="pl_PL">
       <Text>Wrak statku</Text>
     </Replace>
 
@@ -63,7 +63,7 @@
     <Replace Tag="LOC_HUD_BARBARIAN_LENS_TOOLTIP" Language="pl_PL">
       <Text>Podświetla obozy barbarzyńców</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BARBARIAN_LENS_ENCAPMENT" Language="pl_PL">
+    <Replace Tag="LOC_HUD_BARBARIAN_LENS_ENCAMPMENT" Language="pl_PL">
       <Text>Obóz barbarzyńców</Text>
     </Replace>
 
@@ -74,22 +74,22 @@
     <Replace Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP" Language="pl_PL">
       <Text>Podświetla zasoby na mapie</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXCONNECTED" Language="pl_PL">
       <Text>Zasób luksusowy</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_LUXNCONNECTED" Language="pl_PL">
       <Text>Nieprzyłączony zasób luksusowy</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATCONNECTED" Language="pl_PL">
       <Text>Zasób strategiczny</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_STRATNCONNECTED" Language="pl_PL">
       <Text>Nieprzyłączony zasób strategiczny</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSCONNECTED" Language="pl_PL">
       <Text>Zasób dodatkowy</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="pl_PL">
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_BONUSNCONNECTED" Language="pl_PL">
       <Text>Nieprzyłączony zasób dodatkowy</Text>
     </Replace>
 
@@ -100,10 +100,10 @@
     <Replace Tag="LOC_HUD_WONDER_LENS_TOOLTIP" Language="pl_PL">
       <Text>Podświetla cuda natury oraz cuda zbudowane przez graczy</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_WONDER_LENS_NWONDER" Language="pl_PL">
+    <Replace Tag="LOC_HUD_WONDER_LENS_NATURAL" Language="pl_PL">
       <Text>Cud natury</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_PWONDER" Language="pl_PL">
+    <Replace Tag="LOC_HUD_WONDER_LENS_PLAYER" Language="pl_PL">
       <Text>Cud zbudowany przez gracza</Text>
     </Replace>
 
@@ -122,9 +122,24 @@
     <Replace Tag="LOC_HUD_SCOUT_LENS_TOOLTIP" Language="pl_PL">
       <Text>Podświetla wioski plemienne</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_SCOUT_LENS_GHUT" Language="pl_PL">
+    <Replace Tag="LOC_HUD_SCOUT_LENS_GHUT" Language="pl_PL">
       <Text>Wioska plemienna</Text>
     </Replace>
 
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS" Language="pl_PL">
+      <Text>Ustawienia kolorów RGB dla obiektywów niestandardowych</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_BLUE" Language="pl_PL">
+      <Text>niebieski</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_EDITBOX_TOOLTIP" Language="pl_PL">
+      <Text>Wprowadź wartość z 0 do 255</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_GREEN" Language="pl_PL">
+      <Text>zielony</Text>
+    </Replace>
+    <Replace Tag="LOC_ML_LENSES_RGB_COLOR_SETTINGS_RED" Language="pl_PL">
+      <Text>czerwony</Text>
+    </Replace>
   </LocalizedText>
 </GameData>

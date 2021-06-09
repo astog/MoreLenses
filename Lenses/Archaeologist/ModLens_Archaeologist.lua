@@ -1,8 +1,23 @@
+include("LensSupport")
 local LENS_NAME = "ML_ARCHAEOLOGIST"
 local ML_LENS_LAYER = UILens.CreateLensLayerHash("Hex_Coloring_Appeal_Level")
 
+local m_LensSettings = {
+    ["COLOR_ARCHAEOLOGIST_LENS_ARTIFACT"]  = { ConfiguredColor = GetLensColorFromSettings("COLOR_ARCHAEOLOGIST_LENS_ARTIFACT"), KeyLabel = "LOC_HUD_ARCHAEOLOGIST_LENS_ARTIFACT" },
+    ["COLOR_ARCHAEOLOGIST_LENS_SHIPWRECK"] = { ConfiguredColor = GetLensColorFromSettings("COLOR_ARCHAEOLOGIST_LENS_SHIPWRECK"), KeyLabel = "LOC_HUD_ARCHAEOLOGIST_LENS_SHIPWRECK" }
+}
+
 -- Should the archaeologist lens auto apply, when a archaeologist is selected.
-local AUTO_APPLY_ARCHEOLOGIST_LENS:boolean = false
+local AUTO_APPLY_ARCHAEOLOGIST_LENS:boolean = false
+
+local function ML_OnSettingsInitialized()
+    -- NOTE: Setting to control auto-applying the Archaeologist lens is missing?
+    UpdateLensConfiguredColors(m_LensSettings, g_ModLensModalPanel, LENS_NAME);
+end
+
+local function ML_OnSettingsUpdate()
+    ML_OnSettingsInitialized();
+end
 
 -- ===========================================================================
 -- Archaeologist Lens Support
@@ -34,8 +49,8 @@ local function OnGetColorPlotTable()
     local pPlayer:table = Players[localPlayer]
     local localPlayerVis:table = PlayersVisibility[localPlayer]
 
-    local AntiquityColor = UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS")
-    local ShipwreckColor = UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS")
+    local AntiquityColor = m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_ARTIFACT"].ConfiguredColor
+    local ShipwreckColor = m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_SHIPWRECK"].ConfiguredColor
     local IgnoreColor = UI.GetColorValue("COLOR_MORELENSES_GREY")
     local colorPlot = {}
     colorPlot[AntiquityColor] = {}
@@ -81,12 +96,12 @@ local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:numb
         local unitType = GetUnitTypeFromIDs(playerID, unitID)
         if unitType then
             if bSelected then
-                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
+                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHAEOLOGIST_LENS then
                     ShowArchaeologistLens()
                 end
             -- Deselection
             else
-                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
+                if unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHAEOLOGIST_LENS then
                     ClearArchaeologistLens()
                 end
             end
@@ -99,7 +114,7 @@ local function OnUnitRemovedFromMap( playerID: number, unitID : number )
     local lens = {}
     LuaEvents.MinimapPanel_GetActiveModLens(lens)
     if playerID == localPlayer then
-        if lens[1] == LENS_NAME and AUTO_APPLY_ARCHEOLOGIST_LENS then
+        if lens[1] == LENS_NAME and AUTO_APPLY_ARCHAEOLOGIST_LENS then
             ClearArchaeologistLens()
         end
     end
@@ -110,7 +125,7 @@ function OnUnitCaptured( currentUnitOwner, unit, owningPlayer, capturingPlayer )
     local localPlayer = Game.GetLocalPlayer()
     if owningPlayer == localPlayer then
         local unitType = GetUnitTypeFromIDs(owningPlayer, unitID)
-        if unitType and unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHEOLOGIST_LENS then
+        if unitType and unitType == "UNIT_ARCHAEOLOGIST" and AUTO_APPLY_ARCHAEOLOGIST_LENS then
             ClearArchaeologistLens()
         end
     end
@@ -139,7 +154,11 @@ if g_ModLensModalPanel ~= nil then
     g_ModLensModalPanel[LENS_NAME] = {}
     g_ModLensModalPanel[LENS_NAME].LensTextKey = "LOC_HUD_ARCHAEOLOGIST_LENS"
     g_ModLensModalPanel[LENS_NAME].Legend = {
-        {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_ARTIFACT",     UI.GetColorValue("COLOR_ARTIFACT_ARCH_LENS")},
-        {"LOC_TOOLTIP_ARCHAEOLOGIST_LENS_SHIPWRECK",    UI.GetColorValue("COLOR_SHIPWRECK_ARCH_LENS")}
+        {m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_ARTIFACT"].KeyLabel, m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_ARTIFACT"].ConfiguredColor},
+        {m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_SHIPWRECK"].KeyLabel, m_LensSettings["COLOR_ARCHAEOLOGIST_LENS_SHIPWRECK"].ConfiguredColor}
     }
 end
+
+-- Add ML LuaEvent Hooks for minimappanel and modallenspanel contexts
+LuaEvents.ML_SettingsUpdate.Add(ML_OnSettingsUpdate);
+LuaEvents.ML_SettingsInitialized.Add(ML_OnSettingsInitialized);
