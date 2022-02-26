@@ -10,21 +10,38 @@
     <Replace Tag="LOC_HUD_BUILDER_LENS_TOOLTIP" Language="ko_KR">
       <Text>건설자가 작업할 수 있는 타일을 나타냅니다.</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_IMP" Language="ko_KR">
+    <Row Tag="LOC_HUD_BUILDER_LENS_PN">
+      <Text>할 수 있는 작업 없음</Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_PD">
+      <Text>위험</Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P1">
+      <Text>자원</Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P1N">
+      <Text>범위 밖의 자원</Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P2">
       <Text>자원/약탈당함/고유 능력</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_HILL" Language="ko_KR">
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P3">
+      <Text>현재 작업 완료 / 불가사의 버프</Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P4">
       <Text>언덕</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_FEATURE" Language="ko_KR">
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P5">
       <Text>제거 가능한 지형 특성</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_GENERIC" Language="ko_KR">
+    </Row>
+    <!-- Nothing to add here atm -->
+    <Row Tag="LOC_HUD_BUILDER_LENS_P6">
+      <Text></Text>
+    </Row>
+    <Row Tag="LOC_HUD_BUILDER_LENS_P7">
       <Text>일반 타일</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_NOTHING" Language="ko_KR">
-      <Text>할수 있는 작업 없음</Text>
-    </Replace>
+    </Row>
+
 
     <!-- Archaeologist Lens -->
     <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS" Language="ko_KR">
@@ -41,20 +58,27 @@
     </Replace>
 
     <!-- City Overlap Lens -->
-    <Replace Tag="LOC_HUD_CITYOVERLAP6_LENS" Language="ko_KR">
-      <Text>도시 오버랩 6칸</Text>
-    </Replace>
-    <Replace Tag="LOC_HUD_CITYOVERLAP6_LENS_TOOLTIP" Language="ko_KR">
-      <Text>얼마나 많은 도시가 6개 타일 범위에서 서로 중복되는지 보여줍니다.</Text>
-    </Replace>
-
-    <!-- City Overlap Lens -->
-    <Replace Tag="LOC_HUD_CITYOVERLAP9_LENS" Language="ko_KR">
-      <Text>도시 오버랩 9칸</Text>
-    </Replace>
-    <Replace Tag="LOC_HUD_CITYOVERLAP9_LENS_TOOLTIP" Language="ko_KR">
-      <Text>얼마나 많은 도시가 9개 타일 범위에서 서로 중복되는지 보여줍니다.</Text>
-    </Replace>
+    <Row Tag="LOC_HUD_CITYOVERLAP_LENS">
+      <Text>도시 오버랩</Text>
+    </Row>
+    <Row Tag="LOC_HUD_CITYOVERLAP_LENS_TOOLTIP">
+      <Text>얼마나 많은 도시가 타일 범위에서 서로 중복되는지 보여줍니다.</Text>
+    </Row>
+    <Row Tag="LOC_PANEL_CITYOVERLAP_OPTION1">
+      <Text>국경 밖 범위 표시</Text>
+    </Row>
+    <Row Tag="LOC_PANEL_CITYOVERLAP_NMOUSE">
+      <Text>마우스 범위 비활성화</Text>
+    </Row>
+    <Row Tag="LOC_PANEL_CITYOVERLAP_RANGE">
+      <Text>범위</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_CITYOVERLAP_RANGE">
+      <Text>마우스를 기준으로 범위(아래 참고)내 타일과 도시를 강조 표시합니다.</Text>
+    </Row>
+    <Row Tag="LOC_PANEL_CITYOVERLAP_RADIUS">
+      <Text>마우스 반지름</Text>
+    </Row>
 
     <!-- Barbarian Lens -->
     <Replace Tag="LOC_HUD_BARBARIAN_LENS" Language="ko_KR">
@@ -74,6 +98,15 @@
     <Replace Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP" Language="ko_KR">
       <Text>자원의 상태를 나타냅니다.</Text>
     </Replace>
+    <Row Tag="LOC_HUD_RESOURCE_LENS_COUNT_TOOLTIP">
+      <Text>검색된 총 {3_Count} 개의 {4_Resource} 중 {1_Count}({2_Count} 향상됨)개를 보유하고 있습니다.</Text>
+    </Row>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="ko_KR">
+      <Text>개발한 보너스 자원</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="ko_KR">
+      <Text>미개발 보너스 자원</Text>
+    </Replace>
     <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="ko_KR">
       <Text>개발한 사치 자원</Text>
     </Replace>
@@ -85,12 +118,6 @@
     </Replace>
     <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="ko_KR">
       <Text>미개발 전략 자원</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="ko_KR">
-      <Text>개발한 보너스 자원</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="ko_KR">
-      <Text>미개발 보너스 자원</Text>
     </Replace>
 
     <!-- Wonder Lens -->
@@ -117,7 +144,7 @@
 
     <!-- Scout Lens -->
     <Replace Tag="LOC_HUD_SCOUT_LENS" Language="ko_KR">
-      <Text>정잘병</Text>
+      <Text>정찰병</Text>
     </Replace>
     <Replace Tag="LOC_HUD_SCOUT_LENS_TOOLTIP" Language="ko_KR">
       <Text>부족 마을을 나타냅니다.</Text>
@@ -125,6 +152,63 @@
     <Replace Tag="LOC_TOOLTIP_SCOUT_LENS_GHUT" Language="ko_KR">
       <Text>부족 마을</Text>
     </Replace>
+
+    <!-- Naturalist Lens -->
+    <Row Tag="LOC_HUD_NATURALIST_LENS">
+      <Text>박물학자</Text>
+    </Row>
+    <Row Tag="LOC_HUD_NATURALIST_LENS_TOOLTIP">
+      <Text>국립 공원이 설치될 수 있는 곳을 보여줍니다.</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_NPARK">
+      <Text>국립 공원을 설치할 수 있습니다.</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_OK">
+      <Text>국립 공원을 설치하려면 일부 보완이 필요합니다.</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE">
+      <Text>국립 공원을 설치하려면 보완이 필요합니다.</Text>
+    </Row>
+
+    <!-- Settings Panel -->
+    <Row Tag="LOC_HUD_ML_SETTINGS_PANEL_TITLE">
+      <Text>More Lenses - 설정</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER">
+      <Text>건설자 렌즈 자동 적용</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER">
+      <Text>이 옵션을 적용하면 건설자를 선택할 때 건설자 렌즈를 자동으로 활성화합니다.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING">
+      <Text>건설자 렌즈: "할 수 있는 작업 없음" 타일 강조 표시 비활성화</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING">
+      <Text>"할 수 있는 작업 없음" 타일 강조 표시를 비활성화합니다. 렌즈 활성화가 오래걸릴 때 사용하세요.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS">
+      <Text>건설자 렌즈: "위험" 타일 강조 비활성화</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS">
+      <Text>건설자 근처에 적이 있는 경우 표시되는 "위험" 타일 강조 표시를 비활성화합니다. 렌즈 활성화가 오래걸릴 때 사용하세요.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT">
+      <Text>정찰병 렌즈 자동 적용</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT">
+      <Text>이 옵션을 적용하면 정찰병을 선택할 때 정찰병 렌즈를 자동으로 활성화합니다.</Text>
+    </Row>
+
+    <Row Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA">
+      <Text>정찰병 렌즈 자동 적용 - 추가</Text>
+    </Row>
+    <Row Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA">
+      <Text>"정찰병 렌즈 자동 적용" 기능을 다른 군사 유닛을 선택할 때에도 적용합니다.</Text>
+    </Row>
 
   </LocalizedText>
 </GameData>
