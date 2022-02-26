@@ -117,7 +117,7 @@
 
     <!-- Scout Lens -->
     <Replace Tag="LOC_HUD_SCOUT_LENS" Language="ko_KR">
-      <Text>정잘병</Text>
+      <Text>정찰병</Text>
     </Replace>
     <Replace Tag="LOC_HUD_SCOUT_LENS_TOOLTIP" Language="ko_KR">
       <Text>부족 마을을 나타냅니다.</Text>
