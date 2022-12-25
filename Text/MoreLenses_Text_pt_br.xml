@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
   <LocalizedText>
-    <!-- PORTUGUESE BRAZILIAN -->
+    <!-- BRAZILIAN PORTUGUESE -->
 
     <!-- Builder Lens -->
     <Replace Tag="LOC_HUD_BUILDER_LENS" Language="pt_BR">
@@ -10,24 +10,38 @@
     <Replace Tag="LOC_HUD_BUILDER_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os painéis que um Construtor pode trabalhar</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_IMP" Language="pt_BR">
-      <Text>Recurso/Painel Pilhado/Habilidade Exclusiva</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_PN" Language="pt_BR">
+      <Text>Nada a trabalhar</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RECOMFEATURE_LENS_HILL" Language="pt_BR">
-      <Text>Melhoria no Painel Recomendada</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_PD" Language="pt_BR">
+      <Text>Perigoso</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_HILL" Language="pt_BR">
-      <Text>Colina</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P1" Language="pt_BR">
+      <Text>Recurso</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_FEATURE" Language="pt_BR">
-      <Text>Característica Removível</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P1N" Language="pt_BR">
+      <Text>Recurso fora do alcalce</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_GENERIC" Language="pt_BR">
-      <Text>Painel Comum</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P2" Language="pt_BR">
+      <Text>Recomendado / Pilhado / Habilidade única</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_BUILDER_LENS_NOTHING" Language="pt_BR">
-      <Text>Nada a Fazer</Text>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P3" Language="pt_BR">
+      <Text>Trabalhado / Melhorado por Maravilha</Text>
     </Replace>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P4" Language="pt_BR">
+      <Text>Colinas</Text>
+    </Replace>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P5" Language="pt_BR">
+      <Text>Extração de Recurso</Text>
+    </Replace>
+    <!-- Nothing to add here atm -->
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P6" Language="pt_BR">
+      <Text></Text>
+    </Replace>
+    <Replace Tag="LOC_HUD_BUILDER_LENS_P7" Language="pt_BR">
+      <Text>Geral</Text>
+    </Replace>
+
 
     <!-- Archaeologist Lens -->
     <Replace Tag="LOC_HUD_ARCHAEOLOGIST_LENS" Language="pt_BR">
@@ -60,7 +74,7 @@
       <Text>Acompanhar o Mouse</Text>
     </Replace>
     <Replace Tag="LOC_TOOLTIP_CITYOVERLAP_RANGE" Language="pt_BR">
-      <Text>Mostra os painéis e cidades dentro do raio parametrizado</Text>
+      <Text>Mostra os painéis e cidades dentro do raio parametrizado.</Text>
     </Replace>
     <Replace Tag="LOC_PANEL_CITYOVERLAP_RADIUS" Language="pt_BR">
       <Text>Raio</Text>
@@ -84,23 +98,26 @@
     <Replace Tag="LOC_HUD_RESOURCE_LENS_TOOLTIP" Language="pt_BR">
       <Text>Mostra os recursos no mapa</Text>
     </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="pt_BR">
-      <Text>Recurso de Luxo</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY" Language="pt_BR">
-      <Text>Recurso de Luxo sem Melhoria</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC" Language="pt_BR">
-      <Text>Recurso Estratégico</Text>
-    </Replace>
-    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="pt_BR">
-      <Text>Recurso Estratégico sem Melhoria </Text>
+    <Replace Tag="LOC_HUD_RESOURCE_LENS_COUNT_TOOLTIP" Language="pt_BR">
+      <Text>Você controla {1_Count} ({2_Count} melhorados) de um total de {3_Count} {4_Resource} descobertos.</Text>
     </Replace>
     <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_BONUS" Language="pt_BR">
       <Text>Recurso Bônus</Text>
     </Replace>
     <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NBONUS" Language="pt_BR">
-      <Text>Recurso Bônus sem Melhoria</Text>
+      <Text>Recurso Bônus não melhorados</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_LUXURY" Language="pt_BR">
+      <Text>Recurso de Luxo</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NLUXURY" Language="pt_BR">
+      <Text>Recurso de Luxo não melhorados</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_STRATEGIC" Language="pt_BR">
+      <Text>Recurso Estratégico</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTIP_RESOURCE_LENS_NSTRATEGIC" Language="pt_BR">
+      <Text>Recurso Estratégico não melhorados</Text>
     </Replace>
 
     <!-- Wonder Lens -->
@@ -108,7 +125,7 @@
       <Text>Maravilhas</Text>
     </Replace>
     <Replace Tag="LOC_HUD_WONDER_LENS_TOOLTIP" Language="pt_BR">
-      <Text>Mostra as Maravilhas da Natureza e Maravilhas construídas por civilizações</Text>
+      <Text>Mostra as Maravilhas da Natureza e Maravilhas construídas pelas civilizações</Text>
     </Replace>
     <Replace Tag="LOC_TOOLTIP_WONDER_LENS_NWONDER" Language="pt_BR">
       <Text>Maravilha da Natureza</Text>
@@ -151,6 +168,46 @@
     </Replace>
     <Replace Tag="LOC_TOOLTIP_NATURALIST_LENS_FIXABLE" Language="pt_BR">
       <Text>Precisa de melhoras para ser utilizado em um parque </Text>
+    </Replace>
+
+    <!-- Settings Panel -->
+    <Replace Tag="LOC_HUD_ML_SETTINGS_PANEL_TITLE" Language="pt_BR">
+      <Text>More Lenses - Ajustes</Text>
+    </Replace>
+
+    <Replace Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_BUILDER" Language="pt_BR">
+      <Text>Ativa lente de construtor automaticamente</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_BUILDER" Language="pt_BR">
+      <Text>Ativa automaticamente a lente de construtor ao selecionar um construtor.</Text>
+    </Replace>
+
+    <Replace Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_NOTHING" Language="pt_BR">
+      <Text>Desabilita destaques "Nada a trabalhar"</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_NOTHING" Language="pt_BR">
+      <Text>Ao utilizar a lente de construtor, desabilita o destacamento de hexágonos onde não há nada a se trabalhar.</Text>
+    </Replace>
+
+    <Replace Tag="LOC_HUD_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS" Language="pt_BR">
+      <Text>Desabilita destaques "perigoso".</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTOP_ML_SETTINGS_BUILDER_DISABLE_DANGEROUS" Language="pt_BR">
+      <Text>Ao utilizar a lente de construtor, desabilita o destacamento de hexágonos adjacentes a inimigos.</Text>
+    </Replace>
+
+    <Replace Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT" Language="pt_BR">
+      <Text>Ativa lente de batedor automaticamente</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT" Language="pt_BR">
+      <Text>Ativa automaticamente a lente de batedores ao selecionar um batedor.</Text>
+    </Replace>
+
+    <Replace Tag="LOC_HUD_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA" Language="pt_BR">
+      <Text>Lente de batedor para todas as unidades</Text>
+    </Replace>
+    <Replace Tag="LOC_TOOLTOP_ML_SETTINGS_AUTO_APPLY_SCOUT_EXTRA" Language="pt_BR">
+      <Text>Ativa automaticamente a lente de batedores ao selecionar um qualquer unidade militar.</Text>
     </Replace>
 
   </LocalizedText>
