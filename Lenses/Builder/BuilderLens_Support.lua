@@ -419,7 +419,7 @@ function plotHasCorrectImprovement(pPlot:table)
 end
 
 function plotWorkedByCitizen(pPlot:table)
-    print("Checking worked by for " .. pPlot:GetIndex())
+    -- print("Checking worked by for " .. pPlot:GetIndex())
     return pPlot:GetWorkerCount() > 0
 end
 
