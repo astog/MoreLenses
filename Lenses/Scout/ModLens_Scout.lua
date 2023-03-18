@@ -64,25 +64,35 @@ end
 local function OnUnitSelectionChanged( playerID:number, unitID:number, hexI:number, hexJ:number, hexK:number, bSelected:boolean, bEditable:boolean )
     if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
         local pPlayer = Players[playerID]
+        if pPlayer == nil then
+            return
+        end
+
         local pUnit = pPlayer:GetUnits():FindID(unitID)
+        if pUnit == nil then
+            return
+        end
+
         local unitType = pUnit:GetUnitType()
-        if unitType ~= -1 and GameInfo.Units[unitType] ~= nil then
-            local promotionClass = GameInfo.Units[unitType].PromotionClass
-            local unitDomain = GameInfo.Units[unitType].Domain
-            local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
-            if bSelected then
-                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
-                    ShowScoutLens()
-                elseif promotionClass == "PROMOTION_CLASS_RECON" then
-                    ShowScoutLens()
-                end
-            -- Deselection
-            else
-                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
-                    ClearScoutLens()
-                elseif promotionClass == "PROMOTION_CLASS_RECON" then
-                    ClearScoutLens()
-                end
+        if unitType == -1 or GameInfo.Units[unitType] == nil then
+            return
+        end
+
+        local promotionClass = GameInfo.Units[unitType].PromotionClass
+        local unitDomain = GameInfo.Units[unitType].Domain
+        local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
+        if bSelected then
+            if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+                ShowScoutLens()
+            elseif promotionClass == "PROMOTION_CLASS_RECON" then
+                ShowScoutLens()
+            end
+        -- Deselection
+        else
+            if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+                ClearScoutLens()
+            elseif promotionClass == "PROMOTION_CLASS_RECON" then
+                ClearScoutLens()
             end
         end
     end
@@ -101,20 +111,32 @@ end
 local function OnUnitMoveComplete( playerID:number, unitID:number )
     if playerID == Game.GetLocalPlayer() and (AUTO_APPLY_SCOUT_LENS or AUTO_APPLY_SCOUT_LENS_EXTRA) then
         local pPlayer = Players[playerID]
+        if pPlayer == nil then
+            return
+        end
+
         local pUnit = pPlayer:GetUnits():FindID(unitID)
+        if pUnit == nil then
+            return
+        end
+
         -- Ensure the unit is selected. Scout could be exploring automated
-        if UI.IsUnitSelected(pUnit) then
-            local unitType = pUnit:GetUnitType()
-            if unitType ~= -1 and GameInfo.Units[unitType] ~= nil then
-                local promotionClass = GameInfo.Units[unitType].PromotionClass
-                local unitDomain = GameInfo.Units[unitType].Domain
-                local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
-                if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
-                    RefreshScoutLens()
-                elseif promotionClass == "PROMOTION_CLASS_RECON" then
-                    RefreshScoutLens()
-                end
-            end
+        if not UI.IsUnitSelected(pUnit) then
+            return
+        end
+
+        local unitType = pUnit:GetUnitType()
+        if unitType == -1 or GameInfo.Units[unitType] == nil then
+            return
+        end
+        
+        local promotionClass = GameInfo.Units[unitType].PromotionClass
+        local unitDomain = GameInfo.Units[unitType].Domain
+        local militaryUnit = (pUnit:GetCombat() > 0 or pUnit:GetRangedCombat() > 0) and (unitDomain == "DOMAIN_LAND")
+        if militaryUnit and AUTO_APPLY_SCOUT_LENS_EXTRA then
+            RefreshScoutLens()
+        elseif promotionClass == "PROMOTION_CLASS_RECON" then
+            RefreshScoutLens()
         end
     end
 end
