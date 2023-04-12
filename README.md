@@ -92,3 +92,4 @@ If you encounter issues with getting the mod working try the following steps:
 * @frytom for providing the German localization in #283-CQUI
 * @lctrs for providing a partial French localization in #273-CQUI
 * @wbqd for providing a Korean translation in #309-CQUI
+* @rzucareli for providing a Brazilian-Portuguese localization
