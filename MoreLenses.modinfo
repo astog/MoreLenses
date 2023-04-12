@@ -28,8 +28,8 @@
         <LoadOrder>8</LoadOrder>
       </Properties>
       <Items>
-        <File>Settings/ML_SettingsSchema.sql</File>
-        <!-- <File>Settings/ML_Settings.sql</File> -->
+        <File>Settings/ml_settingsschema.sql</File>
+        <!-- <File>Settings/ml_settings.sql</File> -->
       </Items>
     </UpdateDatabase>
 
@@ -38,8 +38,8 @@
         <LoadOrder>9</LoadOrder>
       </Properties>
       <Items>
-        <!-- <File>Settings/ML_SettingsSchema.sql</File> -->
-        <File>Settings/ML_Settings.sql</File>
+        <!-- <File>Settings/ml_settingsschema.sql</File> -->
+        <File>Settings/ml_settings.sql</File>
       </Items>
     </UpdateDatabase>
 
@@ -49,8 +49,8 @@
         <LoadOrder>10</LoadOrder>
       </Properties>
       <Items>
-        <File>Settings/ML_SettingsPanel.xml</File>
-        <!-- Settings/ML_SettingsPanel.lua implied -->
+        <File>Settings/ml_settingspanel.xml</File>
+        <!-- Settings/ml_settingspanel.lua implied -->
       </Items>
     </AddUserInterfaces>
 
@@ -129,7 +129,7 @@
         <LoadOrder>0</LoadOrder>
       </Properties>
       <Items>
-        <File>MoreLenses_Colors.sql</File>
+        <File>morelenses_colors.sql</File>
       </Items>
     </UpdateDatabase>
 
@@ -177,7 +177,7 @@
     <File>Text/MoreLenses_Text_jp.xml</File>
 
     <!-- Database -->
-    <File>MoreLenses_Colors.sql</File>
+    <File>morelenses_colors.sql</File>
 
     <!-- Lenses -->
     <!-- NOTE: All original scripts are uppercase to avoid inconsistencies in the "wildcard" include function -->
@@ -196,10 +196,10 @@
     <File>Lenses/Resource/ModLens_Resource.lua</File>
 
     <!-- Settings -->
-    <File>Settings/ML_SettingsPanel.xml</File>
-    <File>Settings/ML_SettingsPanel.lua</File>
-    <File>Settings/ML_SettingsSchema.sql</File>
-    <File>Settings/ML_Settings.sql</File>
+    <File>Settings/ml_settingspanel.xml</File>
+    <File>Settings/ml_settingspanel.lua</File>
+    <File>Settings/ml_settingsschema.sql</File>
+    <File>Settings/ml_settings.sql</File>
 
   </Files>
 </Mod>
